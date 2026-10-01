@@ -23,9 +23,9 @@
       { key: "dashboard", label: "Dashboard", icon: "dashboard", href: "Main.dc.html" },
       { key: "sales", label: "Sales", icon: "shopping-bag", children: [
         { key: "orders", label: "Orders", href: "Orders.dc.html" },
-        { key: "abandoned-carts", label: "Abandoned Carts" },
-        { key: "returns", label: "Returns & Refunds" },
-        { key: "channels", label: "Sales Channels" }] },
+        { key: "abandoned-carts", label: "Abandoned Carts", href: "AbandonedCarts.dc.html" },
+        { key: "returns", label: "Returns & Refunds", href: "Returns.dc.html" },
+        { key: "channels", label: "Sales Channels", href: "SalesChannels.dc.html" }] },
       { key: "products", label: "Products", icon: "tag", children: [
         { key: "all", label: "All Products" },
         { key: "categories", label: "Categories" },

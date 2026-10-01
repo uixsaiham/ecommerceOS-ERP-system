@@ -1004,7 +1004,7 @@ class Component extends DCLogic {
       toggleCollapse: () => this.setState((st) => ({ collapsed: !st.collapsed })),
       openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
       nav: { current: 'sales/orders', collapsed: s.collapsed, drawer: s.drawer, stores: STORES, store: s.store, user: USER,
-        setStore: (k) => this.setState({ store: k, menu: null, page: 1, sel: [], allMatching: false }), navigate: (path) => this.showToast(navLabel(path) + ' isn’t built yet', 'Only the dashboard and Orders pages exist so far.', 'info') },
+        setStore: (k) => this.setState({ store: k, menu: null, page: 1, sel: [], allMatching: false }), navigate: (path) => this.showToast(navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info') },
       toggleStoreTop: this.toggleMenu('storeTop'), toggleHelp: this.toggleMenu('help'), toggleNotif: this.toggleMenu('notif'), toggleProfile: this.toggleMenu('profile'),
       storeName: store.label,
       storeItems: STORES.map((st) => ({ label: st.label, sub: st.sub, icon: st.icon, selected: s.store === st.key, pick: () => this.setState({ store: st.key, menu: null, page: 1, sel: [], allMatching: false }) })),

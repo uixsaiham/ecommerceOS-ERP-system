@@ -884,7 +884,7 @@ class Component extends DCLogic {
       toggleCollapse: () => this.setState((st) => ({ collapsed: !st.collapsed })),
       openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
       nav: { current: 'dashboard', collapsed: s.collapsed, drawer: s.drawer, stores: STORES, store: s.store, user: USER,
-        setStore: (k) => this.setState({ store: k, menu: null }), navigate: (path) => this.showToast(navLabel(path) + ' isn’t built yet', 'Only the dashboard and Orders pages exist so far.') },
+        setStore: (k) => this.setState({ store: k, menu: null }), navigate: (path) => this.showToast(navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.') },
       open: { storeTop: s.menu === 'storeTop', storePage: s.menu === 'storePage', help: s.menu === 'help', notif: s.menu === 'notif', profile: s.menu === 'profile', range: s.menu === 'range', export: s.menu === 'export', filter: s.menu === 'filter' },
       toggleStoreTop: this.toggleMenu('storeTop'), toggleStorePage: this.toggleMenu('storePage'), toggleHelp: this.toggleMenu('help'), toggleNotif: this.toggleMenu('notif'),
       toggleProfile: this.toggleMenu('profile'), toggleRange: this.toggleMenu('range'), toggleExport: this.toggleMenu('export'), toggleFilter: this.toggleMenu('filter'),

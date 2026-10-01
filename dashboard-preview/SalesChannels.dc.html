@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sales Channels · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css">
+<script src="ds/commerceos/components/bundle.js"></script>
+<script src="ds/commerceos/shell/shell.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Sales channels ---------- */
+.sc-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.sc-bar-tabs{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sc-bar-tabs .cx-tabs{border-bottom:0;gap:20px}
+.sc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.sc-card{display:flex;flex-direction:column;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+.sc-card.is-error{border-color:var(--warning)}
+.sc-card.is-paused{background:var(--bg-subtle)}
+.sc-card-head{display:flex;align-items:flex-start;gap:12px;padding:16px 16px 12px}
+.sc-logo{flex:none;width:40px;height:40px;border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;letter-spacing:-0.02em}
+.sc-c0{background:var(--brand-subtle);color:var(--brand)}
+.sc-c1{background:var(--info-subtle);color:var(--info)}
+.sc-c2{background:var(--success-subtle);color:var(--success)}
+.sc-c3{background:var(--warning-subtle);color:var(--warning)}
+.sc-c4{background:var(--bg-muted);color:var(--text-secondary)}
+.sc-titles{flex:1;min-width:0;display:flex;flex-direction:column}
+.sc-name{font-size:15px;line-height:22px;font-weight:600}
+.sc-sub{font-size:12px;line-height:16px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:0 16px 12px}
+.sc-metrics div{min-width:0}
+.sc-metrics dt{font-size:12px;line-height:16px;color:var(--text-muted)}
+.sc-metrics dd{margin:2px 0 0;font-size:17px;line-height:24px;font-weight:600;letter-spacing:-0.01em}
+.sc-metrics .o-delta{font-size:12px;line-height:16px}
+.sc-rows{margin:0;padding:12px 16px;border-top:1px solid var(--border);display:grid;grid-template-columns:120px minmax(0,1fr);gap:6px 12px;font-size:13px;line-height:20px}
+.sc-rows dt{color:var(--text-muted)}
+.sc-rows dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.sc-warn{color:var(--warning);font-weight:500}
+.sc-foot{display:flex;align-items:center;gap:8px;margin-top:auto;padding:12px 16px;border-top:1px solid var(--border)}
+.sc-foot .o-pop{margin-left:auto}
+.sc-spin{display:inline-flex;align-items:center;gap:6px;color:var(--info)}
+.sc-duo{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;align-items:start}
+.sc-panel-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+.sc-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px 12px}
+.sc-panel-head h2{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.sc-panel-head span{font-size:12px;color:var(--text-muted)}
+.sc-stack{display:flex;height:12px;margin:0 20px 16px;border-radius:var(--radius-full);overflow:hidden;background:var(--bg-muted);gap:2px}
+.sc-stack span{display:block;height:100%}
+.sc-s0{background:var(--brand)}
+.sc-s1{background:var(--info)}
+.sc-s2{background:var(--success)}
+.sc-s3{background:var(--warning)}
+.sc-s4{background:var(--text-muted)}
+.sc-sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:-1px}
+.sc-perf{width:100%;border-collapse:collapse;font-size:13px;line-height:20px;font-variant-numeric:tabular-nums}
+.sc-perf th{padding:8px 12px;font-size:12px;font-weight:500;color:var(--text-secondary);text-align:left;background:var(--bg-subtle);border-top:1px solid var(--border);border-bottom:1px solid var(--border);white-space:nowrap}
+.sc-perf td{padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+.sc-perf tr:last-child td{border-bottom:0}
+.sc-perf th:first-child,.sc-perf td:first-child{padding-left:20px}
+.sc-perf th:last-child,.sc-perf td:last-child{padding-right:20px}
+.sc-perf .is-right{text-align:right}
+.sc-perf tfoot td{font-weight:600;border-top:1px solid var(--border);border-bottom:0}
+.sc-log{list-style:none;margin:0;padding:0 20px 8px;display:flex;flex-direction:column}
+.sc-log li{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--border);font-size:13px;line-height:20px}
+.sc-log-ico{flex:none;width:28px;height:28px;border-radius:var(--radius-full);display:inline-flex;align-items:center;justify-content:center}
+.sc-log-ico .cx-icon{width:14px;height:14px}
+.sc-log-ico.t-success{background:var(--success-subtle);color:var(--success)}
+.sc-log-ico.t-warning{background:var(--warning-subtle);color:var(--warning)}
+.sc-log-ico.t-info{background:var(--info-subtle);color:var(--info)}
+.sc-log-ico.t-neutral{background:var(--bg-muted);color:var(--text-secondary)}
+.sc-log-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.sc-catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.sc-cat{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.sc-cat-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:13px;line-height:18px}
+.sc-cat-main strong{font-size:14px}
+.sc-cat-main span{color:var(--text-secondary)}
+.sc-fix{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.sc-fix li{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:12px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border)}
+.sc-fix li:last-child{border-bottom:0}
+.sc-fix li.is-fixed{background:var(--success-subtle)}
+.sc-fix-main{display:flex;flex-direction:column;min-width:0;font-size:13px;line-height:18px}
+.sc-fix-main .o-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-checks{display:flex;flex-direction:column;gap:6px}
+.sc-grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.sc-form-note{margin:0;font-size:12px;line-height:16px;color:var(--text-muted)}
+@media (max-width:1279px){ .sc-duo{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:1023px){ .sc-kpis{display:flex} .sc-grid{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:767px){ .sc-catalog,.sc-grid2{grid-template-columns:1fr} .sc-metrics dd{font-size:15px} .sc-rows{grid-template-columns:100px minmax(0,1fr)} .sc-perf .c-hide{display:none} .sc-fix li{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}" onKeyDown="{{onRootKey}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="sales/channels" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="sales/channels"></x-import>
+<h1>Sales Channels</h1>
+<p class="ph-sub">Connect and manage everywhere you sell. Products, stock and orders stay in sync across channels.</p>
+<p class="ph-meta"><span>{{metaChannels}}</span><span>Last 30 days · {{storeName}}</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="refresh" loading="{{syncingAll}}" on-click="{{syncAll}}">Sync all</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openConnect}}">Connect channel</x-import>
+</div>
+</div>
+
+<sc-if value="{{issue}}" hint-placeholder-val="{{true}}">
+<x-import component-from-global-scope="CommerceOS.Alert" tone="warning" title="{{issue.title}}" actions="{{issue.actions}}">{{issue.text}}</x-import>
+</sc-if>
+
+<section class="o-kpis sc-kpis" aria-label="Channel totals for the last 30 days">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><sc-if value="{{k.delta}}" hint-placeholder-val="{{true}}"><span class="{{k.deltaCls}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{k.deltaIcon}}"></x-import>{{k.delta}}</span></sc-if><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section aria-labelledby="sc-channels-h">
+<div class="sc-bar-tabs">
+<h2 id="sc-channels-h" class="cx-sr">Channels</h2>
+<x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Channel status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import>
+</div>
+<sc-if value="{{hasCards}}" hint-placeholder-val="{{true}}">
+<div class="sc-grid">
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="4">
+<article class="{{c.cls}}" aria-labelledby="sc-name-{{c.key}}">
+<div class="sc-card-head">
+<span class="{{c.logoCls}}" aria-hidden="true">{{c.initials}}</span>
+<div class="sc-titles"><span class="sc-name" id="sc-name-{{c.key}}">{{c.name}}</span><span class="sc-sub">{{c.sub}}</span></div>
+<x-import component-from-global-scope="CommerceOS.Badge" tone="{{c.tone}}" icon="{{c.icon}}">{{c.statusLabel}}</x-import>
+</div>
+<dl class="sc-metrics">
+<div><dt>Revenue</dt><dd>{{c.revenue}}</dd><span class="{{c.revDeltaCls}}">{{c.revDelta}}</span></div>
+<div><dt>Orders</dt><dd>{{c.orders}}</dd><span class="{{c.ordDeltaCls}}">{{c.ordDelta}}</span></div>
+<div><dt>Avg. order</dt><dd>{{c.aov}}</dd><span class="o-sub">{{c.share}} of revenue</span></div>
+</dl>
+<dl class="sc-rows">
+<dt>Listings</dt><dd><span class="{{c.listCls}}">{{c.listings}}</span></dd>
+<dt>Stock from</dt><dd>{{c.sources}}</dd>
+<dt>Pricing</dt><dd>{{c.pricing}}</dd>
+<dt>Last sync</dt><dd><sc-if value="{{c.syncing}}" hint-placeholder-val="{{false}}"><span class="sc-spin"><x-import component-from-global-scope="CommerceOS.Spinner" size="sm"></x-import>Syncing products and stock…</span></sc-if><sc-if value="{{c.notSyncing}}" hint-placeholder-val="{{true}}">{{c.lastSync}}</sc-if></dd>
+</dl>
+<div class="sc-foot">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="refresh" loading="{{c.syncing}}" disabled="{{c.cantSync}}" on-click="{{c.sync}}">Sync now</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="settings" on-click="{{c.openSettings}}">Settings</x-import>
+<sc-if value="{{c.fixable}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="alert-triangle" on-click="{{c.fix}}">Fix listings</x-import></sc-if>
+<div class="o-pop" data-pop="card">
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="more-horizontal" aria-label="More actions for {{c.name}}" aria-haspopup="menu" aria-expanded="{{c.menuOpen}}" on-click="{{c.toggleMenu}}"></x-import>
+<sc-if value="{{c.menuOpen}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Actions for {{c.name}}">
+<a class="cx-menu-item" role="menuitem" href="Orders.dc.html"><x-import component-from-global-scope="CommerceOS.Icon" name="shopping-bag"></x-import><span>View orders</span></a>
+<button class="cx-menu-item" role="menuitem" onClick="{{c.togglePause}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{c.pauseIcon}}"></x-import><span>{{c.pauseLabel}}</span></button>
+<div class="cx-menu-sep"></div>
+<button class="cx-menu-item is-danger" role="menuitem" onClick="{{c.disconnect}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import><span>Disconnect</span></button>
+</div>
+</sc-if>
+</div>
+</div>
+</article>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{noCards}}" hint-placeholder-val="{{false}}">
+<div class="o-card"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="{{emptyIcon}}" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import></div>
+</sc-if>
+</section>
+
+<div class="sc-duo">
+<section class="sc-panel-card" aria-labelledby="sc-perf-h">
+<div class="sc-panel-head"><h2 id="sc-perf-h">Revenue by channel</h2><span>Last 30 days vs previous 30</span></div>
+<div class="sc-stack" role="img" aria-label="{{stackAria}}"><sc-for list="{{perf}}" as="p" hint-placeholder-count="4"><span class="{{p.swatch}}" style="width: {{p.pct}}%"></span></sc-for></div>
+<div class="o-scroll">
+<table class="sc-perf">
+<thead><tr><th scope="col">Channel</th><th class="is-right" scope="col">Revenue</th><th class="is-right" scope="col">Share</th><th class="is-right c-hide" scope="col">Orders</th><th class="is-right c-hide" scope="col">Avg. order</th><th class="is-right" scope="col">Change</th></tr></thead>
+<tbody><sc-for list="{{perf}}" as="p" hint-placeholder-count="4"><tr><td><span class="sc-sw {{p.swatch}}" aria-hidden="true"></span>{{p.name}}</td><td class="is-right">{{p.revenue}}</td><td class="is-right">{{p.share}}</td><td class="is-right c-hide">{{p.orders}}</td><td class="is-right c-hide">{{p.aov}}</td><td class="is-right"><span class="{{p.deltaCls}}">{{p.delta}}</span></td></tr></sc-for></tbody>
+<tfoot><tr><td>Total</td><td class="is-right">{{perfTotal.revenue}}</td><td class="is-right">100%</td><td class="is-right c-hide">{{perfTotal.orders}}</td><td class="is-right c-hide">{{perfTotal.aov}}</td><td class="is-right"><span class="{{perfTotal.deltaCls}}">{{perfTotal.delta}}</span></td></tr></tfoot>
+</table>
+</div>
+</section>
+<section class="sc-panel-card" aria-labelledby="sc-log-h">
+<div class="sc-panel-head"><h2 id="sc-log-h">Sync activity</h2><span>Latest first</span></div>
+<ul class="sc-log"><sc-for list="{{log}}" as="l" hint-placeholder-count="6"><li><span class="sc-log-ico {{l.tone}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{l.icon}}"></x-import></span><span class="sc-log-main"><span>{{l.text}}</span><span class="o-sub">{{l.channel}} · {{l.when}}</span></span></li></sc-for></ul>
+</section>
+</div>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{settings}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close channel settings" onClick="{{closeSettings}}"></button>
+<div class="o-panel" role="dialog" aria-modal="true" aria-labelledby="sc-set-title" style="width: 460px">
+<div class="o-panel-head"><div><h2 class="o-panel-title" id="sc-set-title">{{settings.title}}</h2><span class="o-sub">{{settings.sub}}</span></div><button class="icon-btn" aria-label="Close channel settings" onClick="{{closeSettings}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec"><h3>General</h3>
+<x-import component-from-global-scope="CommerceOS.Input" label="Display name" value="{{settings.name}}" on-change="{{settings.setName}}" error="{{settings.nameError}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Sync frequency" options="{{freqOpts}}" value="{{settings.freq}}" on-value-change="{{settings.setFreq}}"></x-import>
+</section>
+<section class="o-panel-sec"><h3>Inventory</h3>
+<p class="sc-form-note">Stock from these warehouses is offered on this channel.</p>
+<div class="sc-checks"><sc-for list="{{settings.whs}}" as="w" hint-placeholder-count="4"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{w.label}}" checked="{{w.checked}}" on-change="{{w.toggle}}"></x-import></sc-for></div>
+<sc-if value="{{settings.whError}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="danger">Choose at least one warehouse.</x-import></sc-if>
+<x-import component-from-global-scope="CommerceOS.Select" label="Safety stock" hint="Hide this many units per SKU so channels don’t oversell." options="{{bufferOpts}}" value="{{settings.buffer}}" on-value-change="{{settings.setBuffer}}"></x-import>
+</section>
+<section class="o-panel-sec"><h3>Pricing</h3>
+<x-import component-from-global-scope="CommerceOS.Input" label="Price adjustment" suffix="%" inputmode="decimal" value="{{settings.markup}}" on-change="{{settings.setMarkup}}" hint="{{settings.markupHint}}" error="{{settings.markupError}}" width="160px"></x-import>
+</section>
+<section class="o-panel-sec"><h3>Orders</h3>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Import orders into CommerceOS automatically" checked="{{settings.autoImport}}" on-change="{{settings.setAutoImport}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Confirm paid orders automatically" checked="{{settings.autoConfirm}}" on-change="{{settings.setAutoConfirm}}" disabled="{{settings.noImport}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Fulfill from" options="{{settings.fulfillOpts}}" value="{{settings.fulfill}}" on-value-change="{{settings.setFulfill}}"></x-import>
+</section>
+</div>
+<div class="o-panel-foot"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeSettings}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{settings.save}}">Save settings</x-import></div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{connectOpen}}" on-close="{{closeConnect}}" size="lg" title="{{cn.title}}" description="{{cn.desc}}">
+<div class="o-modal-stack">
+<sc-if value="{{cn.pick}}" hint-placeholder-val="{{true}}">
+<div class="sc-catalog"><sc-for list="{{catalog}}" as="a" hint-placeholder-count="6"><div class="sc-cat"><span class="sc-logo sc-c4" aria-hidden="true">{{a.initials}}</span><span class="sc-cat-main"><strong>{{a.name}}</strong><span>{{a.desc}}</span></span><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" on-click="{{a.choose}}">Connect</x-import></div></sc-for></div>
+<sc-if value="{{cn.allConnected}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" size="sm" icon="check-circle" title="Every available channel is connected" description="New integrations are added every month."></x-import></sc-if>
+</sc-if>
+<sc-if value="{{cn.form}}" hint-placeholder-val="{{false}}">
+<div class="sc-grid2">
+<x-import component-from-global-scope="CommerceOS.Input" label="{{cn.accountLabel}}" placeholder="{{cn.accountPlaceholder}}" value="{{cn.account}}" on-change="{{cn.setAccount}}" error="{{cn.accountError}}" data-autofocus="true"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Currency" options="{{currencyOpts}}" value="{{cn.currency}}" on-value-change="{{cn.setCurrency}}"></x-import>
+</div>
+<div class="sc-checks"><span class="sc-form-note">Offer stock from</span><sc-for list="{{cn.whs}}" as="w" hint-placeholder-count="4"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{w.label}}" checked="{{w.checked}}" on-change="{{w.toggle}}"></x-import></sc-for></div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="List all active products now (you can unlist them later)" checked="{{cn.importAll}}" on-change="{{cn.setImportAll}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="chevron-left" on-click="{{cn.back}}">Back</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{cn.confirm}}">{{cn.cta}}</x-import></div>
+</sc-if>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{fixOpen}}" on-close="{{closeFix}}" size="lg" title="{{fx.title}}" description="Amazon needs a GTIN (UPC or EAN barcode) on every listing. Add the missing codes to make these listings live again.">
+<div class="o-modal-stack">
+<div class="o-modal-actions" style="justify-content: space-between"><span class="o-sub">{{fx.progress}}</span><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="copy" on-click="{{fx.autofill}}" disabled="{{fx.autofillDone}}">Fill from product catalog</x-import></div>
+<ul class="sc-fix"><sc-for list="{{fx.rows}}" as="r" hint-placeholder-count="6"><li class="{{r.cls}}"><span class="sc-fix-main"><span>{{r.name}}</span><span class="o-sub">{{r.sku}} · {{r.issue}}</span></span><x-import component-from-global-scope="CommerceOS.Input" size="sm" aria-label="GTIN for {{r.sku}}" placeholder="12 or 13 digits" inputmode="numeric" value="{{r.value}}" on-change="{{r.set}}" error="{{r.error}}"></x-import></li></sc-for></ul>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeFix}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" disabled="{{fx.blocked}}" on-click="{{fx.save}}">{{fx.cta}}</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{discOpen}}" on-close="{{closeDisc}}" tone="danger" size="sm" title="{{dc.title}}" description="{{dc.desc}}">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Keep this channel’s order history in CommerceOS" checked="{{dc.keep}}" on-change="{{dc.setKeep}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeDisc}}">Keep connected</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="danger" on-click="{{dc.confirm}}">Disconnect</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","settings","connect","fix"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none';
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', menu: null, toast: null,
+      channels: CHANNELS.map((c) => Object.assign({}, c)), log: LOG.slice(), tab: 'all', syncing: [],
+      settings: null, connect: null, fix: null, disc: null, seq: 0
+    };
+    if (demo === 'settings') this.state.settings = this.settingsDraft(this.state.channels[0]);
+    if (demo === 'connect') this.state.connect = { step: 'pick' };
+    if (demo === 'fix') this.state.fix = this.fixDraft(this.state.channels.find((c) => c.key === 'amazon'));
+  }
+  componentDidMount() {
+    this._timers = [];
+    this._onDoc = (e) => { if (this.state.menu && !(e.target.closest && e.target.closest('[data-pop]'))) this.setState({ menu: null }); };
+    document.addEventListener('mousedown', this._onDoc);
+  }
+  componentWillUnmount() { document.removeEventListener('mousedown', this._onDoc); clearTimeout(this._toastT); (this._timers || []).forEach(clearTimeout); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  later(fn, ms) { const t = setTimeout(fn, ms); (this._timers = this._timers || []).push(t); }
+  toggleMenu(name) { return () => this.setState((s) => ({ menu: s.menu === name ? null : name })); }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null }, menu: null });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  addLog(entry) { this.setState((s) => ({ log: [Object.assign({ ts: Date.now() }, entry)].concat(s.log).slice(0, 8) })); }
+  patch(key, fn) { this.setState((s) => ({ channels: s.channels.map((c) => (c.key === key ? Object.assign({}, c, fn(c)) : c)) })); }
+  sync(keys, quiet) {
+    const s = this.state, ok = s.channels.filter((c) => keys.indexOf(c.key) >= 0 && c.status !== 'paused' && s.syncing.indexOf(c.key) < 0).map((c) => c.key);
+    if (!ok.length) return;
+    this.setState((st) => ({ syncing: st.syncing.concat(ok), menu: null }));
+    ok.forEach((key, i) => this.later(() => {
+      const c = this.state.channels.find((x) => x.key === key); if (!c) return;
+      const changed = 12 + ((c.listed * 7 + i * 13) % 61);
+      this.setState((st) => ({ syncing: st.syncing.filter((k) => k !== key) }));
+      this.patch(key, () => ({ lastSync: Date.now() }));
+      this.addLog(c.suppressed ? { channel: c.name, icon: 'alert-triangle', tone: 't-warning', text: 'Synced with warnings: ' + c.suppressed + ' listings still suppressed' }
+        : { channel: c.name, icon: 'check-circle', tone: 't-success', text: 'Synced ' + int(c.listed) + ' products, ' + changed + ' stock levels updated' });
+      if (!quiet && ok.length === 1) this.showToast(c.name + ' synced', int(c.listed) + ' products and stock are up to date.');
+    }, 1600 + i * 500));
+    if (quiet) this.later(() => this.showToast(ok.length + ' channels synced', 'Products, prices and stock are up to date everywhere.'), 1700 + ok.length * 500);
+  }
+  settingsDraft(c) { return { key: c.key, name: c.name, freq: c.freq, sources: c.sources.slice(), buffer: String(c.buffer), markup: String(c.markup), autoImport: c.autoImport, autoConfirm: c.autoConfirm, fulfill: c.fulfill, tried: false }; }
+  fixDraft(c) { return { key: c.key, values: {}, autofilled: false, tried: false }; }
+
+  renderVals() {
+    const s = this.state, store = STORES.find((x) => x.key === s.store);
+    const scoped = s.channels.filter((c) => s.store === 'all' || c.name === store.label);
+    const live = scoped.filter((c) => c.status !== 'paused');
+    const sum = (arr, k) => arr.reduce((a, c) => a + c[k], 0);
+    const rev = sum(scoped, 'rev'), prevRev = sum(scoped, 'prevRev'), ord = sum(scoped, 'orders'), prevOrd = sum(scoped, 'prevOrders');
+    const delta = (cur, prev) => { const d = prev ? (cur - prev) / prev : 0; return { delta: signedPct(d), deltaIcon: d >= 0 ? 'trending-up' : 'trending-down', deltaCls: 'o-delta ' + (Math.abs(d) < 0.0005 ? 'is-flat' : d > 0 ? 'is-good' : 'is-bad') }; };
+    const listed = sum(live, 'listed'), suppressed = sum(live, 'suppressed');
+    const issues = scoped.filter((c) => c.suppressed > 0 && c.status !== 'paused');
+    const kpis = [
+      Object.assign({ label: 'Revenue', dot: 'cx-dot cx-dot-brand', value: money0(rev), cmp: 'vs ' + money0(prevRev) }, delta(rev, prevRev)),
+      Object.assign({ label: 'Orders', dot: 'cx-dot cx-dot-info', value: int(ord), cmp: 'vs ' + int(prevOrd) }, delta(ord, prevOrd)),
+      Object.assign({ label: 'Average order value', dot: 'cx-dot cx-dot-success', value: money2(ord ? rev / ord : 0), cmp: 'vs ' + money2(prevOrd ? prevRev / prevOrd : 0) }, delta(ord ? rev / ord : 0, prevOrd ? prevRev / prevOrd : 0)),
+      { label: 'Listings live', dot: 'cx-dot cx-dot-' + (suppressed ? 'warning' : 'success'), value: int(listed - suppressed), cmp: suppressed ? int(suppressed) + ' suppressed on ' + issues.map((c) => c.name).join(', ') : 'All listings live on ' + live.length + (live.length === 1 ? ' channel' : ' channels'), delta: null }
+    ];
+
+    const amazon = issues[0];
+    const issue = amazon ? { title: amazon.name + ': ' + amazon.suppressed + ' listings suppressed', text: 'Amazon hid these listings because they’re missing a GTIN barcode. Customers can’t buy them until the codes are added.',
+      actions: [h(CommerceOS.Button, { key: 'f', variant: 'secondary', size: 'sm', onClick: () => this.setState({ fix: this.fixDraft(amazon) }) }, 'Fix listings')] } : null;
+
+    const tabDefs = [['all', 'All'], ['active', 'Active'], ['attention', 'Needs attention'], ['paused', 'Paused']];
+    const inTab = (c, t) => t === 'all' || (t === 'active' ? c.status === 'active' && !c.suppressed : t === 'attention' ? c.suppressed > 0 && c.status !== 'paused' : c.status === 'paused');
+    const tabs = tabDefs.map(([id, label]) => ({ id, label, count: scoped.filter((c) => inTab(c, id)).length }));
+    const shown = scoped.filter((c) => inTab(c, s.tab));
+    const share = (c) => (rev ? c.rev / rev : 0);
+
+    const cards = shown.map((c) => {
+      const syncing = s.syncing.indexOf(c.key) >= 0, paused = c.status === 'paused', err = c.suppressed > 0 && !paused;
+      const st = paused ? ['neutral', 'Paused', 'clock'] : syncing ? ['info', 'Syncing', 'refresh'] : err ? ['warning', 'Needs attention', 'alert-triangle'] : ['success', 'Active', 'check-circle'];
+      const rd = delta(c.rev, c.prevRev), od = delta(c.orders, c.prevOrders), menuOpen = s.menu === 'card:' + c.key;
+      return { key: c.key, name: c.name, sub: c.platform + ' · ' + c.domain + ' · ' + c.currency, initials: c.initials, logoCls: 'sc-logo sc-c' + c.color,
+        cls: 'sc-card' + (err ? ' is-error' : '') + (paused ? ' is-paused' : ''), tone: st[0], statusLabel: st[1], icon: st[2],
+        revenue: money0(c.rev), revDelta: c.prevRev ? rd.delta : 'New', revDeltaCls: c.prevRev ? rd.deltaCls : 'o-sub', orders: int(c.orders), ordDelta: c.prevOrders ? od.delta : 'New', ordDeltaCls: c.prevOrders ? od.deltaCls : 'o-sub',
+        aov: c.orders ? money2(c.rev / c.orders) : '—', share: (share(c) * 100).toFixed(1) + '%',
+        listings: paused ? int(c.listed) + ' listings hidden while paused' : err ? int(c.listed - c.suppressed) + ' live · ' + c.suppressed + ' suppressed' : int(c.listed) + ' live',
+        listCls: err ? 'sc-warn' : '', sources: c.sources.join(' · ') + (c.buffer ? ' · ' + c.buffer + '-unit buffer' : ''),
+        pricing: c.markup ? (c.markup > 0 ? '+' : '') + c.markup + '% vs base price' : 'Base price', lastSync: paused ? 'Paused ' + timeAgo(c.pausedAt) : timeAgo(c.lastSync) + ' · ' + FREQ_LABEL[c.freq].toLowerCase(),
+        syncing, notSyncing: !syncing, cantSync: paused, fixable: err,
+        sync: () => this.sync([c.key]), openSettings: () => this.setState({ settings: this.settingsDraft(c), menu: null }), fix: () => this.setState({ fix: this.fixDraft(c) }),
+        menuOpen, toggleMenu: this.toggleMenu('card:' + c.key),
+        pauseLabel: paused ? 'Resume selling' : 'Pause selling', pauseIcon: paused ? 'refresh' : 'clock',
+        togglePause: () => {
+          const prev = s.channels;
+          this.patch(c.key, () => (paused ? { status: 'active', pausedAt: null, lastSync: Date.now() } : { status: 'paused', pausedAt: Date.now() }));
+          this.addLog({ channel: c.name, icon: paused ? 'refresh' : 'clock', tone: paused ? 't-success' : 't-neutral', text: paused ? 'Selling resumed, ' + int(c.listed) + ' listings live again' : 'Selling paused, listings hidden from customers' });
+          this.showToast(paused ? c.name + ' is live again' : c.name + ' paused', paused ? 'Listings and stock are back on the channel.' : 'Customers can’t buy on this channel until you resume. Open orders still sync.', 'success', { label: 'Undo', onClick: () => this.setState({ channels: prev, toast: null }) });
+        },
+        disconnect: () => this.setState({ disc: { key: c.key, keep: true }, menu: null }) };
+    });
+
+    const perfRows = scoped.slice().sort((a, b) => b.rev - a.rev).map((c) => Object.assign({ name: c.name, revenue: money0(c.rev), share: (share(c) * 100).toFixed(1) + '%', pct: (share(c) * 100).toFixed(2),
+      orders: int(c.orders), aov: c.orders ? money2(c.rev / c.orders) : '—', swatch: 'sc-s' + c.color }, c.prevRev ? delta(c.rev, c.prevRev) : { delta: 'New', deltaCls: 'o-sub' }));
+    const perfTotal = Object.assign({ revenue: money0(rev), orders: int(ord), aov: ord ? money2(rev / ord) : '—' }, delta(rev, prevRev));
+
+    // settings panel
+    let settings = null;
+    if (s.settings) {
+      const d = s.settings, c = s.channels.find((x) => x.key === d.key), up = (k) => (v) => this.setState((st) => ({ settings: Object.assign({}, st.settings, { [k]: v }) }));
+      const m = Number(d.markup), markupBad = d.markup.trim() === '' || isNaN(m) || m < -50 || m > 100;
+      const nameBad = !d.name.trim(), whBad = !d.sources.length;
+      settings = { title: c.name + ' settings', sub: c.platform + ' · ' + c.domain, name: d.name, setName: (e) => up('name')(e.target.value), nameError: d.tried && nameBad ? 'Enter a name.' : null,
+        freq: d.freq, setFreq: up('freq'), buffer: d.buffer, setBuffer: up('buffer'), whError: d.tried && whBad,
+        whs: WAREHOUSES.map((w) => ({ label: w, checked: d.sources.indexOf(w) >= 0, toggle: () => up('sources')(d.sources.indexOf(w) >= 0 ? d.sources.filter((x) => x !== w) : d.sources.concat([w])) })),
+        markup: d.markup, setMarkup: (e) => up('markup')(e.target.value), markupError: markupBad ? 'Use a number from −50 to 100.' : null,
+        markupHint: markupBad ? null : m === 0 ? 'Same price as your base catalog.' : 'Merino crew tee ($58.00) sells for ' + money2(58 * (1 + m / 100)) + ' here.',
+        autoImport: d.autoImport, setAutoImport: up('autoImport'), autoConfirm: d.autoConfirm && d.autoImport, setAutoConfirm: up('autoConfirm'), noImport: !d.autoImport,
+        fulfill: d.fulfill, setFulfill: up('fulfill'), fulfillOpts: [{ value: 'nearest', label: 'Nearest warehouse with stock' }].concat(d.sources.map((w) => ({ value: w, label: w }))),
+        save: () => {
+          if (nameBad || whBad || markupBad) return up('tried')(true);
+          this.patch(c.key, () => ({ name: d.name.trim(), freq: d.freq, sources: d.sources, buffer: Number(d.buffer), markup: m, autoImport: d.autoImport, autoConfirm: d.autoConfirm && d.autoImport,
+            fulfill: d.sources.indexOf(d.fulfill) >= 0 ? d.fulfill : 'nearest', initials: initialsOf(d.name.trim()) }));
+          this.setState({ settings: null });
+          this.addLog({ channel: d.name.trim(), icon: 'settings', tone: 't-info', text: 'Settings updated by Priya Natarajan' });
+          this.showToast(d.name.trim() + ' settings saved', 'Prices and stock update on the next sync (' + FREQ_LABEL[d.freq].toLowerCase() + ').');
+        } };
+    }
+
+    // connect modal
+    const connectedKeys = s.channels.map((c) => c.catalog).filter(Boolean);
+    const avail = CATALOG.filter((a) => connectedKeys.indexOf(a.key) < 0);
+    let cn = { title: '', desc: '' };
+    if (s.connect) {
+      const d = s.connect, up = (k) => (v) => this.setState((st) => ({ connect: Object.assign({}, st.connect, { [k]: v }) }));
+      if (d.step === 'pick') cn = { title: 'Connect a sales channel', desc: 'Sell on more marketplaces and social storefronts. Stock and orders sync automatically.', pick: true, form: false, allConnected: avail.length === 0 };
+      else {
+        const a = CATALOG.find((x) => x.key === d.key), accBad = d.account.trim().length < 3;
+        cn = { title: 'Connect ' + a.name, desc: a.desc, pick: false, form: true, accountLabel: a.accountLabel, accountPlaceholder: a.placeholder, account: d.account, setAccount: (e) => up('account')(e.target.value),
+          accountError: d.tried && accBad ? 'Enter your ' + a.accountLabel.charAt(0).toLowerCase() + a.accountLabel.slice(1) + '.' : null, currency: d.currency, setCurrency: up('currency'),
+          whs: WAREHOUSES.map((w) => ({ label: w, checked: d.sources.indexOf(w) >= 0, toggle: () => up('sources')(d.sources.indexOf(w) >= 0 ? d.sources.filter((x) => x !== w) : d.sources.concat([w])) })),
+          importAll: d.importAll, setImportAll: up('importAll'), back: () => this.setState({ connect: { step: 'pick' } }), cta: 'Connect ' + a.name,
+          confirm: () => {
+            if (accBad || !d.sources.length) return up('tried')(true);
+            const key = a.key + '-' + (s.seq + 1), listed = d.importAll ? a.listed : 0;
+            const ch = { key, catalog: a.key, name: a.name, platform: a.platform, domain: d.account.trim(), currency: d.currency, initials: a.initials, color: 4, status: 'active', rev: 0, prevRev: 0, orders: 0, prevOrders: 0,
+              listed, suppressed: 0, sources: d.sources, buffer: 2, markup: 0, freq: '15m', autoImport: true, autoConfirm: false, fulfill: 'nearest', lastSync: Date.now() };
+            this.setState((st) => ({ channels: st.channels.concat([ch]), connect: null, seq: st.seq + 1, syncing: st.syncing.concat([key]), tab: 'all' }));
+            this.addLog({ channel: a.name, icon: 'plus', tone: 't-info', text: 'Connected by Priya Natarajan' + (listed ? ', listing ' + int(listed) + ' products' : '') });
+            this.later(() => {
+              this.setState((st) => ({ syncing: st.syncing.filter((k) => k !== key) }));
+              this.addLog({ channel: a.name, icon: 'check-circle', tone: 't-success', text: listed ? int(listed) + ' products listed, stock synced' : 'Connected. No products listed yet' });
+              this.showToast(a.name + ' is connected', listed ? int(listed) + ' products are live. New orders will show up in Orders.' : 'List products from the channel’s settings when you’re ready.');
+            }, 2400);
+          } };
+      }
+    }
+    const catalog = avail.map((a) => ({ name: a.name, desc: a.desc, initials: a.initials, choose: () => this.setState({ connect: { step: 'form', key: a.key, account: '', currency: a.currency, sources: a.sources.slice(), importAll: true, tried: false } }) }));
+
+    // fix listings modal
+    let fx = { title: '' };
+    if (s.fix) {
+      const d = s.fix, c = s.channels.find((x) => x.key === d.key), list = SUPPRESSED.slice(0, c.suppressed);
+      const valid = (v) => /^\d{12,13}$/.test((v || '').trim());
+      const filled = list.filter((r) => valid(d.values[r.sku])).length, badCount = list.filter((r) => (d.values[r.sku] || '').trim() && !valid(d.values[r.sku])).length;
+      fx = { title: 'Fix ' + list.length + ' suppressed listings on ' + c.name, progress: filled + ' of ' + list.length + ' ready to publish',
+        rows: list.map((r) => { const v = d.values[r.sku] || '', bad = v.trim() && !valid(v);
+          return { name: r.name, sku: r.sku, issue: r.issue, value: v, error: bad ? '12 or 13 digits' : null, cls: valid(v) ? 'is-fixed' : '',
+            set: (e) => { const val = e.target.value; this.setState((st) => ({ fix: Object.assign({}, st.fix, { values: Object.assign({}, st.fix.values, { [r.sku]: val }) }) })); } }; }),
+        autofillDone: d.autofilled,
+        autofill: () => { const vals = Object.assign({}, d.values); list.forEach((r) => { if (r.gtin && !valid(vals[r.sku])) vals[r.sku] = r.gtin; });
+          this.setState((st) => ({ fix: Object.assign({}, st.fix, { values: vals, autofilled: true }) }));
+          const missing = list.filter((r) => !r.gtin).length; if (missing) this.showToast('Filled ' + (list.length - missing) + ' codes from the catalog', missing + ' products have no barcode on file. Add those by hand.', 'info'); },
+        blocked: filled === 0 || badCount > 0, cta: filled ? 'Publish ' + filled + (filled === 1 ? ' listing' : ' listings') : 'Publish listings',
+        save: () => {
+          const fixedSkus = list.filter((r) => valid(d.values[r.sku])).map((r) => r.sku), left = c.suppressed - fixedSkus.length;
+          SUPPRESSED = SUPPRESSED.filter((r) => fixedSkus.indexOf(r.sku) < 0).concat(SUPPRESSED.filter((r) => fixedSkus.indexOf(r.sku) >= 0));
+          this.patch(c.key, () => ({ suppressed: left }));
+          this.setState({ fix: null });
+          this.addLog({ channel: c.name, icon: left ? 'alert-triangle' : 'check-circle', tone: left ? 't-warning' : 't-success', text: fixedSkus.length + ' listings republished with GTINs' + (left ? ', ' + left + ' still suppressed' : '') });
+          this.showToast(fixedSkus.length + ' listings are live again', left ? left + ' still need a GTIN.' : 'Every ' + c.name + ' listing is live.');
+        } };
+    }
+
+    // disconnect modal
+    let dc = { title: '', desc: '' };
+    if (s.disc) {
+      const c = s.channels.find((x) => x.key === s.disc.key);
+      dc = { title: 'Disconnect ' + c.name + '?', desc: int(c.listed) + ' listings will be removed from ' + c.platform + ' and stock stops syncing. You can reconnect later.', keep: s.disc.keep,
+        setKeep: (v) => this.setState((st) => ({ disc: Object.assign({}, st.disc, { keep: v }) })),
+        confirm: () => {
+          const prev = s.channels;
+          this.setState((st) => ({ channels: st.channels.filter((x) => x.key !== c.key), disc: null, store: st.store !== 'all' && c.name === store.label ? 'all' : st.store }));
+          this.addLog({ channel: c.name, icon: 'x', tone: 't-neutral', text: 'Disconnected by Priya Natarajan' + (s.disc.keep ? ', order history kept' : '') });
+          this.showToast(c.name + ' disconnected', s.disc.keep ? 'Past orders stay in CommerceOS.' : 'Order history was removed.', 'success', { label: 'Undo', onClick: () => this.setState({ channels: prev, toast: null }) });
+        } };
+    }
+
+    const activeCount = s.channels.filter((c) => c.status !== 'paused').length;
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((st) => ({ collapsed: !st.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: STORES, store: s.store, storeName: store.label, user: USER, setStore: (k) => this.setState({ store: k, tab: 'all' }),
+      navigate: (path) => this.showToast(navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((st) => ({ dark: !st.dark })),
+      metaChannels: s.channels.length + ' channels connected · ' + activeCount + ' selling',
+      syncingAll: s.syncing.length > 1, syncAll: () => this.sync(s.channels.map((c) => c.key), true),
+      issue, kpis, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), cards, hasCards: cards.length > 0, noCards: cards.length === 0,
+      emptyIcon: s.tab === 'attention' ? 'check-circle' : 'store', emptyTitle: s.tab === 'attention' ? 'No channels need attention' : s.tab === 'paused' ? 'No paused channels' : 'No channels here',
+      emptyDesc: s.tab === 'attention' ? 'Every listing is live and syncing.' : 'Connect a channel to start selling there.',
+      perf: perfRows, perfTotal, stackAria: 'Revenue share: ' + perfRows.map((p) => p.name + ' ' + p.share).join(', '),
+      log: s.log.map((l) => ({ text: l.text, channel: l.channel, icon: l.icon, tone: l.tone, when: timeAgo(l.ts) })),
+      settings, closeSettings: () => this.setState({ settings: null }), freqOpts: FREQ_OPTS, bufferOpts: BUFFER_OPTS,
+      connectOpen: !!s.connect, openConnect: () => this.setState({ connect: { step: 'pick' } }), closeConnect: () => this.setState({ connect: null }), cn, catalog, currencyOpts: CURRENCIES,
+      fixOpen: !!s.fix, closeFix: () => this.setState({ fix: null }), fx,
+      discOpen: !!s.disc, closeDisc: () => this.setState({ disc: null }), dc,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null }),
+      onRootKey: (e) => {
+        if (e.key !== 'Escape') return;
+        const st = this.state;
+        if (st.menu) this.setState({ menu: null });
+        else if (st.settings) this.setState({ settings: null });
+        else if (st.drawer) this.setState({ drawer: false });
+      }
+    };
+  }
+}
+
+/* ---------- channel data: Fernhill, Oct 1 2026. Revenue matches the dashboard ($128,450 · 2,846 orders). ---------- */
+var NOW = Date.now();
+var h = window.React.createElement, CommerceOS = window.CommerceOS;
+var STORES = [
+  { key: 'all', label: 'All stores', sub: '4 stores · USD', icon: 'store', factor: 1 },
+  { key: 'us', label: 'Fernhill US', sub: 'Shopify · fernhill.co', icon: 'shopping-bag', factor: 0.52 },
+  { key: 'eu', label: 'Fernhill EU', sub: 'Shopify · fernhill.eu', icon: 'shopping-bag', factor: 0.27 },
+  { key: 'wholesale', label: 'Wholesale', sub: 'B2B portal', icon: 'factory', factor: 0.13 },
+  { key: 'amazon', label: 'Amazon US', sub: 'Marketplace', icon: 'tag', factor: 0.08 }
+];
+var USER = { name: 'Priya Natarajan', role: 'Operations Manager', email: 'priya@fernhill.co', initials: 'PN' };
+function navLabel(path) { var r = window.CommerceOS.navResolve(path); return r.page ? r.page.label : r.module ? r.module.label : path; }
+var WAREHOUSES = ['Dhaka Warehouse', 'Chattogram Warehouse', 'Rotterdam DC', 'Newark, NJ'];
+var MIN = 6e4;
+var CHANNELS = [
+  { key: 'us', name: 'Fernhill US', platform: 'Shopify', domain: 'fernhill.co', currency: 'USD', initials: 'US', color: 0, status: 'active', rev: 66794, prevRev: 63301, orders: 1480, prevOrders: 1385,
+    listed: 1204, suppressed: 0, sources: ['Newark, NJ', 'Dhaka Warehouse'], buffer: 2, markup: 0, freq: 'realtime', autoImport: true, autoConfirm: true, fulfill: 'nearest', lastSync: NOW - 4 * MIN },
+  { key: 'eu', name: 'Fernhill EU', platform: 'Shopify', domain: 'fernhill.eu', currency: 'EUR', initials: 'EU', color: 1, status: 'active', rev: 34682, prevRev: 31120, orders: 768, prevOrders: 680,
+    listed: 1186, suppressed: 0, sources: ['Rotterdam DC', 'Chattogram Warehouse'], buffer: 2, markup: 8, freq: 'realtime', autoImport: true, autoConfirm: true, fulfill: 'Rotterdam DC', lastSync: NOW - 6 * MIN },
+  { key: 'wholesale', name: 'Wholesale', platform: 'CommerceOS B2B portal', domain: 'trade.fernhill.co', currency: 'USD', initials: 'WS', color: 2, status: 'active', rev: 16699, prevRev: 17410, orders: 370, prevOrders: 352,
+    listed: 642, suppressed: 0, sources: ['Dhaka Warehouse', 'Chattogram Warehouse'], buffer: 10, markup: -45, freq: '15m', autoImport: true, autoConfirm: false, fulfill: 'Dhaka Warehouse', lastSync: NOW - 11 * MIN },
+  { key: 'amazon', name: 'Amazon US', platform: 'Amazon Seller Central', domain: 'Seller ID A2F9X4KQ7', currency: 'USD', initials: 'AZ', color: 3, status: 'active', rev: 10275, prevRev: 9120, orders: 228, prevOrders: 196,
+    listed: 318, suppressed: 14, sources: ['Newark, NJ'], buffer: 5, markup: 12, freq: '15m', autoImport: true, autoConfirm: true, fulfill: 'Newark, NJ', lastSync: NOW - 23 * MIN }
+];
+var CATALOG = [
+  { key: 'daraz', name: 'Daraz', platform: 'Daraz Seller Center', initials: 'DZ', desc: 'Marketplace for Bangladesh and South Asia.', accountLabel: 'Seller ID', placeholder: 'e.g. 1000293847', currency: 'BDT', sources: ['Dhaka Warehouse', 'Chattogram Warehouse'], listed: 412 },
+  { key: 'tiktok', name: 'TikTok Shop', platform: 'TikTok Shop', initials: 'TT', desc: 'Sell in videos and live streams.', accountLabel: 'Shop name', placeholder: 'e.g. fernhill.official', currency: 'USD', sources: ['Newark, NJ'], listed: 186 },
+  { key: 'meta', name: 'Instagram & Facebook Shop', platform: 'Meta Commerce', initials: 'IG', desc: 'Tag products in posts, Reels and ads.', accountLabel: 'Business account', placeholder: 'e.g. @fernhill', currency: 'USD', sources: ['Newark, NJ', 'Dhaka Warehouse'], listed: 640 },
+  { key: 'ebay', name: 'eBay', platform: 'eBay', initials: 'EB', desc: 'Global marketplace with auctions and fixed price.', accountLabel: 'Seller username', placeholder: 'e.g. fernhill_store', currency: 'USD', sources: ['Newark, NJ'], listed: 260 },
+  { key: 'walmart', name: 'Walmart Marketplace', platform: 'Walmart Seller Center', initials: 'WM', desc: 'Reach Walmart.com shoppers in the US.', accountLabel: 'Partner ID', placeholder: 'e.g. 10001234567', currency: 'USD', sources: ['Newark, NJ'], listed: 220 },
+  { key: 'pos', name: 'Point of Sale', platform: 'CommerceOS POS', initials: 'PS', desc: 'Sell in your shops and at pop-ups with shared stock.', accountLabel: 'Location name', placeholder: 'e.g. Gulshan flagship', currency: 'BDT', sources: ['Dhaka Warehouse'], listed: 1204 }
+];
+var SUPPRESSED = [
+  ['North Sea rain shell · Olive / S', 'SKU-RSH-OLV-S', '0840276153218'], ['North Sea rain shell · Olive / L', 'SKU-RSH-OLV-L', '0840276153225'], ['North Sea rain shell · Navy / M', 'SKU-RSH-NVY-M', '0840276153249'],
+  ['Linen overshirt · Sand / M', 'SKU-OVS-SAND-M', '0840276150118'], ['Linen overshirt · Sage / L', 'SKU-OVS-SAGE-L', '0840276150132'], ['Jamdani scarf · Indigo', 'SKU-SCF-IND-OS', null],
+  ['Jamdani scarf · Rust', 'SKU-SCF-RST-OS', null], ['Straw bucket hat · Natural', 'SKU-HAT-NAT-OS', '0840276158442'], ['Organic hoodie · Forest / M', 'SKU-HOD-FOR-M', '0840276155021'],
+  ['Organic hoodie · Forest / L', 'SKU-HOD-FOR-L', '0840276155038'], ['Summer shorts · Stone / 34', 'SKU-SHT-STN-34', '0840276156714'], ['Leather card holder · Tan', 'SKU-CRD-TAN-OS', '0840276157308'],
+  ['Canvas tote · Natural', 'SKU-TOT-NAT-OS', '0840276154109'], ['Wool beanie · Charcoal', 'SKU-BNE-CHR-OS', null]
+].map(function (r) { return { name: r[0], sku: r[1], gtin: r[2], issue: 'Missing GTIN (UPC/EAN)' }; });
+var LOG = [
+  { ts: NOW - 4 * MIN, channel: 'Fernhill US', icon: 'check-circle', tone: 't-success', text: 'Synced 1,204 products, 38 stock levels updated' },
+  { ts: NOW - 6 * MIN, channel: 'Fernhill EU', icon: 'check-circle', tone: 't-success', text: 'Synced 1,186 products, 21 stock levels updated' },
+  { ts: NOW - 11 * MIN, channel: 'Wholesale', icon: 'check-circle', tone: 't-success', text: 'Synced 642 products and 4 price lists' },
+  { ts: NOW - 23 * MIN, channel: 'Amazon US', icon: 'alert-triangle', tone: 't-warning', text: 'Synced with warnings: 14 listings suppressed (missing GTIN)' },
+  { ts: NOW - 5 * 60 * MIN, channel: 'Fernhill US', icon: 'check-circle', tone: 't-success', text: 'Bulk update finished: 1,204 products updated' },
+  { ts: NOW - 26 * 60 * MIN, channel: 'Amazon US', icon: 'refresh', tone: 't-info', text: 'Imported 31 orders from Seller Central' }
+];
+var FREQ_OPTS = [{ value: 'realtime', label: 'Real time' }, { value: '15m', label: 'Every 15 minutes' }, { value: '1h', label: 'Every hour' }, { value: 'daily', label: 'Once a day' }];
+var FREQ_LABEL = { realtime: 'Real time', '15m': 'Every 15 minutes', '1h': 'Every hour', daily: 'Once a day' };
+var BUFFER_OPTS = [{ value: '0', label: 'No buffer' }, { value: '2', label: '2 units' }, { value: '5', label: '5 units' }, { value: '10', label: '10 units' }];
+var CURRENCIES = [{ value: 'USD', label: 'USD · US dollar' }, { value: 'EUR', label: 'EUR · Euro' }, { value: 'BDT', label: 'BDT · Bangladeshi taka' }, { value: 'GBP', label: 'GBP · British pound' }];
+function initialsOf(name) { return name.split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase(); }
+function timeAgo(ts) { var m = Math.max(0, Math.round((Date.now() - ts) / 6e4)); if (m < 1) return 'just now'; if (m < 60) return m + ' min ago'; var hh = Math.round(m / 60); if (hh < 24) return hh + 'h ago'; var d = Math.round(hh / 24); return d === 1 ? '1 day ago' : d + ' days ago'; }
+function int(n) { return Math.round(n).toLocaleString('en-US'); }
+function money0(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+function money2(n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function signedPct(d) { return (d > 0 ? '+' : d < 0 ? '−' : '') + (Math.abs(d) * 100).toFixed(1) + '%'; }
+</script>
+</body>
+</html>

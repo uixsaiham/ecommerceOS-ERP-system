@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Abandoned Carts · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css">
+<script src="ds/commerceos/components/bundle.js"></script>
+<script src="ds/commerceos/shell/shell.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Abandoned carts ---------- */
+.ac-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.ac-link{border:0;background:none;padding:0;cursor:pointer}
+.ac-link:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:2px}
+.ac-nocontact{color:var(--text-muted);font-style:italic}
+.ac-prod{display:block;max-width:220px;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.ac-step{display:inline-flex;align-items:center;gap:8px;font-size:13px}
+.ac-dots{display:inline-flex;gap:3px}
+.ac-dots i{width:6px;height:6px;border-radius:var(--radius-full);background:var(--bg-muted);box-shadow:inset 0 0 0 1px var(--border-strong)}
+.ac-dots i.is-on{background:var(--brand);box-shadow:none}
+.ac-rec{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.ac-preview{display:flex;flex-direction:column;gap:6px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-subtle);font-size:13px;line-height:20px}
+.ac-preview p{margin:0;color:var(--text-secondary);white-space:pre-line}
+.ac-prev-label{font-size:11px;line-height:16px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
+.ac-code{font-family:var(--font-mono);font-size:12px;padding:1px 6px;border-radius:var(--radius-xs);background:var(--brand-subtle);color:var(--brand)}
+.ac-auto-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;align-items:center}
+.ac-auto-row > span{font-size:13px;font-weight:500}
+/* detail panel */
+.dp-wide{width:460px}
+.dp-head-titles{display:flex;flex-direction:column}
+.dp-status{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.dp-kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:6px 12px;margin:0;font-size:13px;line-height:20px}
+.dp-kv dt{color:var(--text-muted)}
+.dp-kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.dp-items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.dp-items li{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.dp-items li:last-child{border-bottom:0}
+.dp-thumb{flex:none;width:36px;height:36px;border-radius:var(--radius-sm);background:var(--bg-muted);color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.dp-main{flex:1;min-width:0;display:flex;flex-direction:column;font-size:13px;line-height:20px}
+.dp-amt{font-size:13px;font-weight:500}
+.dp-sum{margin:8px 0 0;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.dp-sum div{display:flex;justify-content:space-between}
+.dp-sum dt{color:var(--text-secondary)}
+.dp-sum dd{margin:0}
+.dp-sum .is-total{padding-top:8px;margin-top:4px;border-top:1px solid var(--border);font-weight:600}
+.dp-sum .is-total dt{color:var(--text-primary)}
+.dp-tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.dp-tl li{position:relative;display:flex;gap:12px;padding:0 0 14px}
+.dp-tl li::before{content:"";position:absolute;left:4px;top:14px;bottom:0;width:1px;background:var(--border)}
+.dp-tl li:last-child{padding-bottom:0}
+.dp-tl li:last-child::before{display:none}
+.dp-tl-dot{flex:none;width:9px;height:9px;margin-top:6px;border-radius:var(--radius-full);background:var(--text-muted)}
+.dp-tl-dot.is-brand{background:var(--brand)}
+.dp-tl-dot.is-success{background:var(--success)}
+.dp-tl-dot.is-warning{background:var(--warning)}
+.dp-foot-end{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:1279px){ .c-src{display:none} }
+@media (max-width:1023px){ .ac-kpis{display:flex} .c-chan{display:none} }
+@media (max-width:767px){ .dp-wide{width:100%} .ac-auto-row{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}" onKeyDown="{{onRootKey}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="sales/abandoned-carts" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="sales/abandoned-carts"></x-import>
+<h1>Abandoned Carts</h1>
+<p class="ph-sub">Recover checkouts that customers started but didn’t finish.</p>
+<p class="ph-meta"><span>Last 30 days · {{storeName}}</span><span>{{autoMeta}}</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="settings" on-click="{{openAuto}}">Recovery automation</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<sc-if value="{{notLoading}}" hint-placeholder-val="{{true}}">
+<section class="o-kpis ac-kpis" aria-label="Abandoned carts in the last 30 days">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span class="{{k.deltaCls}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{k.deltaIcon}}"></x-import>{{k.delta}}</span><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+<div class="o-attn" role="group" aria-label="Needs attention">
+<span class="o-attn-label">Needs attention</span>
+<sc-for list="{{attn}}" as="a" hint-placeholder-count="3"><button class="o-chip {{a.tone}}" onClick="{{a.pick}}" aria-pressed="{{a.on}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{a.icon}}"></x-import><strong>{{a.count}}</strong><span>{{a.label}}</span></button></sc-for>
+</div>
+</sc-if>
+
+<section class="o-card" aria-label="Abandoned carts">
+<sc-if value="{{loading}}" hint-placeholder-val="{{false}}">
+<div role="status" aria-label="Loading abandoned carts">
+<div class="o-skel-tabs" aria-hidden="true"><sc-for list="{{skel5}}" as="x" hint-placeholder-count="5"><x-import component-from-global-scope="CommerceOS.Skeleton" width="88px" height="14px"></x-import></sc-for></div>
+<div class="o-skel-tools" aria-hidden="true"><x-import component-from-global-scope="CommerceOS.Skeleton" variant="rect" height="36px"></x-import></div>
+<sc-for list="{{skel10}}" as="x" hint-placeholder-count="10"><div class="o-skel-row"><x-import component-from-global-scope="CommerceOS.Skeleton" variant="rect" width="16px" height="16px"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="80%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="70%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="60%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="70%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="80%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="60%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="70%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="60%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="70%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" variant="rect" width="20px" height="20px"></x-import></div></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{notLoading}}" hint-placeholder-val="{{true}}">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Recovery status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+
+<div class="o-tools">
+<div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by cart ID, customer, email, or product" label="Search abandoned carts" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<div class="o-pop" data-pop="sort">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="chevrons-up-down" icon-right="chevron-down" on-click="{{toggleSort}}" aria-haspopup="menu" aria-expanded="{{openSort}}" aria-label="Sort: {{sortLabel}}"><span class="o-sort-label">{{sortLabel}}</span></x-import>
+<sc-if value="{{openSort}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Sort carts"><div class="cx-menu-group">Sort by</div>
+<sc-for list="{{sortItems}}" as="o" hint-placeholder-count="5"><button class="cx-menu-item" role="menuitemradio" aria-checked="{{o.selected}}" onClick="{{o.pick}}"><span>{{o.label}}</span><sc-if value="{{o.selected}}" hint-placeholder-val="{{false}}"><span class="menu-check"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button></sc-for>
+</div>
+</sc-if>
+</div>
+<button class="cx-btn cx-btn-secondary o-panel-btn" onClick="{{openPanel}}" aria-haspopup="dialog"><x-import component-from-global-scope="CommerceOS.Icon" name="filter"></x-import><span>{{filtersLabel}}</span></button>
+</div>
+<div class="o-row2" role="group" aria-label="Filters">
+<sc-for list="{{filters}}" as="fb" hint-placeholder-count="4">
+<div class="o-pop" data-pop="filter">
+<button class="{{fb.cls}}" onClick="{{fb.toggle}}" aria-haspopup="dialog" aria-expanded="{{fb.open}}" aria-label="{{fb.aria}}"><span>{{fb.label}}</span><sc-if value="{{fb.on}}" hint-placeholder-val="{{false}}"><span class="o-fval">{{fb.value}}</span></sc-if><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import></button>
+<sc-if value="{{fb.open}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-start" role="dialog" aria-label="Filter by {{fb.lower}}">
+<sc-if value="{{fb.radio}}" hint-placeholder-val="{{false}}"><sc-for list="{{fb.opts}}" as="op" hint-placeholder-count="3"><button class="cx-menu-item" role="menuitemradio" aria-checked="{{op.checked}}" onClick="{{op.pick}}"><span>{{op.label}}</span><sc-if value="{{op.checked}}" hint-placeholder-val="{{false}}"><span class="menu-check"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button></sc-for></sc-if>
+<sc-if value="{{fb.multi}}" hint-placeholder-val="{{true}}"><div class="o-checks"><sc-for list="{{fb.opts}}" as="op" hint-placeholder-count="3"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.pick}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div></sc-if>
+<sc-if value="{{fb.on}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div><button class="cx-menu-item" onClick="{{fb.clear}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import><span>Clear {{fb.lower}}</span></button></sc-if>
+</div>
+</sc-if>
+</div>
+</sc-for>
+<sc-if value="{{showClear}}" hint-placeholder-val="{{false}}"><span class="o-clear"><x-import component-from-global-scope="CommerceOS.Button" variant="link" on-click="{{clearAll}}">Clear all</x-import></span></sc-if>
+</div>
+</div>
+
+<div class="o-bulkwrap">
+<sc-if value="{{bulk.show}}" hint-placeholder-val="{{false}}">
+<div class="o-bulk" role="region" aria-label="Bulk actions">
+<span class="o-bulk-count">{{bulk.count}}</span>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="megaphone" on-click="{{bulk.send}}"><span class="o-bulk-label">Send recovery email</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="download" on-click="{{bulk.exportSel}}"><span class="o-bulk-label">Export</span></x-import>
+<span class="o-bulk-sep"></span>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="x" on-click="{{bulk.lost}}"><span class="o-bulk-label">Mark as lost</span></x-import>
+<div class="o-bulk-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" on-click="{{bulk.clear}}">Clear selection</x-import></div>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{error}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.ErrorState" title="Unable to load abandoned carts" description="We couldn’t reach the checkout service. Your filters are kept, so nothing is lost." code="ERR-CART-504-2c9e" retry-label="Try again" on-retry="{{retry}}"></x-import>
+</sc-if>
+
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Abandoned carts" aria-rowcount="{{total}}">
+<thead><tr>
+<th class="c-check" scope="col"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="Select all carts on this page" checked="{{pageAll}}" indeterminate="{{pageSome}}" on-change="{{togglePage}}"></x-import></th>
+<th class="c-order" scope="col" aria-sort="{{cols.date.ariaSort}}"><button class="{{cols.date.sortCls}}" onClick="{{cols.date.sort}}">Cart<x-import component-from-global-scope="CommerceOS.Icon" name="{{cols.date.icon}}"></x-import></button></th>
+<th scope="col">Customer</th>
+<th scope="col">Products</th>
+<th class="is-right" scope="col" aria-sort="{{cols.value.ariaSort}}"><button class="{{cols.value.sortCls}}" onClick="{{cols.value.sort}}">Cart value<x-import component-from-global-scope="CommerceOS.Icon" name="{{cols.value.icon}}"></x-import></button></th>
+<th scope="col">Left at</th>
+<th class="c-chan" scope="col">Channel</th>
+<th class="c-src" scope="col">Source</th>
+<th scope="col">Recovery</th>
+<th class="c-act" scope="col"><span class="cx-sr">Actions</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="25">
+<tr class="{{r.trCls}}" aria-selected="{{r.sel}}">
+<td class="c-check"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="{{r.selAria}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import></td>
+<td class="c-order"><button class="o-id ac-link" onClick="{{r.view}}">{{r.id}}</button><span class="o-sub">{{r.ago}}</span></td>
+<td><span class="o-cust">{{r.customer}}</span><span class="{{r.contactCls}}">{{r.contact}}</span></td>
+<td><span class="ac-prod">{{r.firstProduct}}</span><span class="o-sub">{{r.itemsLabel}}</span></td>
+<td class="is-right td-strong">{{r.value}}</td>
+<td><span class="ac-step"><span class="ac-dots" aria-hidden="true"><sc-for list="{{r.dots}}" as="d" hint-placeholder-count="3"><i class="{{d.cls}}"></i></sc-for></span>{{r.stageLabel}}</span></td>
+<td class="c-chan muted">{{r.channel}}</td>
+<td class="c-src muted">{{r.source}}</td>
+<td><span class="ac-rec"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.recTone}}" icon="{{r.recIcon}}">{{r.recLabel}}</x-import><span class="o-sub">{{r.recSub}}</span></span></td>
+<td class="c-act"><span class="o-row-act" data-pop="row"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="more-horizontal" aria-label="{{r.menuAria}}" aria-haspopup="menu" aria-expanded="{{r.menuOpen}}" on-click="{{r.openMenu}}"></x-import></span></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Abandoned carts">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<li class="o-m-card {{r.trCls}}">
+<div class="o-m-top"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="{{r.selAria}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import><button class="o-id ac-link" onClick="{{r.view}}">{{r.id}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.recTone}}" icon="{{r.recIcon}}">{{r.recLabel}}</x-import></div>
+<div class="o-m-mid"><div><span class="o-cust">{{r.customer}}</span><span class="o-sub">{{r.ago}} · {{r.stageLabel}} · {{r.itemsLabel}}</span></div><span class="o-m-total">{{r.value}}</span></div>
+<div class="o-m-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="megaphone" disabled="{{r.cantEmail}}" on-click="{{r.remind}}">Send reminder</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-right="chevron-right" on-click="{{r.view}}" aria-label="View cart {{r.id}}">View cart</x-import></div>
+</li>
+</sc-for>
+</ul>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="carts" on-page-change="{{setPage}}" on-page-size-change="{{setPageSize}}"></x-import></div>
+</sc-if>
+
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.EmptyState" icon="{{emptyIcon}}" title="{{emptyTitle}}" description="{{emptyDesc}}"><sc-if value="{{showClear}}" hint-placeholder-val="{{false}}"><div class="o-modal-actions" style="justify-content: center"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="x" on-click="{{clearAll}}">Clear filters</x-import></div></sc-if></x-import>
+</sc-if>
+</sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{rowMenu}}" hint-placeholder-val="{{false}}">
+<div class="o-rowmenu" data-pop="row" role="menu" aria-label="Actions for {{rowMenu.id}}" style="top: {{rowMenu.top}}px; left: {{rowMenu.left}}px">
+<sc-for list="{{rowMenu.items}}" as="i" hint-placeholder-count="5">
+<sc-if value="{{i.sep}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div></sc-if>
+<sc-if value="{{i.item}}" hint-placeholder-val="{{true}}"><button class="{{i.cls}}" role="menuitem" disabled="{{i.disabled}}" onClick="{{i.run}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{i.icon}}"></x-import><span class="o-mi-text"><span>{{i.label}}</span><sc-if value="{{i.note}}" hint-placeholder-val="{{false}}"><span class="o-mi-note">{{i.note}}</span></sc-if></span></button></sc-if>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{panel}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close filters" onClick="{{closePanel}}"></button>
+<div class="o-panel" role="dialog" aria-modal="true" aria-labelledby="ac-panel-title">
+<div class="o-panel-head"><h2 class="o-panel-title" id="ac-panel-title">{{filtersLabel}}</h2><button class="icon-btn" aria-label="Close filters" onClick="{{closePanel}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<sc-for list="{{filters}}" as="fb" hint-placeholder-count="4">
+<section class="o-panel-sec"><h3>{{fb.label}}</h3>
+<sc-if value="{{fb.radio}}" hint-placeholder-val="{{false}}"><div class="o-radio-row"><sc-for list="{{fb.opts}}" as="op" hint-placeholder-count="3"><button class="o-radio" aria-pressed="{{op.checked}}" onClick="{{op.pick}}">{{op.label}}</button></sc-for></div></sc-if>
+<sc-if value="{{fb.multi}}" hint-placeholder-val="{{true}}"><div class="o-checks"><sc-for list="{{fb.opts}}" as="op" hint-placeholder-count="3"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.pick}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div></sc-if>
+</section>
+</sc-for>
+<section class="o-panel-sec"><h3>Cart value</h3><x-import component-from-global-scope="CommerceOS.Input" label="Minimum value" prefix="$" inputmode="decimal" placeholder="0" value="{{minValue}}" on-change="{{setMinValue}}" width="180px"></x-import></section>
+</div>
+<div class="o-panel-foot"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{clearAll}}">Clear all</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{closePanel}}">{{panelCta}}</x-import></div>
+</div>
+</sc-if>
+
+<sc-if value="{{detail}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close cart details" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="dp-title">
+<div class="o-panel-head"><div class="dp-head-titles"><h2 class="o-panel-title" id="dp-title">{{detail.id}}</h2><span class="o-sub">Abandoned {{detail.whenLong}}</span></div><button class="icon-btn" aria-label="Close cart details" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec"><div class="dp-status"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{detail.recTone}}" icon="{{detail.recIcon}}">{{detail.recLabel}}</x-import><span class="o-sub">{{detail.recSub}}</span></div>
+<sc-if value="{{detail.orderLink}}" hint-placeholder-val="{{false}}"><a href="Orders.dc.html">View order {{detail.orderId}} in Orders</a></sc-if></section>
+<section class="o-panel-sec"><h3>Customer</h3>
+<dl class="dp-kv"><dt>Name</dt><dd>{{detail.customer}}</dd><dt>Email</dt><dd>{{detail.email}}</dd><dt>Phone</dt><dd>{{detail.phone}}</dd><dt>Account</dt><dd>{{detail.ctypeLabel}}</dd><dt>Channel</dt><dd>{{detail.channel}}</dd><dt>Device</dt><dd>{{detail.device}}</dd><dt>Came from</dt><dd>{{detail.source}}</dd></dl>
+</section>
+<section class="o-panel-sec"><h3>Cart · {{detail.itemsLabel}}</h3>
+<ul class="dp-items"><sc-for list="{{detail.lines}}" as="l" hint-placeholder-count="3"><li><span class="dp-thumb" aria-hidden="true">{{l.initials}}</span><span class="dp-main"><span>{{l.name}}</span><span class="o-sub">{{l.sku}} · {{l.qty}} × {{l.price}}</span></span><span class="dp-amt">{{l.total}}</span></li></sc-for></ul>
+<dl class="dp-sum"><div><dt>Subtotal</dt><dd>{{detail.subtotal}}</dd></div><div><dt>Shipping (estimate)</dt><dd>{{detail.shipping}}</dd></div><div class="is-total"><dt>Cart total</dt><dd>{{detail.total}}</dd></div></dl>
+</section>
+<section class="o-panel-sec"><h3>Activity</h3>
+<ol class="dp-tl"><sc-for list="{{detail.events}}" as="ev" hint-placeholder-count="4"><li><span class="dp-tl-dot {{ev.tone}}" aria-hidden="true"></span><span class="dp-main"><span>{{ev.label}}</span><span class="o-sub">{{ev.when}}</span></span></li></sc-for></ol>
+</section>
+</div>
+<div class="o-panel-foot">
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="{{detail.lostIcon}}" disabled="{{detail.lockLost}}" on-click="{{detail.toggleLost}}">{{detail.lostLabel}}</x-import>
+<div class="dp-foot-end">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="file-text" disabled="{{detail.isRecovered}}" on-click="{{detail.draft}}">Create draft order</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="megaphone" disabled="{{detail.cantEmail}}" on-click="{{detail.remind}}">Send reminder</x-import>
+</div>
+</div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{emailOpen}}" on-close="{{closeEmail}}" size="md" title="{{em.title}}" description="{{em.desc}}">
+<div class="o-modal-stack">
+<sc-if value="{{em.skipped}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">{{em.skippedText}}</x-import></sc-if>
+<x-import component-from-global-scope="CommerceOS.Select" label="Template" options="{{templates}}" value="{{emailTpl}}" on-value-change="{{setTpl}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Include a one-time discount code" checked="{{emailDiscount}}" on-change="{{setDiscount}}"></x-import>
+<sc-if value="{{emailDiscount}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Select" label="Discount" options="{{discountOpts}}" value="{{emailPct}}" on-value-change="{{setPct}}" width="200px"></x-import></sc-if>
+<div class="ac-preview" aria-label="Email preview"><span class="ac-prev-label">Preview</span><strong>{{em.subject}}</strong><p>{{em.body}}</p><sc-if value="{{emailDiscount}}" hint-placeholder-val="{{false}}"><span>Code <span class="ac-code">{{em.code}}</span> · {{emailPct}}% off, valid for 48 hours</span></sc-if></div>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeEmail}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="megaphone" disabled="{{em.blocked}}" on-click="{{sendEmail}}">{{em.cta}}</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{autoOpen}}" on-close="{{closeAuto}}" size="md" title="Recovery automation" description="Reminders go out automatically to customers who left an email address. Recovered carts stop the sequence.">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Send reminders automatically" checked="{{auto.on}}" on-change="{{auto.setOn}}"></x-import>
+<div class="ac-auto-row"><span>First reminder</span><x-import component-from-global-scope="CommerceOS.Select" aria-label="First reminder delay" options="{{delays1}}" value="{{auto.d1}}" on-value-change="{{auto.setD1}}" disabled="{{auto.off}}"></x-import></div>
+<div class="ac-auto-row"><span>Second reminder</span><x-import component-from-global-scope="CommerceOS.Select" aria-label="Second reminder delay" options="{{delays2}}" value="{{auto.d2}}" on-value-change="{{auto.setD2}}" disabled="{{auto.off}}"></x-import></div>
+<div class="ac-auto-row"><span>Final reminder</span><x-import component-from-global-scope="CommerceOS.Select" aria-label="Final reminder delay" options="{{delays3}}" value="{{auto.d3}}" on-value-change="{{auto.setD3}}" disabled="{{auto.off}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Add a 10% discount code to the final reminder" checked="{{auto.discount}}" on-change="{{auto.setDiscount}}" disabled="{{auto.off}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="Only carts worth at least" prefix="$" inputmode="decimal" value="{{auto.min}}" on-change="{{auto.setMin}}" width="180px" disabled="{{auto.off}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeAuto}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{saveAuto}}">Save automation</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","loading","error","empty","detail","email","bulk"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none';
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', menu: null, toast: null,
+      carts: CARTS, tab: 'all', query: '', f: Object.assign({}, EMPTY_F), sort: { key: 'date', dir: 'desc' }, page: 1, pageSize: 25, sel: [],
+      loading: demo === 'loading', error: demo === 'error', panel: false, rowMenu: null, detailId: null,
+      email: null, emailTpl: 'reminder', emailDiscount: false, emailPct: '10',
+      autoOpen: false, auto: Object.assign({}, AUTO_DEFAULT), autoDraft: null, drafts: 0
+    };
+    if (demo === 'empty') this.state.query = 'CART-00000';
+    if (demo === 'detail') this.state.detailId = CARTS[3].id;
+    if (demo === 'email') this.state.email = { ids: [CARTS.find((c) => c.email && c.status === 'contacted').id] };
+    if (demo === 'bulk') this.state.sel = CARTS.slice(0, 5).map((c) => c.id);
+  }
+  componentDidMount() {
+    this._onDoc = (e) => { if ((this.state.menu || this.state.rowMenu) && !(e.target.closest && e.target.closest('[data-pop]'))) this.setState({ menu: null, rowMenu: null }); };
+    this._onScroll = () => { if (this.state.rowMenu) this.setState({ rowMenu: null }); };
+    document.addEventListener('mousedown', this._onDoc);
+    window.addEventListener('scroll', this._onScroll, true);
+  }
+  componentWillUnmount() { document.removeEventListener('mousedown', this._onDoc); window.removeEventListener('scroll', this._onScroll, true); clearTimeout(this._toastT); clearTimeout(this._loadT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  toggleMenu(name) { return () => this.setState((s) => ({ menu: s.menu === name ? null : name })); }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null }, menu: null, rowMenu: null });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  setF(patch) { this.setState((s) => ({ f: Object.assign({}, s.f, patch), page: 1, sel: [] })); }
+  patch(ids, fn) { this.setState((s) => ({ carts: s.carts.map((c) => (ids.indexOf(c.id) >= 0 ? Object.assign({}, c, fn(c)) : c)) })); }
+  undoable(prev) { return { label: 'Undo', onClick: () => this.setState({ carts: prev, toast: null }) }; }
+  openRowMenu(id, r) {
+    const W = 264, H = 230, vw = window.innerWidth, vh = window.innerHeight;
+    const left = Math.max(8, Math.min(r.right - W, vw - W - 8));
+    const top = r.bottom + 4 + H > vh && r.top - H - 4 > 0 ? r.top - H - 4 : r.bottom + 4;
+    this.setState({ rowMenu: { id, top, left }, menu: null });
+  }
+  openEmail(ids) { this.setState({ email: { ids }, rowMenu: null, menu: null }); }
+  markLost(ids) {
+    const prev = this.state.carts, open = prev.filter((c) => ids.indexOf(c.id) >= 0 && c.status !== 'recovered' && c.status !== 'lost').map((c) => c.id);
+    if (!open.length) return this.showToast('Nothing to mark as lost', 'Recovered and lost carts can’t be changed.', 'info');
+    this.patch(open, (c) => ({ status: 'lost', prevStatus: c.status, lostAt: NOW, lostReason: 'Marked as lost by Priya Natarajan' }));
+    this.setState({ sel: [], rowMenu: null });
+    this.showToast(int(open.length) + (open.length === 1 ? ' cart' : ' carts') + ' marked as lost', 'They won’t get any more reminders.', 'success', this.undoable(prev));
+  }
+  reopen(id) {
+    const prev = this.state.carts;
+    this.patch([id], (c) => ({ status: c.prevStatus || (c.reminders ? 'contacted' : 'new'), lostAt: null }));
+    this.showToast(id + ' reopened', 'It’s back in the recovery queue.', 'success', this.undoable(prev));
+  }
+  draftOrder(c) {
+    const n = this.state.drafts + 1;
+    this.setState({ drafts: n, rowMenu: null });
+    this.showToast('Draft order D-' + (1040 + n) + ' created', c.lines.length + (c.lines.length === 1 ? ' product' : ' products') + ' from ' + c.id + ', ' + money2(c.value) + '. Finish it in Orders.', 'success');
+  }
+  copyLink(c) {
+    const url = 'https://' + (c.channel === 'Fernhill EU' ? 'fernhill.eu' : 'fernhill.co') + '/checkout/recover/' + c.id.toLowerCase();
+    try { navigator.clipboard.writeText(url); } catch (e) { /* clipboard unavailable */ }
+    this.showToast('Checkout link copied', url, 'info');
+  }
+
+  renderVals() {
+    const s = this.state, store = STORES.find((x) => x.key === s.store);
+    const q = s.query.trim().toLowerCase();
+    const scoped = s.carts.filter((c) => s.store === 'all' || c.channel === store.label);
+    const searched = scoped.filter((c) => !q || c.id.toLowerCase().indexOf(q) >= 0 || c.customer.toLowerCase().indexOf(q) >= 0 || (c.email || '').indexOf(q) >= 0 || c.lines.some((l) => l.name.toLowerCase().indexOf(q) >= 0 || l.sku.toLowerCase().indexOf(q) >= 0));
+    const passes = (c, except) => FILTERS.every((fd) => fd.key === except || matchF(c, fd.key, s.f[fd.key])) && (!s.f.minValue || c.value >= s.f.minValue);
+    const inTab = (c, t) => t === 'all' || c.status === t;
+    const filtered = searched.filter((c) => passes(c, null));
+    const list = filtered.filter((c) => inTab(c, s.tab));
+    const dir = s.sort.dir === 'asc' ? 1 : -1;
+    list.sort((a, b) => ((s.sort.key === 'value' ? a.value - b.value : a.ts - b.ts) * dir) || (b.ts - a.ts));
+    const total = list.length, pages = Math.max(1, Math.ceil(total / s.pageSize)), page = Math.min(s.page, pages);
+    const pageRows = list.slice((page - 1) * s.pageSize, page * s.pageSize);
+    const pageIds = pageRows.map((c) => c.id), selOnPage = pageIds.filter((id) => s.sel.indexOf(id) >= 0);
+
+    // KPIs over the scoped 30-day window (independent of tab and search)
+    const open = scoped.filter((c) => c.status === 'new' || c.status === 'contacted');
+    const rec = scoped.filter((c) => c.status === 'recovered');
+    const contacted = scoped.filter((c) => c.reminders > 0 || c.status === 'recovered');
+    const recRate = contacted.length ? rec.length / contacted.length : 0;
+    const f = store.factor;
+    const kpi = (label, tone, value, cur, prev, upGood, cmp) => {
+      const d = prev ? (cur - prev) / prev : 0, good = d === 0 ? null : (d > 0) === upGood;
+      return { label, value, dot: 'cx-dot cx-dot-' + tone, delta: signedPct(d), deltaIcon: d >= 0 ? 'trending-up' : 'trending-down', deltaCls: 'o-delta ' + (good === null ? 'is-flat' : good ? 'is-good' : 'is-bad'), cmp };
+    };
+    const openValue = open.reduce((a, c) => a + c.value, 0), recValue = rec.reduce((a, c) => a + c.value, 0);
+    const kpis = [
+      kpi('Abandoned carts', 'warning', int(scoped.length), scoped.length, Math.round(203 * f), false, 'vs ' + int(203 * f) + ' previous 30 days'),
+      kpi('Open cart value', 'brand', money0(openValue), openValue, 25400 * f, false, int(open.length) + ' carts still recoverable'),
+      kpi('Recovered revenue', 'success', money0(recValue), recValue, 15940 * f, true, int(rec.length) + ' carts turned into orders'),
+      kpi('Recovery rate', 'info', (recRate * 100).toFixed(1) + '%', recRate, 0.212, true, 'of carts that got a reminder')
+    ];
+    const hv = open.filter((c) => c.status === 'contacted' && c.value >= 200).length;
+    const pay = scoped.filter((c) => c.stage === 'payment' && NOW - c.ts < 7 * 864e5).length;
+    const noContact = open.filter((c) => !c.email).length;
+    const attn = [
+      { icon: 'alert-circle', tone: 'a-danger', count: hv, label: 'high-value carts with no order yet', on: s.tab === 'contacted' && s.f.minValue === 200, pick: () => this.setState({ tab: 'contacted', f: Object.assign({}, EMPTY_F, { minValue: 200 }), sort: { key: 'value', dir: 'desc' }, page: 1, sel: [] }) },
+      { icon: 'credit-card', tone: 'a-warning', count: pay, label: 'left at payment this week', on: s.f.date === '7d' && s.f.stage.length === 1 && s.f.stage[0] === 'payment', pick: () => this.setState({ tab: 'all', f: Object.assign({}, EMPTY_F, { date: '7d', stage: ['payment'] }), page: 1, sel: [] }) },
+      { icon: 'user', tone: 'a-brand', count: noContact, label: 'without contact details', on: s.f.ctype.length === 1 && s.f.ctype[0] === 'anonymous', pick: () => this.setState({ tab: 'all', f: Object.assign({}, EMPTY_F, { ctype: ['anonymous'] }), page: 1, sel: [] }) }
+    ];
+
+    const tabs = TABS.map((t) => ({ id: t.id, label: t.label, count: int(filtered.filter((c) => inTab(c, t.id)).length) }));
+    const filters = FILTERS.map((fd) => {
+      const v = s.f[fd.key], base = searched.filter((c) => passes(c, fd.key) && inTab(c, s.tab));
+      const on = fd.radio ? v !== 'all' : v.length > 0;
+      const opts = fd.opts.map((o) => {
+        const checked = fd.radio ? v === o.value : v.indexOf(o.value) >= 0;
+        return { label: o.label, checked, count: int(base.filter((c) => matchF(c, fd.key, fd.radio ? o.value : [o.value])).length),
+          pick: () => this.setF({ [fd.key]: fd.radio ? o.value : (checked ? v.filter((x) => x !== o.value) : v.concat([o.value])) }) };
+      });
+      const value = fd.radio ? (fd.opts.find((o) => o.value === v) || {}).label : v.length === 1 ? fd.opts.find((o) => o.value === v[0]).label : v.length + ' selected';
+      return { label: fd.label, lower: fd.label.toLowerCase(), radio: !!fd.radio, multi: !fd.radio, on, value, opts, aria: fd.label + (on ? ': ' + value : ''),
+        cls: 'cx-btn cx-btn-secondary cx-btn-sm o-fbtn' + (on ? ' is-on' : ''), open: s.menu === 'f:' + fd.key, toggle: this.toggleMenu('f:' + fd.key),
+        clear: () => { this.setF({ [fd.key]: EMPTY_F[fd.key] }); this.setState({ menu: null }); } };
+    });
+    const activeCount = filters.filter((x) => x.on).length + (s.f.minValue ? 1 : 0);
+
+    const rows = pageRows.map((c) => {
+      const v = cartView(c, s.auto), sel = s.sel.indexOf(c.id) >= 0;
+      return Object.assign(v, { sel, trCls: sel ? 'is-selected' : '', selAria: 'Select cart ' + c.id, menuAria: 'Actions for cart ' + c.id, menuOpen: !!(s.rowMenu && s.rowMenu.id === c.id),
+        toggle: () => this.setState((st) => ({ sel: sel ? st.sel.filter((x) => x !== c.id) : st.sel.concat([c.id]) })),
+        view: () => this.setState({ detailId: c.id, rowMenu: null }),
+        remind: () => this.openEmail([c.id]),
+        openMenu: (e) => { const b = e.currentTarget.getBoundingClientRect(); if (s.rowMenu && s.rowMenu.id === c.id) this.setState({ rowMenu: null }); else this.openRowMenu(c.id, b); } });
+    });
+
+    let rowMenu = null;
+    if (s.rowMenu) {
+      const c = s.carts.find((x) => x.id === s.rowMenu.id), closed = c.status === 'recovered' || c.status === 'lost';
+      const it = (label, icon, run, disabled, note, danger) => ({ item: true, label, icon, run, disabled: !!disabled, note: disabled && note ? note : '', cls: 'cx-menu-item o-mi' + (danger ? ' is-danger' : '') });
+      rowMenu = { id: c.id, top: s.rowMenu.top, left: s.rowMenu.left, items: [
+        it('View cart', 'eye', () => this.setState({ detailId: c.id, rowMenu: null })),
+        it('Send recovery email', 'megaphone', () => this.openEmail([c.id]), !c.email || closed, !c.email ? 'No email address was left at checkout.' : 'This cart is ' + c.status + '.'),
+        it('Copy checkout link', 'copy', () => this.copyLink(c), c.status === 'recovered', 'Already turned into an order.'),
+        it('Create draft order', 'file-text', () => this.draftOrder(c), c.status === 'recovered', 'Already turned into an order.'),
+        { sep: true },
+        c.status === 'lost' ? it('Reopen cart', 'refresh', () => { this.setState({ rowMenu: null }); this.reopen(c.id); }) : it('Mark as lost', 'x', () => this.markLost([c.id]), c.status === 'recovered', 'Recovered carts can’t be marked as lost.', true)
+      ] };
+    }
+
+    let detail = null;
+    if (s.detailId) {
+      const c = s.carts.find((x) => x.id === s.detailId), v = cartView(c, s.auto), sub = c.lines.reduce((a, l) => a + l.qty * l.price, 0);
+      detail = Object.assign(v, {
+        whenLong: fmtWhen(c.ts) + ' · ' + timeAgo(c.ts), email: c.email || 'Not provided', phone: c.phone || 'Not provided', ctypeLabel: CTYPE[c.ctype], device: c.device,
+        lines: c.lines.map((l) => ({ name: l.name, sku: l.sku, qty: l.qty, price: money2(l.price), total: money2(l.qty * l.price), initials: l.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase() })),
+        subtotal: money2(sub), shipping: c.value - sub > 0 ? money2(c.value - sub) : 'Free', total: money2(c.value), events: cartEvents(c),
+        orderLink: c.status === 'recovered', orderId: c.orderId, isRecovered: c.status === 'recovered',
+        cantEmail: !c.email || c.status === 'recovered' || c.status === 'lost', lockLost: c.status === 'recovered',
+        lostLabel: c.status === 'lost' ? 'Reopen cart' : 'Mark as lost', lostIcon: c.status === 'lost' ? 'refresh' : 'x',
+        toggleLost: () => (c.status === 'lost' ? this.reopen(c.id) : this.markLost([c.id])),
+        draft: () => this.draftOrder(c), remind: () => this.openEmail([c.id])
+      });
+    }
+
+    // recovery email composer
+    let em = { title: '', desc: '', subject: '', body: '', code: '', cta: 'Send', blocked: true, skipped: false };
+    if (s.email) {
+      const chosen = s.carts.filter((c) => s.email.ids.indexOf(c.id) >= 0);
+      const ok = chosen.filter((c) => c.email && c.status !== 'recovered' && c.status !== 'lost');
+      const skipped = chosen.length - ok.length, one = ok.length === 1 ? ok[0] : null, tpl = TEMPLATES.find((t) => t.value === s.emailTpl);
+      const first = one ? one.customer.split(' ')[0] : '{first name}';
+      em = {
+        title: one ? 'Send a reminder to ' + one.customer : 'Send reminders to ' + int(ok.length) + ' customers',
+        desc: one ? 'To ' + one.email + ' about ' + one.id + ' (' + money2(one.value) + ').' : 'Each customer gets their own cart and checkout link.',
+        subject: tpl.subject, body: tpl.body.replace('{name}', first), code: 'COMEBACK' + s.emailPct,
+        skipped: skipped > 0, skippedText: int(skipped) + (skipped === 1 ? ' cart is' : ' carts are') + ' skipped: no email address, already recovered, or lost.',
+        blocked: ok.length === 0, cta: ok.length > 1 ? 'Send ' + int(ok.length) + ' emails' : 'Send email', ok
+      };
+    }
+
+    const sortItems = SORTS.map((o) => ({ label: o.label, selected: s.sort.key === o.key && s.sort.dir === o.dir, pick: () => this.setState({ sort: { key: o.key, dir: o.dir }, menu: null, page: 1 }) }));
+    const col = (key) => { const on = s.sort.key === key; return { ariaSort: on ? (s.sort.dir === 'asc' ? 'ascending' : 'descending') : 'none', sortCls: 'cx-th-sort' + (on ? ' is-sorted' : ''), icon: on ? (s.sort.dir === 'asc' ? 'arrow-up' : 'arrow-down') : 'chevrons-up-down',
+      sort: () => this.setState((st) => ({ sort: { key, dir: st.sort.key === key && st.sort.dir === 'desc' ? 'asc' : 'desc' }, page: 1 })) }; };
+    const selCount = s.sel.length;
+    const a = s.auto;
+
+    return {
+      yes: true, zero: 0, skel5: [1, 2, 3, 4, 5], skel10: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((st) => ({ collapsed: !st.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: STORES, store: s.store, storeName: store.label, user: USER,
+      setStore: (k) => this.setState({ store: k, page: 1, sel: [] }),
+      navigate: (path) => this.showToast(navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((st) => ({ dark: !st.dark })),
+      autoMeta: a.on ? 'Automatic reminders on · ' + DELAY_LABEL[a.d1] + ', ' + DELAY_LABEL[a.d2] + ', ' + DELAY_LABEL[a.d3] : 'Automatic reminders off',
+      loading: s.loading, notLoading: !s.loading, error: s.error && !s.loading,
+      retry: () => { this.setState({ error: false, loading: true }); clearTimeout(this._loadT); this._loadT = setTimeout(() => this.setState({ loading: false }), 1200); },
+      kpis, attn, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id, page: 1, sel: [] }),
+      query: s.query, setQuery: (v) => this.setState({ query: v, page: 1, sel: [] }),
+      filters, showClear: activeCount > 0, clearAll: () => this.setState({ f: Object.assign({}, EMPTY_F), page: 1, sel: [], menu: null }),
+      filtersLabel: activeCount ? 'Filters (' + activeCount + ')' : 'Filters', panel: s.panel, openPanel: () => this.setState({ panel: true, menu: null }), closePanel: () => this.setState({ panel: false }),
+      panelCta: 'Show ' + int(total) + (total === 1 ? ' cart' : ' carts'), minValue: s.f.minValue ? String(s.f.minValue) : '', setMinValue: (e) => this.setF({ minValue: Number(e.target.value) || 0 }),
+      openSort: s.menu === 'sort', toggleSort: this.toggleMenu('sort'), sortItems, sortLabel: SORTS.find((o) => o.key === s.sort.key && o.dir === s.sort.dir).label,
+      cols: { date: col('date'), value: col('value') },
+      rows, total, page, pageSize: s.pageSize, setPage: (p) => this.setState({ page: p }), setPageSize: (n) => this.setState({ pageSize: n, page: 1 }),
+      shown: !s.error && total > 0, empty: !s.error && total === 0,
+      emptyIcon: s.query || activeCount ? 'search' : 'check-circle',
+      emptyTitle: s.query || activeCount ? 'No carts match these filters' : s.tab === 'new' ? 'Every cart has been contacted' : 'No carts here',
+      emptyDesc: s.query || activeCount ? 'Try a different search or clear the filters.' : 'New abandoned checkouts show up here within a few minutes.',
+      pageAll: selOnPage.length > 0 && selOnPage.length === pageIds.length, pageSome: selOnPage.length > 0 && selOnPage.length < pageIds.length,
+      togglePage: () => this.setState((st) => ({ sel: selOnPage.length === pageIds.length ? st.sel.filter((id) => pageIds.indexOf(id) < 0) : st.sel.concat(pageIds.filter((id) => st.sel.indexOf(id) < 0)) })),
+      bulk: { show: selCount > 0, count: int(selCount) + ' selected', send: () => this.openEmail(s.sel.slice()), lost: () => this.markLost(s.sel.slice()),
+        exportSel: () => { this.setState({ sel: [] }); this.showToast('Exporting ' + int(selCount) + ' carts', 'CSV with customer, products and recovery status, sent to your downloads.'); },
+        clear: () => this.setState({ sel: [] }) },
+      exportView: () => this.showToast('Exporting ' + int(total) + ' carts', 'CSV of the current tab and filters, sent to your downloads.'),
+      rowMenu, detail, closeDetail: () => this.setState({ detailId: null }),
+      emailOpen: !!s.email, closeEmail: () => this.setState({ email: null }), em, templates: TEMPLATES, discountOpts: DISCOUNTS,
+      emailTpl: s.emailTpl, setTpl: (v) => this.setState({ emailTpl: v }), emailDiscount: s.emailDiscount, setDiscount: (v) => this.setState({ emailDiscount: v }), emailPct: s.emailPct, setPct: (v) => this.setState({ emailPct: v }),
+      sendEmail: () => {
+        const prev = s.carts, ids = em.ok.map((c) => c.id), code = s.emailDiscount ? em.code : null;
+        this.patch(ids, (c) => ({ status: 'contacted', reminders: Math.min(3, c.reminders + 1), lastReminder: NOW, manual: (c.manual || []).concat([{ ts: NOW, tpl: em.subject, code }]) }));
+        this.setState({ email: null, sel: [] });
+        this.showToast(ids.length === 1 ? 'Reminder sent to ' + em.ok[0].customer : int(ids.length) + ' reminders sent', code ? 'Includes code ' + code + '.' : 'Customers get their saved cart and a checkout link.', 'success', this.undoable(prev));
+      },
+      autoOpen: s.autoOpen, openAuto: () => this.setState({ autoOpen: true, autoDraft: Object.assign({}, s.auto) }), closeAuto: () => this.setState({ autoOpen: false }),
+      delays1: DELAYS1, delays2: DELAYS2, delays3: DELAYS3,
+      auto: (() => { const d = s.autoDraft || s.auto, up = (k) => (v) => this.setState((st) => ({ autoDraft: Object.assign({}, st.autoDraft, { [k]: v }) }));
+        return { on: d.on, off: !d.on, d1: d.d1, d2: d.d2, d3: d.d3, discount: d.discount, min: String(d.min), setOn: up('on'), setD1: up('d1'), setD2: up('d2'), setD3: up('d3'), setDiscount: up('discount'), setMin: (e) => up('min')(Number(e.target.value) || 0) }; })(),
+      saveAuto: () => { const d = s.autoDraft; this.setState({ auto: d, autoOpen: false }); this.showToast(d.on ? 'Automation saved' : 'Automatic reminders turned off', d.on ? 'Reminders go out after ' + DELAY_LABEL[d.d1] + ', ' + DELAY_LABEL[d.d2] + ' and ' + DELAY_LABEL[d.d3] + (d.min ? ' for carts over $' + d.min : '') + '.' : 'You can still send reminders by hand.'); },
+      toast: s.toast, dismissToast: () => this.setState({ toast: null }),
+      onRootKey: (e) => {
+        if (e.key !== 'Escape') return;
+        const st = this.state;
+        if (st.rowMenu || st.menu) this.setState({ rowMenu: null, menu: null });
+        else if (st.detailId) this.setState({ detailId: null });
+        else if (st.panel) this.setState({ panel: false });
+        else if (st.drawer) this.setState({ drawer: false });
+      }
+    };
+  }
+}
+
+/* ---------- abandoned cart data: Fernhill, Oct 1 2026 09:42 UTC ---------- */
+var NOW = Date.UTC(2026, 9, 1, 9, 42), DAY0 = Date.UTC(2026, 9, 1);
+function rng(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+var STORES = [
+  { key: 'all', label: 'All stores', sub: '4 stores · USD', icon: 'store', factor: 1 },
+  { key: 'us', label: 'Fernhill US', sub: 'Shopify · fernhill.co', icon: 'shopping-bag', factor: 0.52 },
+  { key: 'eu', label: 'Fernhill EU', sub: 'Shopify · fernhill.eu', icon: 'shopping-bag', factor: 0.27 },
+  { key: 'wholesale', label: 'Wholesale', sub: 'B2B portal', icon: 'factory', factor: 0.13 },
+  { key: 'amazon', label: 'Amazon US', sub: 'Marketplace', icon: 'tag', factor: 0.08 }
+];
+var USER = { name: 'Priya Natarajan', role: 'Operations Manager', email: 'priya@fernhill.co', initials: 'PN' };
+function navLabel(path) { var r = window.CommerceOS.navResolve(path); return r.page ? r.page.label : r.module ? r.module.label : path; }
+var PRODUCTS = [
+  ['Merino crew tee', 'SKU-TSH-NAVY-M', 58], ['Merino crew tee', 'SKU-TSH-BLK-L', 58], ['Linen overshirt', 'SKU-OVS-SAND-L', 96], ['Canvas tote', 'SKU-TOT-NAT-OS', 34],
+  ['Organic hoodie', 'SKU-HOD-FOR-S', 88], ['Wool beanie', 'SKU-BNE-CHR-OS', 29], ['Recycled socks 3-pack', 'SKU-SCK-MIX-3942', 24], ['North Sea rain shell', 'SKU-RSH-OLV-M', 148],
+  ['Summer shorts', 'SKU-SHT-STN-32', 54], ['Leather card holder', 'SKU-CRD-TAN-OS', 42], ['Straw bucket hat', 'SKU-HAT-NAT-OS', 36], ['Jamdani scarf', 'SKU-SCF-IND-OS', 64]
+];
+var FIRST = ['Sarah', 'Ayesha', 'Daniel', 'Lena', 'Marcus', 'Nusrat', 'Tomás', 'Grace', 'Hiroshi', 'Fatima', 'Oliver', 'Tanvir', 'Chloé', 'Kwame', 'Sofia', 'Imran', 'Emily', 'Lucas', 'Mehjabin', 'Noah', 'Aiko', 'Rahim', 'Elena', 'James', 'Zara', 'Arjun', 'Hannah', 'Mateo', 'Sadia'];
+var LAST = ['Johnson', 'Rahman', 'Okafor', 'Lindqvist', 'Chowdhury', 'Herrera', 'Mbeki', 'Tanaka', 'Hossain', 'Bennett', 'Shah', 'Dubois', 'Mensah', 'Rossi', 'Karim', 'Walsh', 'Silva', 'Islam', 'Nguyen', 'Fischer', 'Ahmed', 'Patel', 'Haque', 'Moreau'];
+var DOMAINS = ['gmail.com', 'outlook.com', 'proton.me', 'icloud.com', 'yahoo.com'];
+var B2B = ['Harbor & Pine Co.', 'Northwind Retail', 'Lakeside Outfitters', 'Dhaka Lifestyle Ltd.', 'Bramble & Co.'];
+var SOURCES = ['Instagram', 'Google search', 'Direct', 'Email newsletter', 'Facebook', 'Google Shopping'];
+var STAGE = { cart: ['Cart', 1], shipping: ['Shipping', 2], payment: ['Payment', 3] };
+var CTYPE = { registered: 'Registered customer', guest: 'Guest checkout', anonymous: 'Guest, no contact details' };
+var REC = {
+  new: ['warning', 'Not contacted', 'clock'], contacted: ['info', 'Reminder sent', 'megaphone'],
+  recovered: ['success', 'Recovered', 'check-circle'], lost: ['neutral', 'Lost', 'x']
+};
+function buildCarts() {
+  var r = rng(7130), out = [], n = 186, step = 30 * 24 * 60 / n;
+  for (var i = 0; i < n; i++) {
+    var ts = NOW - Math.round((i + 0.1 + r() * 0.8) * step * 60000), age = (NOW - ts) / 36e5;
+    var b2b = r() < 0.06, channel = b2b ? 'Wholesale' : r() < 0.64 ? 'Fernhill US' : 'Fernhill EU';
+    var first = FIRST[Math.floor(r() * FIRST.length)], last = LAST[Math.floor(r() * LAST.length)];
+    var ctype = b2b ? 'registered' : r() < 0.52 ? 'registered' : r() < 0.68 ? 'guest' : 'anonymous';
+    var name = b2b ? B2B[Math.floor(r() * B2B.length)] : ctype === 'anonymous' ? 'Guest shopper' : first + ' ' + last;
+    var email = ctype === 'anonymous' ? null : b2b ? 'buying@' + name.toLowerCase().replace(/[^a-z]+/g, '') + '.com' : (first + '.' + last).toLowerCase().normalize('NFD').replace(/[^a-z.]/g, '') + '@' + DOMAINS[Math.floor(r() * DOMAINS.length)];
+    var phone = ctype === 'registered' ? (channel === 'Fernhill EU' ? '+31 6 ' + Math.floor(1000 + r() * 8999) + ' ' + Math.floor(1000 + r() * 8999) : '+1 (' + Math.floor(201 + r() * 700) + ') 555-0' + Math.floor(100 + r() * 899)) : null;
+    var nl = b2b ? 3 + Math.floor(r() * 3) : 1 + Math.floor(Math.pow(r(), 1.8) * 4), lines = [], sub = 0, used = {};
+    for (var l = 0; l < nl; l++) {
+      var p = PRODUCTS[Math.floor(r() * PRODUCTS.length)]; if (used[p[1]]) continue; used[p[1]] = 1;
+      var qty = b2b ? 12 + Math.floor(r() * 36) : r() < 0.82 ? 1 : 2, price = b2b ? Math.round(p[2] * 0.55 * 100) / 100 : p[2];
+      lines.push({ name: p[0], sku: p[1], qty: qty, price: price }); sub += qty * price;
+    }
+    var ship = b2b || sub >= 120 ? 0 : 8.5, value = Math.round((sub + ship) * 100) / 100;
+    var stage = r() < 0.38 ? 'cart' : r() < 0.55 ? 'shipping' : 'payment';
+    var status = 'new', reminders = 0, lastReminder = null, recoveredAt = null, orderId = null;
+    var rec = email && age > 2 && r() < 0.19;
+    if (rec) { status = 'recovered'; reminders = 1 + Math.floor(r() * 2); recoveredAt = ts + (4 + r() * 40) * 36e5; if (recoveredAt > NOW) recoveredAt = NOW - 6e5; orderId = '#ORD-' + (10380 + Math.floor(r() * 240)); }
+    else if (age > 24 * 14) status = 'lost';
+    else if (email && age > 1 && value >= 25) { status = 'contacted'; reminders = age > 72 ? 3 : age > 24 ? 2 : 1; lastReminder = ts + (reminders === 3 ? 72 : reminders === 2 ? 24 : 1) * 36e5; }
+    if (status === 'lost' && email && value >= 25) reminders = 3;
+    out.push({ id: '', ts: ts, channel: channel, ctype: ctype, customer: name, email: email, phone: phone, lines: lines, value: value, stage: stage, status: status,
+      reminders: reminders, lastReminder: lastReminder, recoveredAt: recoveredAt, orderId: orderId, source: b2b ? 'B2B portal' : SOURCES[Math.floor(r() * SOURCES.length)], device: r() < 0.64 ? 'Mobile' : 'Desktop' });
+  }
+  out.forEach(function (c, i) { c.id = 'CART-' + (58410 - i); });
+  return out;
+}
+var CARTS = buildCarts();
+var TABS = [{ id: 'all', label: 'All' }, { id: 'new', label: 'Not contacted' }, { id: 'contacted', label: 'Reminder sent' }, { id: 'recovered', label: 'Recovered' }, { id: 'lost', label: 'Lost' }];
+var EMPTY_F = { date: 'all', stage: [], channel: [], ctype: [], minValue: 0 };
+var FILTERS = [
+  { key: 'date', label: 'Date', radio: true, opts: [{ value: 'all', label: 'Last 30 days' }, { value: 'today', label: 'Today' }, { value: '7d', label: 'Last 7 days' }] },
+  { key: 'stage', label: 'Left at', opts: [{ value: 'cart', label: 'Cart' }, { value: 'shipping', label: 'Shipping' }, { value: 'payment', label: 'Payment' }] },
+  { key: 'channel', label: 'Channel', opts: [{ value: 'Fernhill US', label: 'Fernhill US' }, { value: 'Fernhill EU', label: 'Fernhill EU' }, { value: 'Wholesale', label: 'Wholesale' }] },
+  { key: 'ctype', label: 'Customer', opts: [{ value: 'registered', label: 'Registered' }, { value: 'guest', label: 'Guest with email' }, { value: 'anonymous', label: 'No contact details' }] }
+];
+function matchF(c, k, v) {
+  if (k === 'date') return v === 'all' || (v === 'today' ? c.ts >= DAY0 : c.ts >= NOW - 7 * 864e5);
+  if (k === 'stage') return !v.length || v.indexOf(c.stage) >= 0;
+  if (k === 'channel') return !v.length || v.indexOf(c.channel) >= 0;
+  if (k === 'ctype') return !v.length || v.indexOf(c.ctype) >= 0;
+  return true;
+}
+var SORTS = [{ key: 'date', dir: 'desc', label: 'Newest first' }, { key: 'date', dir: 'asc', label: 'Oldest first' }, { key: 'value', dir: 'desc', label: 'Value, high to low' }, { key: 'value', dir: 'asc', label: 'Value, low to high' }];
+var TEMPLATES = [
+  { value: 'reminder', label: 'Gentle reminder', subject: 'You left something in your cart', body: 'Hi {name},\nYour cart is saved and ready when you are. Pick up right where you left off.' },
+  { value: 'stock', label: 'Low stock nudge', subject: 'Your picks are selling fast', body: 'Hi {name},\nSome items in your cart are running low. We’ve held them for you for the next 24 hours.' },
+  { value: 'help', label: 'Need a hand?', subject: 'Questions about your order?', body: 'Hi {name},\nIf something stopped you at checkout, reply to this email and our team will help with sizing, shipping or payment.' }
+];
+var DISCOUNTS = [{ value: '5', label: '5% off' }, { value: '10', label: '10% off' }, { value: '15', label: '15% off' }];
+var DELAYS1 = [{ value: '1h', label: '1 hour after' }, { value: '4h', label: '4 hours after' }, { value: '12h', label: '12 hours after' }];
+var DELAYS2 = [{ value: '24h', label: '24 hours after' }, { value: '48h', label: '48 hours after' }];
+var DELAYS3 = [{ value: '72h', label: '3 days after' }, { value: '5d', label: '5 days after' }, { value: '7d', label: '7 days after' }];
+var DELAY_LABEL = { '1h': '1 hour', '4h': '4 hours', '12h': '12 hours', '24h': '24 hours', '48h': '48 hours', '72h': '3 days', '5d': '5 days', '7d': '7 days' };
+var AUTO_DEFAULT = { on: true, d1: '1h', d2: '24h', d3: '72h', discount: true, min: 25 };
+
+function cartView(c, auto) {
+  var st = STAGE[c.stage], rc = REC[c.status], items = c.lines.reduce(function (a, l) { return a + l.qty; }, 0);
+  var recSub = c.status === 'new' ? (!c.email ? 'Can’t be contacted' : !auto.on ? 'Automation is off' : c.value < auto.min ? 'Below the $' + auto.min + ' minimum' : 'First reminder in ' + Math.max(1, Math.round(60 - (NOW - c.ts) / 6e4)) + ' min')
+    : c.status === 'contacted' ? c.reminders + ' of 3 reminders · last ' + timeAgo(c.lastReminder)
+      : c.status === 'recovered' ? 'Order ' + c.orderId + ' · ' + timeAgo(c.recoveredAt)
+        : c.lostAt ? 'Marked as lost' : 'Expired after 14 days';
+  return { id: c.id, ago: timeAgo(c.ts), customer: c.customer, contact: c.email || 'No contact details', contactCls: c.email ? 'o-sub' : 'o-sub ac-nocontact',
+    firstProduct: c.lines[0].name, itemsLabel: items + (items === 1 ? ' item' : ' items') + (c.lines.length > 1 ? ' · ' + c.lines.length + ' products' : ''),
+    value: money2(c.value), stageLabel: st[0], dots: [1, 2, 3].map(function (i) { return { cls: i <= st[1] ? 'is-on' : '' }; }),
+    channel: c.channel, source: c.source, recTone: rc[0], recLabel: rc[1], recIcon: rc[2], recSub: recSub, cantEmail: !c.email || c.status === 'recovered' || c.status === 'lost' };
+}
+function cartEvents(c) {
+  var ev = [{ ts: c.ts - 9 * 6e4, label: 'Added ' + c.lines[0].name + ' to cart', tone: '' }];
+  if (c.stage !== 'cart') ev.push({ ts: c.ts - 4 * 6e4, label: 'Started checkout' + (c.email ? ' as ' + c.email : ''), tone: '' });
+  if (c.stage === 'payment') ev.push({ ts: c.ts - 1 * 6e4, label: 'Entered shipping, reached payment', tone: '' });
+  ev.push({ ts: c.ts, label: 'Left the store at ' + STAGE[c.stage][0].toLowerCase(), tone: 'is-warning' });
+  var auto = [1, 24, 72];
+  for (var i = 0; i < Math.min(c.reminders - (c.manual ? c.manual.length : 0), 3); i++) ev.push({ ts: c.ts + auto[i] * 36e5, label: 'Automatic reminder ' + (i + 1) + ' sent' + (i === 2 ? ' with 10% code' : ''), tone: 'is-brand' });
+  (c.manual || []).forEach(function (m) { ev.push({ ts: m.ts, label: 'Reminder sent by Priya Natarajan: “' + m.tpl + '”' + (m.code ? ' with ' + m.code : ''), tone: 'is-brand' }); });
+  if (c.status === 'recovered') ev.push({ ts: c.recoveredAt, label: 'Recovered as order ' + c.orderId, tone: 'is-success' });
+  if (c.status === 'lost') ev.push({ ts: c.lostAt || c.ts + 14 * 864e5, label: c.lostAt ? 'Marked as lost by Priya Natarajan' : 'Expired after 14 days with no order', tone: '' });
+  return ev.filter(function (e) { return e.ts <= NOW; }).sort(function (a, b) { return b.ts - a.ts; }).map(function (e) { return { label: e.label, when: fmtWhen(e.ts), tone: e.tone }; });
+}
+var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function fmtWhen(ts) { var d = new Date(ts), t = pad2(d.getUTCHours()) + ':' + pad2(d.getUTCMinutes()); if (ts >= DAY0) return 'Today, ' + t; if (ts >= DAY0 - 864e5) return 'Yesterday, ' + t; return MON[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + t; }
+function timeAgo(ts) { var m = Math.max(1, Math.round((NOW - ts) / 6e4)); if (m < 60) return m + ' min ago'; var h = Math.round(m / 60); if (h < 24) return h + 'h ago'; var d = Math.round(h / 24); return d === 1 ? '1 day ago' : d + ' days ago'; }
+function int(n) { return Math.round(n).toLocaleString('en-US'); }
+function money0(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+function money2(n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function signedPct(d) { return (d > 0 ? '+' : d < 0 ? '−' : '') + (Math.abs(d) * 100).toFixed(1) + '%'; }
+</script>
+</body>
+</html>
