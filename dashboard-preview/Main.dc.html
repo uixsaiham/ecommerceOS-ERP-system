@@ -1,0 +1,1127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CommerceOS dashboard</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css">
+<script src="ds/commerceos/components/bundle.js"></script>
+<script src="ds/commerceos/shell/shell.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:var(--bg-canvas)}
+a{color:var(--link)}a:hover{color:var(--brand-hover)}
+.app{background:var(--bg-canvas);color:var(--text-primary);font-family:var(--font-sans);font-size:14px;line-height:20px;font-feature-settings:"tnum" 1}
+
+
+/* top bar */
+.main{min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:20;height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 24px;background:var(--bg-surface);border-bottom:1px solid var(--border)}
+.icon-btn{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);cursor:pointer}
+.icon-btn:hover{background:var(--bg-muted);color:var(--text-primary)}
+.icon-btn:focus-visible,.search-trigger:focus-visible,.top-btn:focus-visible,.profile-btn:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.icon-btn .cx-icon{width:20px;height:20px}
+.icon-btn[aria-expanded="true"]{background:var(--bg-muted);color:var(--text-primary)}
+.only-drawer{display:none}
+.search-trigger{flex:1;max-width:560px;display:flex;align-items:center;gap:8px;height:36px;padding:0 8px 0 12px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-subtle);color:var(--text-muted);font:inherit;font-size:14px;cursor:text;text-align:left}
+.search-trigger:hover{border-color:var(--text-secondary)}
+.search-trigger .cx-icon{width:16px;height:16px}
+.st-text{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-keys{display:flex;gap:4px}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:4px}
+.top-btn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 10px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-primary);font:inherit;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+.top-btn:hover,.top-btn[aria-expanded="true"]{background:var(--bg-muted)}
+.top-btn .cx-icon{width:16px;height:16px;color:var(--text-secondary)}
+.top-sep{width:1px;height:24px;margin:0 8px;background:var(--border)}
+.profile-btn{display:flex;align-items:center;gap:10px;height:44px;padding:0 8px 0 4px;border:0;border-radius:var(--radius-sm);background:transparent;font:inherit;color:var(--text-primary);cursor:pointer;text-align:left}
+.profile-btn:hover,.profile-btn[aria-expanded="true"]{background:var(--bg-muted)}
+.avatar{flex:none;width:32px;height:32px;border-radius:var(--radius-full);background:var(--brand-subtle);color:var(--brand);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.avatar-lg{width:40px;height:40px;font-size:14px}
+.profile-text{display:flex;flex-direction:column;line-height:16px}
+.profile-name{font-size:13px;font-weight:500}
+.profile-role{font-size:12px;color:var(--text-muted)}
+.profile-btn .cx-icon{width:16px;height:16px;color:var(--text-muted)}
+.profile-head{display:flex;gap:12px;align-items:center;padding:8px 8px 12px}
+.profile-head .profile-text{line-height:20px}
+.notif-count{position:absolute;top:4px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:var(--radius-full);background:var(--danger);color:var(--on-danger);font-size:10px;line-height:16px;font-weight:600;text-align:center;box-shadow:0 0 0 2px var(--bg-surface)}
+
+/* popovers built from the system's menu classes */
+.pop{position:relative;display:inline-flex}
+.pop .cx-menu{min-width:240px}
+.menu-check{margin-left:auto;color:var(--brand)}
+.menu-check .cx-icon{color:var(--brand)}
+.menu-sub{display:block;font-size:12px;line-height:16px;color:var(--text-muted)}
+.menu-item-2{height:auto;min-height:40px;padding:6px 8px;align-items:flex-start}
+.menu-item-2 > .cx-icon{margin-top:2px}
+.notif-panel{width:380px;max-width:calc(100vw - 32px);padding:0}
+.np-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.np-title{font-size:15px;line-height:24px;font-weight:600}
+.np-list{list-style:none;margin:0;padding:4px}
+.np-item{display:flex;gap:12px;padding:10px 12px;border-radius:var(--radius-xs);text-decoration:none;color:var(--text-primary)}
+.np-item:hover{background:var(--bg-muted);color:var(--text-primary)}
+.np-ico{flex:none;width:32px;height:32px;border-radius:var(--radius-full);display:inline-flex;align-items:center;justify-content:center}
+.np-ico .cx-icon{width:16px;height:16px}
+.np-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:13px;line-height:20px}
+.np-time{font-size:12px;line-height:16px;color:var(--text-muted)}
+.np-unread{flex:none;width:8px;height:8px;margin-top:6px;border-radius:var(--radius-full);background:var(--brand)}
+.np-read{flex:none;width:8px}
+.np-foot{padding:10px 16px;border-top:1px solid var(--border);text-align:center;font-size:13px}
+
+/* page */
+.page{width:100%;max-width:1600px;margin:0 auto;box-sizing:border-box;padding:24px 32px 48px;display:flex;flex-direction:column;gap:24px}
+.page-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.ph-titles{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ph-titles h1{margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-0.015em}
+.ph-sub{margin:0;color:var(--text-secondary)}
+.ph-meta{margin:0;font-size:12px;line-height:16px;color:var(--text-muted);display:flex;flex-wrap:wrap;gap:4px 12px}
+.ph-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ph-actions .cx-menu{min-width:220px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.kpis > *{min-width:0}
+.duo{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:start}
+.cx-card{min-width:0}
+.card-head-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* sales chart */
+.sales-summary{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:16px}
+.ss-value{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.ss-big{font-size:28px;line-height:36px;font-weight:600;letter-spacing:-0.02em}
+.ss-cmp{font-size:12px;line-height:16px;color:var(--text-muted)}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font-size:12px;line-height:16px;color:var(--text-secondary)}
+.lg-item{display:inline-flex;align-items:center;gap:6px}
+.lg-cur{width:16px;height:0;border-top:2px solid var(--brand)}
+.lg-prev{width:16px;height:0;border-top:2px dashed var(--text-muted)}
+.lg-item.is-off{opacity:.45}
+.chart{display:grid;grid-template-columns:48px minmax(0,1fr);grid-template-rows:260px 28px;column-gap:8px}
+.chart-y{position:relative}
+.chart-y span{position:absolute;right:0;transform:translateY(50%);font-size:12px;line-height:16px;color:var(--text-muted);white-space:nowrap}
+.chart-plot{position:relative;border-bottom:1px solid var(--border-strong);user-select:none}
+.gl{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--border)}
+.chart-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.c-area{fill:var(--brand-subtle);opacity:.75}
+.c-line{fill:none;stroke:var(--brand);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.c-prev{fill:none;stroke:var(--text-muted);stroke-width:1.5;stroke-dasharray:4 4;vector-effect:non-scaling-stroke}
+.c-prev.is-hidden{display:none}
+.hits{position:absolute;inset:0;display:flex}
+.hit{flex:1;height:100%;cursor:crosshair}
+.brush{position:absolute;top:0;bottom:0;background:var(--brand);opacity:.12;pointer-events:none}
+.hv-line{position:absolute;top:0;bottom:0;width:0;border-left:1px solid var(--border-control);pointer-events:none}
+.hv-dot{position:absolute;width:10px;height:10px;margin:0 0 -5px -5px;border-radius:var(--radius-full);background:var(--brand);box-shadow:0 0 0 2px var(--bg-surface);pointer-events:none}
+.c-tip{position:absolute;top:8px;min-width:184px;padding:8px 12px;border-radius:var(--radius-md);background:var(--bg-surface);border:1px solid var(--border);box-shadow:var(--shadow-md);font-size:12px;line-height:16px;pointer-events:none;transform:translateX(12px);z-index:5}
+.c-tip.is-left{transform:translateX(calc(-100% - 12px))}
+.c-tip-date{font-weight:600;margin-bottom:6px;color:var(--text-primary)}
+.c-tip-row{display:flex;align-items:center;gap:8px;justify-content:space-between;color:var(--text-secondary)}
+.c-tip-row strong{color:var(--text-primary);font-weight:500}
+.c-tip-row span{display:inline-flex;align-items:center;gap:6px}
+.chart-corner{grid-column:1}
+.chart-x{position:relative}
+.chart-x span{position:absolute;top:8px;transform:translateX(-50%);font-size:12px;line-height:16px;color:var(--text-muted);white-space:nowrap}
+.chart-hint{margin-top:8px;font-size:12px;line-height:16px;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* tasks */
+.tasks{list-style:none;margin:0;padding:4px 0}
+.task{display:flex;align-items:center;gap:12px;padding:12px 24px;text-decoration:none;color:var(--text-primary);border-bottom:1px solid var(--border)}
+.tasks li:last-child .task{border-bottom:0}
+.task:hover{background:var(--bg-subtle);color:var(--text-primary)}
+.task:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px}
+.task-ico{flex:none;width:36px;height:36px;border-radius:var(--radius-md);display:inline-flex;align-items:center;justify-content:center}
+.task-ico .cx-icon{width:18px;height:18px}
+.t-danger{background:var(--danger-subtle);color:var(--danger)}
+.t-warning{background:var(--warning-subtle);color:var(--warning)}
+.t-info{background:var(--info-subtle);color:var(--info)}
+.t-brand{background:var(--brand-subtle);color:var(--brand)}
+.task-body{flex:1;min-width:0;display:flex;flex-direction:column}
+.task-title{font-size:14px;line-height:20px;font-weight:500}
+.task-title strong{font-weight:600}
+.task-meta{font-size:12px;line-height:16px;color:var(--text-muted)}
+.task-go{flex:none;display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:500;color:var(--link);white-space:nowrap}
+.task-go .cx-icon{width:14px;height:14px}
+.tasks-foot{font-size:12px;line-height:16px;color:var(--text-muted)}
+
+/* pipeline */
+.pipe-wrap{display:flex;flex-direction:column;gap:16px}
+.pipe{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,2fr);gap:16px}
+.pipe-group{display:flex;flex-direction:column;gap:8px;min-width:0}
+.pipe-label{font-size:11px;line-height:16px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)}
+.stages{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.stage{position:relative;display:flex;flex-direction:column;gap:8px;padding:12px 16px 14px;text-decoration:none;color:var(--text-primary);border-left:1px solid var(--border);min-width:0}
+.stage:first-child{border-left:0}
+.stage:hover{background:var(--bg-subtle);color:var(--text-primary)}
+.stage:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px}
+.stage.is-bottleneck{background:var(--danger-subtle)}
+.stage.is-bottleneck:hover{background:var(--danger-subtle)}
+.stage-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px;min-height:20px}
+.stage-count{font-size:24px;line-height:32px;font-weight:600;letter-spacing:-0.015em}
+.stage-time{font-size:12px;line-height:16px;color:var(--text-secondary)}
+.meter{height:4px;border-radius:var(--radius-full);background:var(--bg-muted);overflow:hidden}
+.meter span{display:block;height:100%;border-radius:var(--radius-full);background:var(--success)}
+.meter .m-warn{background:var(--warning)}
+.meter .m-bad{background:var(--danger)}
+.meter .m-neutral{background:var(--text-muted)}
+.stage-note{font-size:12px;line-height:16px;color:var(--text-muted)}
+.stage.is-bottleneck .stage-note{color:var(--danger);font-weight:500}
+
+/* tables */
+.tbl-scroll{overflow-x:auto}
+.cx-table td.td-strong{font-weight:500}
+.prod-name{display:block;font-weight:500;color:var(--text-primary);text-decoration:none}
+.prod-name:hover{color:var(--link);text-decoration:underline}
+.stock-cell{display:inline-flex;flex-direction:column;align-items:flex-end;gap:4px}
+.stock-cell .meter{width:72px}
+.order-link{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--link);text-decoration:none}
+.order-link:hover{text-decoration:underline}
+.muted{color:var(--text-secondary)}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 24px;border-bottom:1px solid var(--border)}
+.toolbar-end{margin-left:auto;font-size:12px;line-height:16px;color:var(--text-muted)}
+.card-foot-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:12px 24px;border-top:1px solid var(--border);font-size:12px;line-height:16px;color:var(--text-muted)}
+.inv-tabs{padding:0 24px;border-bottom:1px solid var(--border)}
+.inv-tabs .cx-tabs{border-bottom:0}
+.m-list{display:none;list-style:none;margin:0;padding:0}
+.m-card{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text-primary)}
+.m-list li:last-child .m-card{border-bottom:0}
+.m-card:hover{background:var(--bg-subtle);color:var(--text-primary)}
+.m-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.m-title{font-weight:500}
+.m-meta{font-size:12px;line-height:16px;color:var(--text-muted)}
+.m-figs{display:flex;gap:16px;font-size:13px}
+.m-figs span{color:var(--text-secondary)}
+.m-figs strong{color:var(--text-primary);font-weight:500}
+.m-badges{display:flex;gap:6px;flex-wrap:wrap}
+
+/* global search */
+.pal-scrim{position:fixed;inset:0;z-index:60;background:var(--overlay);display:flex;justify-content:center;align-items:flex-start;padding:72px 16px 16px}
+.pal{width:100%;max-width:680px;max-height:calc(100vh - 120px);display:flex;flex-direction:column;background:var(--bg-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);overflow:hidden}
+.pal-head{display:flex;gap:8px;align-items:center;padding:12px 12px 0 16px}
+.pal-head > :first-child{flex:1;min-width:0}
+.pal-head .cx-control{box-shadow:none}
+.pal-esc{flex:none;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-xs);background:var(--bg-subtle);color:var(--text-secondary);font:inherit;font-size:12px;cursor:pointer}
+.pal-scopes{padding:0 16px;border-bottom:1px solid var(--border)}
+.pal-scopes .cx-tabs{border-bottom:0;gap:20px}
+.pal-body{flex:1;overflow-y:auto;padding:8px}
+.pal-glabel{display:flex;justify-content:space-between;padding:8px 8px 4px;font-size:11px;line-height:16px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)}
+.pal-item{display:flex;align-items:center;gap:12px;padding:8px;border-radius:var(--radius-sm);text-decoration:none;color:var(--text-primary)}
+.pal-item:hover,.pal-item.is-active{background:var(--bg-selected);color:var(--text-primary)}
+.pal-ico{flex:none;width:32px;height:32px;border-radius:var(--radius-sm);background:var(--bg-muted);color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center}
+.pal-ico .cx-icon{width:16px;height:16px}
+.pal-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.pal-title{font-size:14px;line-height:20px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pal-title.is-code{font-family:var(--font-mono);font-size:13px}
+.pal-title mark:empty{display:none}
+.pal-title mark{background:var(--warning-subtle);color:inherit;border-radius:2px;padding:0 1px}
+.pal-meta{font-size:12px;line-height:16px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pal-side{flex:none;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--text-secondary)}
+.pal-enter{flex:none;opacity:0;color:var(--text-muted)}
+.pal-item.is-active .pal-enter{opacity:1}
+.pal-more{display:block;padding:6px 8px 10px 52px;font-size:12px;line-height:16px}
+.pal-foot{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:10px 16px;border-top:1px solid var(--border);background:var(--bg-subtle);font-size:12px;line-height:16px;color:var(--text-muted)}
+.pal-foot span{display:inline-flex;gap:4px;align-items:center}
+.pal-tip{margin-left:auto}
+.pal-tip code{font-family:var(--font-mono);color:var(--text-secondary)}
+
+/* tablet */
+@media (max-width:1279px){
+  .page{padding:24px 24px 40px}
+  .top{padding:0 16px 0 24px}
+  .duo{grid-template-columns:minmax(0,1fr) 320px}
+  .col-items{display:none}
+}
+/* small tablet */
+@media (max-width:1023px){
+  .profile-text,.profile-btn > .cx-icon,.top-sep,.store-name{display:none}
+  .profile-btn{padding:0 4px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .duo{display:contents}
+  .tasks-card{order:-1}
+  .page > .page-head{order:-3}
+  .kpis{order:-2}
+  .pipe{grid-template-columns:minmax(0,1fr)}
+  .col-pay{display:none}
+}
+/* phone */
+@media (max-width:767px){
+  .only-drawer{display:inline-flex}
+  .page{padding:16px 16px 32px;gap:16px}
+  .top{padding:0 8px;gap:4px}
+  .search-trigger{flex:0 0 36px;width:36px;padding:0;justify-content:center;border:0;background:transparent;color:var(--text-secondary)}
+  .search-trigger .cx-icon{width:20px;height:20px}
+  .st-text,.st-keys{display:none}
+  .ph-titles h1{font-size:20px;line-height:28px}
+  .page-head{align-items:stretch}
+  .ph-actions{width:100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+  .export-label{display:none}
+  .kpis{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:16px;gap:12px;margin:0 -16px;padding:0 16px 4px}
+  .kpis > *{flex:0 0 78%;scroll-snap-align:start}
+  .chart{grid-template-rows:200px 28px;grid-template-columns:40px minmax(0,1fr)}
+  .chart-x .xl-alt{display:none}
+  .chart-hint .drag-hint{display:none}
+  .stages{grid-auto-flow:row;grid-auto-columns:auto}
+  .stage{border-left:0;border-top:1px solid var(--border);display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;row-gap:6px;align-items:center}
+  .stage:first-child{border-top:0}
+  .stage-top{grid-column:1}
+  .stage-count{grid-column:2;grid-row:1 / span 2;font-size:20px;line-height:28px;text-align:right}
+  .stage-time{grid-column:1}
+  .stage .meter,.stage-note{grid-column:1 / -1}
+  .tbl-scroll{display:none}
+  .m-list{display:block}
+  .task{padding:12px 16px}
+  .task-go-label{display:none}
+  .toolbar,.card-foot-row,.inv-tabs{padding-left:16px;padding-right:16px}
+  .cx-card-head,.cx-card-body{padding-left:16px;padding-right:16px}
+  .pal-scrim{padding:0}
+  .pal{max-width:none;max-height:none;height:100%;border-radius:0}
+  .pal-tip{display:none}
+}
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}" onKeyDown="{{onRootKey}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="{{nav.current}}" collapsed="{{nav.collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{nav.drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{nav.stores}}" store="{{nav.store}}" on-store-change="{{nav.setStore}}" user="{{nav.user}}" on-navigate="{{nav.navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<header class="top">
+<button class="icon-btn only-drawer" aria-label="Open navigation" onClick="{{openDrawer}}"><x-import component-from-global-scope="CommerceOS.Icon" name="menu"></x-import></button>
+<button class="search-trigger" onClick="{{openSearch}}" aria-label="Search orders, customers, products, SKUs and suppliers" aria-keyshortcuts="Meta+K">
+<x-import component-from-global-scope="CommerceOS.Icon" name="search"></x-import>
+<span class="st-text">Search orders, customers, products, SKUs, suppliers</span>
+<span class="st-keys" aria-hidden="true"><kbd class="cx-kbd">⌘</kbd><kbd class="cx-kbd">K</kbd></span>
+</button>
+<div class="top-actions">
+<div class="pop" data-pop="store">
+<button class="top-btn" onClick="{{toggleStoreTop}}" aria-haspopup="menu" aria-expanded="{{open.storeTop}}" aria-label="Store: {{storeName}}">
+<x-import component-from-global-scope="CommerceOS.Icon" name="store"></x-import>
+<span class="store-name">{{storeName}}</span>
+<x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import>
+</button>
+<sc-if value="{{open.storeTop}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Choose store">
+<div class="cx-menu-group">Store</div>
+<sc-for list="{{storeItems}}" as="s" hint-placeholder-count="5">
+<button class="cx-menu-item menu-item-2" role="menuitemradio" aria-checked="{{s.selected}}" onClick="{{s.pick}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{s.icon}}"></x-import><span><span>{{s.label}}</span><span class="menu-sub">{{s.sub}}</span></span><sc-if value="{{s.selected}}" hint-placeholder-val="{{false}}"><span class="menu-check"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button>
+</sc-for>
+<div class="cx-menu-sep"></div>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="settings"></x-import><span>Manage stores</span></button>
+</div>
+</sc-if>
+</div>
+<div class="pop" data-pop="help">
+<x-import component-from-global-scope="CommerceOS.Tooltip" content="Help" side="bottom"><button class="icon-btn" aria-label="Help" aria-haspopup="menu" aria-expanded="{{open.help}}" onClick="{{toggleHelp}}"><x-import component-from-global-scope="CommerceOS.Icon" name="help-circle"></x-import></button></x-import>
+<sc-if value="{{open.help}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Help">
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="file-text"></x-import><span>Help center</span></button>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="keyboard"></x-import><span>Keyboard shortcuts</span><span class="cx-menu-shortcut">?</span></button>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="megaphone"></x-import><span>What’s new</span></button>
+<div class="cx-menu-sep"></div>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="users"></x-import><span>Contact support</span></button>
+</div>
+</sc-if>
+</div>
+<div class="pop" data-pop="notif">
+<x-import component-from-global-scope="CommerceOS.Tooltip" content="Notifications" side="bottom"><button class="icon-btn" aria-label="Notifications, {{unread}} unread" aria-haspopup="dialog" aria-expanded="{{open.notif}}" onClick="{{toggleNotif}}"><x-import component-from-global-scope="CommerceOS.Icon" name="bell"></x-import><sc-if value="{{unread}}" hint-placeholder-val="{{true}}"><span class="notif-count" aria-hidden="true">{{unread}}</span></sc-if></button></x-import>
+<sc-if value="{{open.notif}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end notif-panel" role="dialog" aria-label="Notifications">
+<div class="np-head"><span class="np-title">Notifications</span><x-import component-from-global-scope="CommerceOS.Button" variant="link" on-click="{{markAllRead}}">Mark all as read</x-import></div>
+<ul class="np-list">
+<sc-for list="{{notifs}}" as="n" hint-placeholder-count="4">
+<li><a class="np-item" href="#"><span class="np-ico {{n.tone}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{n.icon}}"></x-import></span><span class="np-body"><span>{{n.text}}</span><span class="np-time">{{n.time}}</span></span><span class="{{n.dot}}"></span></a></li>
+</sc-for>
+</ul>
+<div class="np-foot"><a href="#">View all notifications</a></div>
+</div>
+</sc-if>
+</div>
+<span class="top-sep"></span>
+<div class="pop" data-pop="profile">
+<button class="profile-btn" aria-haspopup="menu" aria-expanded="{{open.profile}}" onClick="{{toggleProfile}}" aria-label="Account: Priya Natarajan, Operations Manager">
+<span class="avatar" aria-hidden="true">PN</span>
+<span class="profile-text"><span class="profile-name">Priya Natarajan</span><span class="profile-role">Operations Manager</span></span>
+<x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import>
+</button>
+<sc-if value="{{open.profile}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Account">
+<div class="profile-head"><span class="avatar avatar-lg" aria-hidden="true">PN</span><span class="profile-text"><span class="profile-name">Priya Natarajan</span><span class="profile-role">priya@fernhill.co</span></span></div>
+<div class="cx-menu-sep"></div>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="user"></x-import><span>My profile</span></button>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="settings"></x-import><span>Account settings</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{toggleTheme}}"><x-import component-from-global-scope="CommerceOS.Icon" name="eye"></x-import><span>{{themeLabel}}</span></button>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="keyboard"></x-import><span>Keyboard shortcuts</span><span class="cx-menu-shortcut">?</span></button>
+<div class="cx-menu-sep"></div>
+<div class="cx-menu-group">Role: Operations Manager</div>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="log-out"></x-import><span>Sign out</span></button>
+</div>
+</sc-if>
+</div>
+</div>
+</header>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<h1>Dashboard</h1>
+<p class="ph-sub">Overview of your store operations and performance.</p>
+<p class="ph-meta"><span>{{periodLabel}} compared with {{prevLabel}}</span><span>{{storeName}}</span><span>Updated 09:42 UTC</span></p>
+</div>
+<div class="ph-actions">
+<div class="pop" data-pop="range">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="calendar" icon-right="chevron-down" on-click="{{toggleRange}}" aria-haspopup="menu" aria-expanded="{{open.range}}">{{rangeLabel}}</x-import>
+<sc-if value="{{open.range}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Date range">
+<sc-for list="{{rangeItems}}" as="r" hint-placeholder-count="6">
+<sc-if value="{{r.sepBefore}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div></sc-if>
+<button class="cx-menu-item menu-item-2" role="menuitemradio" aria-checked="{{r.selected}}" onClick="{{r.pick}}"><span><span>{{r.label}}</span><span class="menu-sub">{{r.sub}}</span></span><sc-if value="{{r.selected}}" hint-placeholder-val="{{false}}"><span class="menu-check"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+<div class="pop" data-pop="storePage">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="store" icon-right="chevron-down" on-click="{{toggleStorePage}}" aria-haspopup="menu" aria-expanded="{{open.storePage}}">{{storeName}}</x-import>
+<sc-if value="{{open.storePage}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Filter by store">
+<sc-for list="{{storeItems}}" as="s" hint-placeholder-count="5">
+<button class="cx-menu-item" role="menuitemradio" aria-checked="{{s.selected}}" onClick="{{s.pick}}"><span>{{s.label}}</span><sc-if value="{{s.selected}}" hint-placeholder-val="{{false}}"><span class="menu-check"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+<div class="pop" data-pop="export">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{toggleExport}}" aria-haspopup="menu" aria-expanded="{{open.export}}" aria-label="Export report"><span class="export-label">Export</span></x-import>
+<sc-if value="{{open.export}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Export">
+<button class="cx-menu-item" role="menuitem" onClick="{{exportPdf}}"><x-import component-from-global-scope="CommerceOS.Icon" name="file-text"></x-import><span>Download PDF summary</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{exportCsv}}"><x-import component-from-global-scope="CommerceOS.Icon" name="download"></x-import><span>Export data as CSV</span></button>
+<div class="cx-menu-sep"></div>
+<button class="cx-menu-item" role="menuitem" onClick="{{exportSchedule}}"><x-import component-from-global-scope="CommerceOS.Icon" name="calendar"></x-import><span>Email this report weekly</span></button>
+</div>
+</sc-if>
+</div>
+</div>
+</div>
+
+<section class="kpis" aria-label="Key metrics">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<x-import component-from-global-scope="CommerceOS.MetricCard" label="{{k.label}}" value="{{k.value}}" delta="{{k.delta}}" comparison="{{k.comparison}}" trend="{{k.trend}}" info="{{k.info}}"></x-import>
+</sc-for>
+</section>
+
+<div class="duo">
+<section class="cx-card" aria-labelledby="sales-title">
+<header class="cx-card-head">
+<div>
+<h2 class="cx-card-title" id="sales-title">Sales overview</h2>
+<p class="cx-card-desc">{{chartDesc}}</p>
+</div>
+<x-import component-from-global-scope="CommerceOS.Tabs" variant="segmented" aria-label="Chart metric" items="{{metricTabs}}" value="{{metric}}" on-change="{{setMetric}}"></x-import>
+</header>
+<div class="cx-card-body">
+<div class="sales-summary">
+<div class="ss-value">
+<span class="ss-big">{{summary.value}}</span>
+<x-import component-from-global-scope="CommerceOS.Badge" tone="{{summary.tone}}" icon="{{summary.icon}}">{{summary.delta}}</x-import>
+<span class="ss-cmp">vs {{summary.prev}} in {{prevLabel}}</span>
+</div>
+<div class="legend">
+<span class="lg-item"><span class="lg-cur"></span>{{periodLabel}}</span>
+<span class="lg-item {{legendPrevCls}}"><span class="lg-prev"></span>{{prevLabel}}</span>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Compare" checked="{{compare}}" on-change="{{setCompare}}"></x-import>
+</div>
+</div>
+<div class="chart">
+<div class="chart-y" aria-hidden="true">
+<sc-for list="{{chart.ticks}}" as="t" hint-placeholder-count="5"><span style="bottom: {{t.pos}}">{{t.label}}</span></sc-for>
+</div>
+<div class="chart-plot" onMouseLeave="{{endHover}}" onMouseUp="{{endDrag}}" role="img" aria-label="{{chart.aria}}">
+<sc-for list="{{chart.ticks}}" as="t" hint-placeholder-count="5"><div class="gl" style="bottom: {{t.pos}}"></div></sc-for>
+<svg class="chart-svg" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true">
+<path class="c-area" d="{{chart.area}}"></path>
+<path class="c-prev {{chart.prevCls}}" d="{{chart.prev}}"></path>
+<path class="c-line" d="{{chart.line}}"></path>
+</svg>
+<sc-if value="{{brush}}" hint-placeholder-val="{{false}}"><div class="brush" style="left: {{brush.left}}; width: {{brush.width}}"></div></sc-if>
+<sc-if value="{{hv}}" hint-placeholder-val="{{false}}">
+<div class="hv-line" style="left: {{hv.left}}"></div>
+<div class="hv-dot" style="left: {{hv.left}}; bottom: {{hv.bottom}}"></div>
+<div class="c-tip {{hv.side}}" style="left: {{hv.left}}">
+<div class="c-tip-date">{{hv.date}}</div>
+<div class="c-tip-row"><span><span class="lg-cur"></span>{{hv.curLabel}}</span><strong>{{hv.cur}}</strong></div>
+<sc-if value="{{compare}}" hint-placeholder-val="{{true}}"><div class="c-tip-row"><span><span class="lg-prev"></span>{{hv.prevLabel}}</span><strong>{{hv.prev}}</strong></div><div class="c-tip-row"><span>Change</span><strong>{{hv.change}}</strong></div></sc-if>
+</div>
+</sc-if>
+<div class="hits">
+<sc-for list="{{chart.points}}" as="p" hint-placeholder-count="30"><div class="hit" onMouseEnter="{{p.enter}}" onMouseDown="{{p.down}}"></div></sc-for>
+</div>
+</div>
+<div class="chart-corner"></div>
+<div class="chart-x" aria-hidden="true">
+<sc-for list="{{chart.xlabels}}" as="x" hint-placeholder-count="7"><span class="{{x.cls}}" style="left: {{x.pos}}">{{x.label}}</span></sc-for>
+</div>
+</div>
+<div class="chart-hint">
+<sc-if value="{{zoomed}}" hint-placeholder-val="{{false}}"><span>Zoomed to {{periodLabel}}.</span><x-import component-from-global-scope="CommerceOS.Button" variant="link" on-click="{{resetZoom}}">Back to last 30 days</x-import></sc-if>
+<sc-if value="{{canZoom}}" hint-placeholder-val="{{true}}"><span class="drag-hint">Drag across the chart to zoom into a date range.</span></sc-if>
+</div>
+<table class="cx-sr">
+<caption>{{chartDesc}}</caption>
+<thead><tr><th scope="col">Date</th><th scope="col">{{periodLabel}}</th><th scope="col">{{prevLabel}}</th></tr></thead>
+<tbody><sc-for list="{{chart.points}}" as="p" hint-placeholder-count="0"><tr><td>{{p.date}}</td><td>{{p.cur}}</td><td>{{p.prev}}</td></tr></sc-for></tbody>
+</table>
+</div>
+</section>
+
+<section class="cx-card tasks-card" aria-labelledby="tasks-title">
+<header class="cx-card-head">
+<div>
+<h2 class="cx-card-title" id="tasks-title">Needs attention</h2>
+<p class="cx-card-desc">{{taskSummary}}</p>
+</div>
+</header>
+<ul class="tasks">
+<sc-for list="{{tasks}}" as="t" hint-placeholder-count="5">
+<li><a class="task" href="#"><span class="task-ico {{t.tone}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{t.icon}}"></x-import></span><span class="task-body"><span class="task-title"><strong>{{t.count}}</strong> {{t.title}}</span><span class="task-meta">{{t.meta}}</span></span><span class="task-go"><span class="task-go-label">{{t.action}}</span><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-right"></x-import></span></a></li>
+</sc-for>
+</ul>
+<div class="card-foot-row tasks-foot"><span>Sorted by urgency. Counts update every 5 minutes.</span></div>
+</section>
+</div>
+
+<section class="cx-card" aria-labelledby="pipe-title">
+<header class="cx-card-head">
+<div>
+<h2 class="cx-card-title" id="pipe-title">Order pipeline</h2>
+<p class="cx-card-desc">Open orders by stage right now, with average time in stage against target.</p>
+</div>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="arrow-right" href="#">View all orders</x-import>
+</header>
+<div class="cx-card-body pipe-wrap">
+<x-import component-from-global-scope="CommerceOS.Alert" tone="danger" title="Processing is the bottleneck">{{bottleneck.text}} <a href="#">Review {{bottleneck.late}} late orders</a></x-import>
+<div class="pipe">
+<div class="pipe-group">
+<span class="pipe-label">Open now · {{openTotal}} orders</span>
+<div class="stages">
+<sc-for list="{{stagesOpen}}" as="s" hint-placeholder-count="5">
+<a class="stage {{s.cls}}" href="#" aria-label="{{s.aria}}">
+<span class="stage-top"><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{s.key}}"></x-import><sc-if value="{{s.flag}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Badge" tone="danger">Bottleneck</x-import></sc-if></span>
+<span class="stage-count">{{s.count}}</span>
+<span class="stage-time">Avg {{s.avg}} · target {{s.target}}</span>
+<span class="meter" aria-hidden="true"><span class="{{s.meterCls}}" style="width: {{s.meterW}}"></span></span>
+<span class="stage-note">{{s.note}}</span>
+</a>
+</sc-for>
+</div>
+</div>
+<div class="pipe-group">
+<span class="pipe-label">Closed · {{rangeShort}}</span>
+<div class="stages">
+<sc-for list="{{stagesClosed}}" as="s" hint-placeholder-count="2">
+<a class="stage" href="#" aria-label="{{s.aria}}">
+<span class="stage-top"><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{s.key}}"></x-import></span>
+<span class="stage-count">{{s.count}}</span>
+<span class="stage-time">{{s.rate}}</span>
+<span class="meter" aria-hidden="true"><span class="{{s.meterCls}}" style="width: {{s.meterW}}"></span></span>
+<span class="stage-note">{{s.note}}</span>
+</a>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="cx-card" aria-labelledby="inv-title">
+<header class="cx-card-head">
+<div>
+<h2 class="cx-card-title" id="inv-title">Inventory alerts</h2>
+<p class="cx-card-desc">8 SKUs below reorder level and 3 overstocked. Stock is shared across all stores.</p>
+</div>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="arrow-right" href="#">View inventory</x-import>
+</header>
+<div class="inv-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Alert type" items="{{invTabs}}" value="{{invTab}}" on-change="{{setInvTab}}"></x-import></div>
+<div class="tbl-scroll">
+<table class="cx-table cx-table-compact" aria-label="Inventory alerts">
+<thead><tr>
+<th scope="col">Product</th><th scope="col">SKU</th><th scope="col" class="is-right">Current stock</th><th scope="col" class="is-right">Reorder level</th><th scope="col">Warehouse</th><th scope="col">Status</th><th scope="col" class="is-right"><span class="cx-sr">Quick action</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{invRows}}" as="r" hint-placeholder-count="6">
+<tr>
+<td><a class="prod-name" href="#">{{r.name}}</a><span class="cx-cell-sub">{{r.variant}}</span></td>
+<td><span class="cx-mono muted">{{r.sku}}</span></td>
+<td class="is-right"><span class="stock-cell"><span class="td-strong">{{r.stockLabel}}</span><span class="meter" aria-hidden="true"><span class="{{r.meterCls}}" style="width: {{r.meterW}}"></span></span></span></td>
+<td class="is-right muted">{{r.reorderLabel}}</td>
+<td class="muted">{{r.wh}}</td>
+<td><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{r.status}}"></x-import></td>
+<td class="is-right"><x-import component-from-global-scope="CommerceOS.Button" size="sm" variant="secondary" icon="{{r.actionIcon}}" aria-label="{{r.actionAria}}" on-click="{{r.act}}">{{r.action}}</x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="m-list">
+<sc-for list="{{invRows}}" as="r" hint-placeholder-count="6">
+<li><div class="m-card">
+<div class="m-row"><span class="m-title">{{r.name}}</span><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{r.status}}"></x-import></div>
+<div class="m-row"><span class="m-meta">{{r.variant}} · <span class="cx-mono">{{r.sku}}</span></span></div>
+<div class="m-row"><span class="m-figs"><span>Stock <strong>{{r.stockLabel}}</strong></span><span>Reorder <strong>{{r.reorderLabel}}</strong></span><span>{{r.wh}}</span></span><x-import component-from-global-scope="CommerceOS.Button" size="sm" variant="secondary" icon="{{r.actionIcon}}" aria-label="{{r.actionAria}}" on-click="{{r.act}}">{{r.action}}</x-import></div>
+</div></li>
+</sc-for>
+</ul>
+<div class="card-foot-row"><span>Showing {{invShown}} of {{invTotal}} alerts</span><a href="#">Open inventory planning</a></div>
+</section>
+
+<section class="cx-card" aria-labelledby="orders-title">
+<header class="cx-card-head">
+<div>
+<h2 class="cx-card-title" id="orders-title">Recent orders</h2>
+<p class="cx-card-desc">The latest orders in {{storeName}}.</p>
+</div>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="arrow-right" href="#">View all orders</x-import>
+</header>
+<div class="toolbar">
+<x-import component-from-global-scope="CommerceOS.SearchField" size="sm" width="260px" placeholder="Search order ID or customer" label="Search recent orders" shortcut="{{none}}" value="{{orderQuery}}" on-change="{{setOrderQuery}}"></x-import>
+<div class="pop" data-pop="ofilter">
+<x-import component-from-global-scope="CommerceOS.Button" size="sm" variant="secondary" icon="filter" icon-right="chevron-down" on-click="{{toggleFilter}}" aria-haspopup="menu" aria-expanded="{{open.filter}}">Status: {{filterLabel}}</x-import>
+<sc-if value="{{open.filter}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-start" role="menu" aria-label="Filter by status">
+<sc-for list="{{filterItems}}" as="f" hint-placeholder-count="8">
+<button class="cx-menu-item" role="menuitemradio" aria-checked="{{f.selected}}" onClick="{{f.pick}}"><span>{{f.label}}</span><span class="cx-menu-shortcut">{{f.count}}</span><sc-if value="{{f.selected}}" hint-placeholder-val="{{false}}"><span class="menu-check" style="margin-left: 8px"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+<span class="toolbar-end">{{orderCountLabel}}</span>
+</div>
+<sc-if value="{{hasOrders}}" hint-placeholder-val="{{true}}">
+<div class="tbl-scroll">
+<table class="cx-table" aria-label="Recent orders">
+<thead><tr>
+<sc-for list="{{orderCols}}" as="c" hint-placeholder-count="9">
+<th scope="col" class="{{c.cls}}" aria-sort="{{c.ariaSort}}"><sc-if value="{{c.sortable}}" hint-placeholder-val="{{true}}"><button class="cx-th-sort {{c.sortCls}}" onClick="{{c.sort}}">{{c.label}}<x-import component-from-global-scope="CommerceOS.Icon" name="{{c.icon}}"></x-import></button></sc-if><sc-if value="{{c.plain}}" hint-placeholder-val="{{false}}"><span class="{{c.labelCls}}">{{c.label}}</span></sc-if></th>
+</sc-for>
+</tr></thead>
+<tbody>
+<sc-for list="{{orders}}" as="o" hint-placeholder-count="8">
+<tr>
+<td><a class="order-link" href="#">{{o.id}}</a></td>
+<td><span class="cx-cell-primary">{{o.customer}}</span><span class="cx-cell-sub">{{o.channel}}</span></td>
+<td class="is-right col-items">{{o.items}}</td>
+<td class="is-right td-strong">{{o.totalLabel}}</td>
+<td class="col-pay"><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{o.payment}}" variant="badge"></x-import></td>
+<td><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{o.fulfillment}}" variant="badge"></x-import></td>
+<td class="muted">{{o.dateLabel}}</td>
+<td><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{o.status}}"></x-import></td>
+<td class="is-right"><x-import component-from-global-scope="CommerceOS.Button" size="sm" variant="ghost" icon="eye" aria-label="View order {{o.id}}">View</x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="m-list">
+<sc-for list="{{orders}}" as="o" hint-placeholder-count="8">
+<li><a class="m-card" href="#" aria-label="View order {{o.id}}">
+<span class="m-row"><span class="order-link">{{o.id}}</span><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{o.status}}"></x-import></span>
+<span class="m-row"><span class="m-title">{{o.customer}}</span><span class="m-meta">{{o.dateLabel}}</span></span>
+<span class="m-row"><span class="m-figs"><span><strong>{{o.totalLabel}}</strong></span><span>{{o.items}} items</span><span>{{o.channel}}</span></span></span>
+<span class="m-badges"><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{o.payment}}" variant="badge"></x-import><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{o.fulfillment}}" variant="badge"></x-import></span>
+</a></li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{noOrders}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.EmptyState" size="sm" icon="search" title="{{emptyTitle}}" description="Check the order ID or customer name, or clear the status filter. Only the latest orders are shown here."><x-import component-from-global-scope="CommerceOS.Button" on-click="{{clearOrderFilters}}">Clear search and filter</x-import></x-import>
+</sc-if>
+<div class="card-foot-row"><span>{{ordersFoot}}</span><a href="#">Open the orders list</a></div>
+</section>
+
+</main>
+</div>
+
+<sc-if value="{{search}}" hint-placeholder-val="{{false}}">
+<div class="pal-scrim" onMouseDown="{{scrimDown}}">
+<div class="pal" role="dialog" aria-modal="true" aria-label="Search CommerceOS" onKeyDown="{{palKey}}">
+<div class="pal-head">
+<x-import component-from-global-scope="CommerceOS.SearchField" size="lg" placeholder="Search orders, customers, products, SKUs, suppliers" label="Search CommerceOS" shortcut="{{none}}" value="{{q}}" on-change="{{setQ}}"></x-import>
+<button class="pal-esc" onClick="{{closeSearch}}" aria-label="Close search">Esc</button>
+</div>
+<div class="pal-scopes"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Search in" items="{{scopeTabs}}" value="{{scope}}" on-change="{{setScope}}"></x-import></div>
+<div class="pal-body">
+<sc-if value="{{hasQ}}" hint-placeholder-val="{{false}}">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+<div class="pal-group" role="group" aria-label="{{g.label}}">
+<div class="pal-glabel"><span>{{g.label}}</span><span>{{g.countLabel}}</span></div>
+<sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+<a class="pal-item {{it.cls}}" href="#" onMouseEnter="{{it.hover}}" onClick="{{it.open}}">
+<span class="pal-ico"><x-import component-from-global-scope="CommerceOS.Icon" name="{{it.icon}}"></x-import></span>
+<span class="pal-main"><span class="pal-title {{it.titleCls}}">{{it.pre}}<mark>{{it.match}}</mark>{{it.post}}</span><span class="pal-meta">{{it.meta}}</span></span>
+<span class="pal-side"><span>{{it.side}}</span><sc-if value="{{it.status}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{it.status}}"></x-import></sc-if><span class="pal-enter"><kbd class="cx-kbd">↵</kbd></span></span>
+</a>
+</sc-for>
+<sc-if value="{{g.more}}" hint-placeholder-val="{{false}}"><a class="pal-more" href="#" onClick="{{g.showAll}}">Show all {{g.total}} {{g.noun}}</a></sc-if>
+</div>
+</sc-for>
+<sc-if value="{{noResults}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.EmptyState" size="sm" icon="search" title="{{noResultsTitle}}" description="Try an order number, a SKU, or part of a customer or supplier name."></x-import>
+</sc-if>
+</sc-if>
+<sc-if value="{{noQ}}" hint-placeholder-val="{{true}}">
+<div class="pal-glabel"><span>Recent searches</span></div>
+<sc-for list="{{recent}}" as="r" hint-placeholder-count="3">
+<a class="pal-item" href="#" onClick="{{r.use}}"><span class="pal-ico"><x-import component-from-global-scope="CommerceOS.Icon" name="clock"></x-import></span><span class="pal-main"><span class="pal-title">{{r.label}}</span><span class="pal-meta">{{r.meta}}</span></span></a>
+</sc-for>
+<div class="pal-glabel"><span>Jump to</span></div>
+<sc-for list="{{jumps}}" as="j" hint-placeholder-count="4">
+<a class="pal-item" href="#"><span class="pal-ico"><x-import component-from-global-scope="CommerceOS.Icon" name="{{j.icon}}"></x-import></span><span class="pal-main"><span class="pal-title">{{j.label}}</span></span><span class="pal-side"><kbd class="cx-kbd">{{j.key}}</kbd></span></a>
+</sc-for>
+</sc-if>
+</div>
+<div class="pal-foot">
+<span><kbd class="cx-kbd">↑</kbd><kbd class="cx-kbd">↓</kbd> to move</span>
+<span><kbd class="cx-kbd">↵</kbd> to open</span>
+<span><kbd class="cx-kbd">Tab</kbd> to change scope</span>
+<span class="pal-tip">Narrow with <code>sku:</code> <code>order:</code> <code>customer:</code> <code>supplier:</code></span>
+</div>
+</div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{customOpen}}" on-close="{{closeCustom}}" size="sm" title="Custom date range" description="Pick dates in September 2026. The comparison uses the same number of days before the start date.">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<x-import component-from-global-scope="CommerceOS.Input" label="Start date" type="date" min="2026-09-01" max="2026-09-30" value="{{customStart}}" on-change="{{setCustomStart}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="End date" type="date" min="2026-09-01" max="2026-09-30" value="{{customEnd}}" on-change="{{setCustomEnd}}" error="{{customError}}"></x-import>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 8px">
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeCustom}}">Cancel</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{applyCustom}}">Apply range</x-import>
+</div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="success" title="{{toast.title}}" message="{{toast.message}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"drawerOpen":{"editor":null,"default":false},"searchOpen":{"editor":null,"default":false},"searchQuery":{"editor":null,"default":""},"$preview":{"width":1440,"height":2400}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      collapsed: !!props.collapsed, drawer: !!props.drawerOpen, search: !!props.searchOpen, q: props.searchQuery || '',
+      scope: 'all', active: 0, dark: !!props.dark, menu: null, store: 'all', range: '30d', customA: null, customB: null,
+      customOpen: false, customStart: '2026-09-08', customEnd: '2026-09-21', customError: null,
+      metric: 'revenue', compare: true, hover: null, dragA: null, dragB: null,
+      invTab: 'all', orderQuery: '', orderFilter: 'all', sort: { key: 'date', dir: 'desc' }, read: false, toast: null
+    };
+    this.data = buildData();
+  }
+  componentDidMount() {
+    this._onDoc = (e) => { if (this.state.menu && !(e.target.closest && e.target.closest('[data-pop]'))) this.setState({ menu: null }); };
+    document.addEventListener('mousedown', this._onDoc);
+  }
+  componentWillUnmount() { document.removeEventListener('mousedown', this._onDoc); clearTimeout(this._toastT); }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prevProps.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+    if (this.state.search && !prevState.search) setTimeout(() => { const i = document.querySelector('.pal input'); if (i) i.focus(); }, 0);
+  }
+  toggleMenu(name) { return () => this.setState((s) => ({ menu: s.menu === name ? null : name })); }
+  showToast(title, message) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message }, menu: null });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+
+  renderVals() {
+    const s = this.state, D = this.data;
+    const store = STORES.find((x) => x.key === s.store);
+    const f = store.factor;
+    const R = resolveRange(s, D);
+    const scale = (arr, round) => arr.map((v) => (round ? Math.round(v * f) : v * f));
+    const cur = { rev: scale(R.cur.rev), ord: scale(R.cur.ord, true) };
+    const prev = { rev: scale(R.prev.rev), ord: scale(R.prev.ord, true) };
+    const sum = (a) => a.reduce((x, y) => x + y, 0);
+    const sales = sum(cur.rev), pSales = sum(prev.rev), orders = sum(cur.ord), pOrders = sum(prev.ord);
+    const aov = orders ? sales / orders : 0, pAov = pOrders ? pSales / pOrders : 0;
+    const cust = Math.round(R.cust.cur * f), pCust = Math.round(R.cust.prev * f);
+    const aovSeries = cur.rev.map((v, i) => (cur.ord[i] ? v / cur.ord[i] : null));
+    const pAovSeries = prev.rev.map((v, i) => (prev.ord[i] ? v / prev.ord[i] : null));
+
+    const kpis = [
+      kpi('Total sales', money0(sales), sales, pSales, 'vs ' + money0(pSales) + ' ' + R.cmpShort, cur.rev, 'Gross sales after discounts, before refunds and tax.'),
+      kpi('Orders', int(orders), orders, pOrders, 'vs ' + int(pOrders) + ' ' + R.cmpShort, cur.ord, 'Orders placed, including those cancelled later.'),
+      kpi('Customers', int(cust), cust, pCust, int(cust - pCust) + ' new ' + R.newShort, R.cust.trend.map((v) => v * f), 'Customers with at least one order, all time.'),
+      kpi('Average order value', money2(aov), aov, pAov, 'vs ' + money2(pAov) + ' ' + R.cmpShort, aovSeries.filter((v) => v != null), 'Total sales divided by orders.')
+    ];
+
+    // chart
+    const M = { revenue: { cur: cur.rev, prev: prev.rev, fmt: money2, tick: moneyTick, label: 'Revenue', total: money0(sales), pTotal: money0(pSales), a: sales, b: pSales },
+      orders: { cur: cur.ord, prev: prev.ord, fmt: int, tick: int, label: 'Orders', total: int(orders), pTotal: int(pOrders), a: orders, b: pOrders },
+      aov: { cur: aovSeries, prev: pAovSeries, fmt: money2, tick: (v) => '$' + v, label: 'Avg. order value', total: money2(aov), pTotal: money2(pAov), a: aov, b: pAov } }[s.metric];
+    const n = M.cur.length;
+    const all = M.cur.concat(s.compare ? M.prev : []).filter((v) => v != null);
+    const step = niceStep(Math.max.apply(null, all.concat([1])) * 1.08 / 4), max = step * 4;
+    const X = (i) => ((i + 0.5) / n) * 1000, Y = (v) => 300 - (v / max) * 300;
+    const path = (arr) => { let d = '', last = null; arr.forEach((v, i) => { if (v == null) v = last; if (v == null) return; d += (d ? ' L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); last = v; }); return d; };
+    const line = path(M.cur);
+    const area = line ? line + ' L' + X(n - 1).toFixed(1) + ' 300 L' + X(0).toFixed(1) + ' 300 Z' : '';
+    const ticks = [0, 1, 2, 3, 4].map((k) => ({ pos: (k * 25) + '%', label: M.tick(step * k) }));
+    const every = Math.max(1, Math.ceil(n / 7));
+    const xlabels = [];
+    for (let i = 0; i < n; i += every) xlabels.push({ pos: ((i + 0.5) / n * 100).toFixed(2) + '%', label: R.tickLabel(i), cls: (i / every) % 2 === 1 ? 'xl-alt' : '' });
+    const points = M.cur.map((v, i) => ({
+      date: R.pointLabel(i), cur: v == null ? '–' : M.fmt(v), prev: M.prev[i] == null ? '–' : M.fmt(M.prev[i]),
+      enter: () => this.setState((st) => ({ hover: i, dragB: st.dragA != null ? i : st.dragB })),
+      down: () => { if (R.daily) this.setState({ dragA: i, dragB: i }); }
+    }));
+    let hv = null;
+    if (s.hover != null && s.hover < n) {
+      const i = s.hover, v = M.cur[i], pv = M.prev[i];
+      const pct = (i + 0.5) / n * 100;
+      hv = { left: pct.toFixed(2) + '%', bottom: ((v || 0) / max * 100).toFixed(2) + '%', side: pct > 62 ? 'is-left' : '',
+        date: R.pointLabel(i), curLabel: R.pointShort(i), prevLabel: R.prevPointShort(i), cur: v == null ? '–' : M.fmt(v), prev: pv == null ? '–' : M.fmt(pv),
+        change: v != null && pv ? signedPct(v / pv - 1) : '–' };
+    }
+    let brush = null;
+    if (s.dragA != null && s.dragB != null && s.dragA !== s.dragB) {
+      const a = Math.min(s.dragA, s.dragB), b = Math.max(s.dragA, s.dragB);
+      brush = { left: (a / n * 100).toFixed(2) + '%', width: ((b - a + 1) / n * 100).toFixed(2) + '%' };
+    }
+    const d = M.b ? M.a / M.b - 1 : 0;
+    const summary = { value: M.total, prev: M.pTotal, delta: signedPct(d), tone: Math.abs(d) < 0.0005 ? 'neutral' : d > 0 ? 'success' : 'danger', icon: d > 0 ? 'trending-up' : d < 0 ? 'trending-down' : 'minus' };
+
+    // pipeline
+    const pc = (v) => Math.max(0, Math.round(v * f));
+    const stagesOpen = PIPE.open.map((st) => {
+      const ratio = st.avgH / st.targetH;
+      return { key: st.key, count: int(pc(st.count)), avg: hrs(st.avgH), target: hrs(st.targetH), flag: !!st.flag,
+        cls: st.flag ? 'is-bottleneck' : '', meterW: Math.min(100, ratio * 100).toFixed(0) + '%', meterCls: ratio > 1 ? 'm-bad' : ratio > 0.85 ? 'm-warn' : '',
+        note: st.note.replace('{late}', int(pc(st.late || 0))), aria: STATUS_LABEL[st.key] + ': ' + int(pc(st.count)) + ' orders, average ' + hrs(st.avgH) + ' against a ' + hrs(st.targetH) + ' target' };
+    });
+    const openTotal = int(PIPE.open.reduce((a, st) => a + pc(st.count), 0));
+    const closedCounts = R.closed;
+    const closedTotal = Math.max(1, Math.round(orders));
+    const stagesClosed = [
+      { key: 'delivered', count: int(Math.round(closedCounts.delivered * f)), rate: (closedCounts.onTime * 100).toFixed(1) + '% delivered on time', meterW: (closedCounts.onTime * 100).toFixed(0) + '%', meterCls: '', note: 'Avg 2.6 days from order to door' },
+      { key: 'cancelled', count: int(Math.round(closedCounts.cancelled * f)), rate: (Math.round(closedCounts.cancelled * f) / closedTotal * 100).toFixed(1) + '% of orders', meterW: Math.min(100, Math.round(closedCounts.cancelled * f) / closedTotal * 100 * 10).toFixed(0) + '%', meterCls: 'm-neutral', note: 'Top reason: payment not completed' }
+    ].map((x) => Object.assign(x, { aria: STATUS_LABEL[x.key] + ': ' + x.count + ' in ' + R.short }));
+    const proc = PIPE.open.find((x) => x.flag);
+    const bottleneck = { late: int(pc(proc.late)), text: int(pc(proc.count)) + ' orders are in processing, averaging ' + hrs(proc.avgH) + ' against a ' + hrs(proc.targetH) + ' target. Most late orders are waiting for picking at Rotterdam DC.' };
+
+    // tasks
+    const tasks = TASKS.map((t) => {
+      const c = t.scoped ? pc(t.count) : t.count;
+      return { icon: t.icon, tone: t.tone, count: int(c), title: c === 1 ? t.one : t.many, meta: t.meta, action: t.action };
+    }).filter((t) => t.count !== '0');
+    const taskSummary = tasks.length + ' things to act on now';
+
+    // inventory
+    const invAll = INVENTORY;
+    const invFiltered = s.invTab === 'all' ? invAll : invAll.filter((r) => r.status === s.invTab);
+    const invRows = invFiltered.slice(0, 6).map((r) => {
+      const over = r.status === 'overstock';
+      const ratio = over ? r.stock / r.max : r.stock / r.reorder;
+      return Object.assign({}, r, { stockLabel: int(r.stock), reorderLabel: int(r.reorder),
+        meterW: Math.max(over ? 0 : 4, Math.min(100, ratio * 100)).toFixed(0) + '%', meterCls: over ? 'm-warn' : r.stock === 0 ? 'm-bad' : 'm-warn',
+        action: over ? 'Transfer' : 'Create PO', actionIcon: over ? 'truck' : 'plus', actionAria: (over ? 'Transfer stock of ' : 'Create purchase order for ') + r.name + ', ' + r.variant,
+        act: () => over ? this.showToast('Transfer drafted', r.sku + ': move ' + int(r.stock - r.max) + ' units out of ' + r.wh + '. Review it in Warehouses.') : this.showToast('Draft PO created', r.sku + ': ' + int(Math.max(r.reorder * 2 - r.stock, 1)) + ' units. Review and send it in Procurement.') });
+    });
+    const countBy = (k) => invAll.filter((r) => r.status === k).length;
+    const invTabs = [{ id: 'all', label: 'All', count: invAll.length }, { id: 'out_of_stock', label: 'Out of stock', count: countBy('out_of_stock') }, { id: 'low_stock', label: 'Low stock', count: countBy('low_stock') }, { id: 'overstock', label: 'Overstock', count: countBy('overstock') }];
+
+    // recent orders
+    const q = s.orderQuery.trim().toLowerCase();
+    const inStore = ORDERS.filter((o) => s.store === 'all' || o.channel === store.label);
+    const filtered = inStore.filter((o) => (s.orderFilter === 'all' || o.status === s.orderFilter) && (!q || o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q)));
+    const sk = s.sort, sorted = filtered.slice().sort((a, b) => {
+      const x = a[sk.key], y = b[sk.key];
+      const r = typeof x === 'number' ? x - y : String(x).localeCompare(String(y));
+      return sk.dir === 'asc' ? r : -r;
+    });
+    const orders8 = sorted.map((o) => Object.assign({}, o, { totalLabel: money2(o.total), dateLabel: o.dateLabel }));
+    const COLS = [['id', 'Order ID', true, ''], ['customer', 'Customer', true, ''], ['items', 'Items', true, 'is-right col-items'], ['total', 'Total', true, 'is-right'], ['payment', 'Payment', false, 'col-pay'], ['fulfillment', 'Fulfillment', false, ''], ['date', 'Date', true, ''], ['status', 'Status', false, ''], ['action', 'Action', false, 'is-right']];
+    const orderCols = COLS.map(([key, label, sortable, cls]) => {
+      const on = sk.key === key;
+      return { label, cls, sortable, plain: !sortable, labelCls: key === 'action' ? 'cx-sr' : '', sortCls: on ? 'is-sorted' : '',
+        icon: on ? (sk.dir === 'asc' ? 'arrow-up' : 'arrow-down') : 'chevrons-up-down', ariaSort: sortable ? (on ? (sk.dir === 'asc' ? 'ascending' : 'descending') : 'none') : undefined,
+        sort: () => this.setState((st) => ({ sort: st.sort.key === key ? { key, dir: st.sort.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: key === 'date' || key === 'total' || key === 'items' ? 'desc' : 'asc' } })) };
+    });
+    const FILTERS = [['all', 'All statuses'], ['pending', 'Pending'], ['confirmed', 'Confirmed'], ['processing', 'Processing'], ['ready_to_ship', 'Ready to ship'], ['shipped', 'Shipped'], ['delivered', 'Delivered'], ['on_hold', 'On hold'], ['cancelled', 'Cancelled']];
+    const filterItems = FILTERS.map(([key, label]) => ({ label, selected: s.orderFilter === key, count: key === 'all' ? inStore.length : inStore.filter((o) => o.status === key).length,
+      pick: () => this.setState({ orderFilter: key, menu: null }) }));
+
+    // global search
+    const parsed = parseQuery(s.q);
+    const scope = parsed.scope || s.scope;
+    const matches = SEARCH.filter((it) => parsed.term && (it.title.toLowerCase().includes(parsed.term) || it.meta.toLowerCase().includes(parsed.term)));
+    const TYPES = [['orders', 'Orders', 'orders'], ['customers', 'Customers', 'customers'], ['products', 'Products', 'products'], ['skus', 'SKUs', 'SKUs'], ['suppliers', 'Suppliers', 'suppliers']];
+    let flat = 0;
+    const groups = TYPES.filter(([t]) => scope === 'all' || scope === t).map(([t, label, noun]) => {
+      const list = matches.filter((m) => m.type === t);
+      const lim = scope === 'all' ? 3 : 8;
+      const items = list.slice(0, lim).map((m) => {
+        const idx = flat++;
+        const hl = highlight(m.title, parsed.term);
+        return { icon: m.icon, pre: hl[0], match: hl[1], post: hl[2], meta: m.meta, side: m.side || '', status: m.status || null, titleCls: m.code ? 'is-code' : '',
+          cls: idx === s.active ? 'is-active' : '', hover: () => this.setState({ active: idx }), open: () => this.setState({ search: false }) };
+      });
+      return { label, noun, total: list.length, countLabel: list.length + (list.length === 1 ? ' result' : ' results'), items, more: list.length > lim, showAll: () => this.setState({ scope: t }) };
+    }).filter((g) => g.items.length);
+    const scopeTabs = [{ id: 'all', label: 'All', count: parsed.term ? matches.length : undefined }].concat(TYPES.map(([t, label]) => ({ id: t, label, count: parsed.term ? matches.filter((m) => m.type === t).length : undefined })));
+    this._flatCount = flat;
+
+
+    const rangeItems = RANGES.map((r, i) => ({ label: r.label, sub: r.sub, selected: s.range === r.key, sepBefore: r.key === 'custom',
+      pick: () => (r.key === 'custom' ? this.setState({ customOpen: true, menu: null, customError: null }) : this.setState({ range: r.key, menu: null, hover: null })) }));
+    const storeItems = STORES.map((st) => ({ label: st.label, sub: st.sub, icon: st.icon, selected: s.store === st.key, pick: () => this.setState({ store: st.key, menu: null }) }));
+
+    return {
+      zero: 0, none: null,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light',
+      toggleCollapse: () => this.setState((st) => ({ collapsed: !st.collapsed })),
+      openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      nav: { current: 'dashboard', collapsed: s.collapsed, drawer: s.drawer, stores: STORES, store: s.store, user: USER,
+        setStore: (k) => this.setState({ store: k, menu: null }), navigate: (path) => this.showToast(navLabel(path) + ' isn’t built yet', 'Only the dashboard and Orders pages exist so far.') },
+      open: { storeTop: s.menu === 'storeTop', storePage: s.menu === 'storePage', help: s.menu === 'help', notif: s.menu === 'notif', profile: s.menu === 'profile', range: s.menu === 'range', export: s.menu === 'export', filter: s.menu === 'filter' },
+      toggleStoreTop: this.toggleMenu('storeTop'), toggleStorePage: this.toggleMenu('storePage'), toggleHelp: this.toggleMenu('help'), toggleNotif: this.toggleMenu('notif'),
+      toggleProfile: this.toggleMenu('profile'), toggleRange: this.toggleMenu('range'), toggleExport: this.toggleMenu('export'), toggleFilter: this.toggleMenu('filter'),
+      storeName: store.label, storeItems, rangeItems, rangeLabel: R.label, rangeShort: R.short,
+      unread: s.read ? 0 : NOTIFS.filter((n) => n.unread).length,
+      notifs: NOTIFS.map((n) => ({ icon: n.icon, tone: n.tone, text: n.text, time: n.time, dot: n.unread && !s.read ? 'np-unread' : 'np-read' })),
+      markAllRead: () => this.setState({ read: true }),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((st) => ({ dark: !st.dark, menu: null })),
+      periodLabel: R.period, prevLabel: R.prevPeriod,
+      exportPdf: () => this.showToast('Preparing PDF summary', 'Dashboard for ' + R.period + '. It will download when ready.'),
+      exportCsv: () => this.showToast('Export started', 'KPIs, daily sales and recent orders for ' + R.period + ', as CSV.'),
+      exportSchedule: () => this.showToast('Weekly email scheduled', 'Every Monday at 08:00 to priya@fernhill.co.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null }),
+      kpis,
+      chartDesc: M.label + ' by ' + (R.daily ? 'day' : 'hour') + ', ' + R.period + (s.compare ? ', compared with ' + R.prevPeriod : '') + '.',
+      metricTabs: [{ id: 'revenue', label: 'Revenue' }, { id: 'orders', label: 'Orders' }, { id: 'aov', label: 'Avg. order value' }],
+      metric: s.metric, setMetric: (id) => this.setState({ metric: id }),
+      compare: s.compare, setCompare: (on) => this.setState({ compare: on }), legendPrevCls: s.compare ? '' : 'is-off',
+      summary, hv, brush,
+      chart: { line, area, prev: path(M.prev), prevCls: s.compare ? '' : 'is-hidden', ticks, xlabels, points, aria: M.label + ' chart. ' + M.total + ' in ' + R.period + ', ' + summary.delta + ' against ' + R.prevPeriod + '.' },
+      endHover: () => this.setState({ hover: null, dragA: null, dragB: null }),
+      endDrag: () => {
+        const st = this.state;
+        if (st.dragA != null && st.dragB != null && Math.abs(st.dragB - st.dragA) >= 1 && R.daily) {
+          const a = R.absStart + Math.min(st.dragA, st.dragB), b = R.absStart + Math.max(st.dragA, st.dragB) + 1;
+          this.setState({ range: 'custom', customA: a, customB: b, dragA: null, dragB: null, hover: null });
+        } else this.setState({ dragA: null, dragB: null });
+      },
+      zoomed: s.range === 'custom', canZoom: R.daily && s.range !== 'custom', resetZoom: () => this.setState({ range: '30d' }),
+      tasks, taskSummary,
+      stagesOpen, stagesClosed, openTotal, bottleneck,
+      invTabs, invTab: s.invTab, setInvTab: (id) => this.setState({ invTab: id }), invRows, invShown: invRows.length, invTotal: invFiltered.length,
+      orderQuery: s.orderQuery, setOrderQuery: (v) => this.setState({ orderQuery: v }),
+      filterItems, filterLabel: FILTERS.find((x) => x[0] === s.orderFilter)[1].replace(' statuses', ''),
+      orderCountLabel: filtered.length + ' of ' + inStore.length + ' recent orders',
+      orderCols, orders: orders8, hasOrders: orders8.length > 0, noOrders: orders8.length === 0,
+      emptyTitle: q ? 'No recent orders match “' + s.orderQuery.trim() + '”' : 'No recent orders with this status',
+      clearOrderFilters: () => this.setState({ orderQuery: '', orderFilter: 'all' }),
+      ordersFoot: int(orders) + ' orders in ' + R.period,
+      // search
+      search: s.search, q: s.q, setQ: (v) => this.setState({ q: v, active: 0 }), hasQ: !!parsed.term, noQ: !parsed.term,
+      openSearch: () => this.setState({ search: true, menu: null }), closeSearch: () => this.setState({ search: false }),
+      scrimDown: (e) => { if (e.target === e.currentTarget) this.setState({ search: false }); },
+      scope, scopeTabs, setScope: (id) => this.setState({ scope: id, active: 0 }), groups,
+      noResults: !!parsed.term && groups.length === 0, noResultsTitle: 'Nothing matches “' + s.q.trim() + '”',
+      palKey: (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); this.setState((st) => ({ active: Math.min(st.active + 1, Math.max(0, this._flatCount - 1)) })); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); this.setState((st) => ({ active: Math.max(0, st.active - 1) })); }
+        else if (e.key === 'Enter') { e.preventDefault(); this.setState({ search: false }); }
+        else if (e.key === 'Tab') { e.preventDefault(); const ids = scopeTabs.map((t) => t.id); const i = ids.indexOf(s.scope); this.setState({ scope: ids[(i + (e.shiftKey ? ids.length - 1 : 1)) % ids.length], active: 0 }); }
+      },
+      recent: RECENT.map((r) => ({ label: r.label, meta: r.meta, use: () => this.setState({ q: r.label, active: 0 }) })),
+      jumps: JUMPS,
+      onRootKey: (e) => {
+        if (e.key !== 'Escape') return;
+        if (this.state.search) this.setState({ search: false });
+        else if (this.state.menu) this.setState({ menu: null });
+        else if (this.state.drawer) this.setState({ drawer: false });
+      },
+      // custom range
+      customOpen: s.customOpen, customStart: s.customStart, customEnd: s.customEnd, customError: s.customError,
+      setCustomStart: (e) => this.setState({ customStart: e.target.value, customError: null }), setCustomEnd: (e) => this.setState({ customEnd: e.target.value, customError: null }),
+      closeCustom: () => this.setState({ customOpen: false }),
+      applyCustom: () => {
+        const a = dayIndex(this.state.customStart), b = dayIndex(this.state.customEnd);
+        if (a == null || b == null) return this.setState({ customError: 'Choose dates between Sep 1 and Sep 30, 2026.' });
+        if (b < a) return this.setState({ customError: 'End date must be on or after the start date.' });
+        this.setState({ range: 'custom', customA: a, customB: b + 1, customOpen: false, hover: null });
+      }
+    };
+  }
+}
+
+/* ---------- sample data: Fernhill, a multi-store apparel brand ---------- */
+var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function dayDate(i) { var d = new Date(Date.UTC(2026, 7, 2 + i)); return MON[d.getUTCMonth()] + ' ' + d.getUTCDate(); }
+function dayIndex(iso) { var m = /^2026-09-(\d\d)$/.exec(iso || ''); if (!m) return null; var d = +m[1]; return d >= 1 && d <= 30 ? 29 + d : null; }
+function int(n) { return Math.round(n).toLocaleString('en-US'); }
+function money0(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+function money2(n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function moneyTick(v) { return v >= 1000 ? '$' + (v / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 }) + 'k' : '$' + Math.round(v); }
+function signedPct(d) { return (d > 0 ? '+' : d < 0 ? '−' : '') + (Math.abs(d) * 100).toFixed(1) + '%'; }
+function hrs(h) { return h >= 48 ? (h / 24).toFixed(1) + ' days' : Math.round(h) + 'h'; }
+function niceStep(x) { var p = Math.pow(10, Math.floor(Math.log10(x || 1))), m = x / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; }
+function kpi(label, value, a, b, comparison, trend, info) {
+  var d = b ? a / b - 1 : 0, dir = Math.abs(d) < 0.0005 ? 'flat' : d > 0 ? 'up' : 'down';
+  return { label: label, value: value, delta: { value: (Math.abs(d) * 100).toFixed(1) + '%', direction: dir, good: dir === 'up' }, comparison: comparison, trend: trend, info: info };
+}
+function highlight(text, term) {
+  var i = term ? text.toLowerCase().indexOf(term) : -1;
+  if (i < 0) return [text, '', ''];
+  return [text.slice(0, i), text.slice(i, i + term.length), text.slice(i + term.length)];
+}
+function parseQuery(raw) {
+  var q = (raw || '').trim().toLowerCase(), m = /^(sku|order|customer|supplier|product):\s*(.*)$/.exec(q);
+  var map = { sku: 'skus', order: 'orders', customer: 'customers', supplier: 'suppliers', product: 'products' };
+  if (m) return { scope: map[m[1]], term: m[2].trim() };
+  if (q.charAt(0) === '#') return { scope: 'orders', term: q.slice(1) };
+  return { scope: null, term: q };
+}
+function scaleTo(arr, total, round) {
+  var s = arr.reduce(function (a, b) { return a + b; }, 0), out = arr.map(function (v) { return v / s * total; });
+  if (!round) return out.map(function (v) { return Math.round(v * 100) / 100; });
+  var r = out.map(Math.round), diff = total - r.reduce(function (a, b) { return a + b; }, 0); r[r.length - 1] += diff; return r;
+}
+var HOUR_W = [0.012, 0.008, 0.006, 0.005, 0.005, 0.008, 0.015, 0.028, 0.040, 0.050, 0.055, 0.060, 0.066, 0.064, 0.058, 0.054, 0.052, 0.056, 0.062, 0.070, 0.072, 0.064, 0.050, 0.030];
+function buildData() {
+  var WK = [1.12, 1.08, 0.98, 0.96, 0.97, 0.95, 1.02], rev = [], ord = [], newc = [];
+  for (var i = 0; i < 60; i++) {
+    var base = 1 + 0.004 * i, wk = WK[i % 7], promo = (i === 48 || i === 49);
+    rev.push(base * wk * (1 + 0.06 * Math.sin(i * 1.7) + 0.03 * Math.cos(i * 0.9)) * (promo ? 1.22 : 1));
+    ord.push(base * wk * (1 + 0.05 * Math.sin(i * 1.3 + 1)) * (promo ? 1.3 : 1));
+  }
+  var R = scaleTo(rev.slice(0, 30), 120951).concat(scaleTo(rev.slice(30), 128450));
+  var O = scaleTo(ord.slice(0, 30), 2613, true).concat(scaleTo(ord.slice(30), 2846, true));
+  var N = scaleTo(O.slice(0, 30), 381, true).concat(scaleTo(O.slice(30), 412, true));
+  return { rev: R, ord: O, newc: N };
+}
+function hourSplit(total, hours, round) { var w = HOUR_W.slice(0, hours.length).map(function (x, i) { return x * hours[i]; }); return scaleTo(w, total, round); }
+function resolveRange(s, D) {
+  var baseEnd = function (i) { var t = 18492; for (var k = i + 1; k < 60; k++) t -= D.newc[k]; return t; };
+  var daily = function (a, b, label, short, cmpShort, newShort) {
+    var len = b - a, pa = a - len;
+    var trend = []; for (var i = a; i < b; i++) trend.push(baseEnd(i));
+    return { daily: true, absStart: a, label: label, short: short, cmpShort: cmpShort, newShort: newShort,
+      period: dayDate(a) + (len > 1 ? ' – ' + dayDate(b - 1) : ''), prevPeriod: dayDate(pa) + (len > 1 ? ' – ' + dayDate(a - 1) : ''),
+      cur: { rev: D.rev.slice(a, b), ord: D.ord.slice(a, b) }, prev: { rev: D.rev.slice(pa, a), ord: D.ord.slice(pa, a) },
+      cust: { cur: baseEnd(b - 1), prev: baseEnd(a - 1), trend: trend },
+      closed: { delivered: Math.round(D.ord.slice(a, b).reduce(function (x, y) { return x + y; }, 0) * 0.8795), cancelled: Math.round(D.ord.slice(a, b).reduce(function (x, y) { return x + y; }, 0) * 0.0214), onTime: 0.971 },
+      tickLabel: function (i) { return dayDate(a + i); }, pointLabel: function (i) { return dayDate(a + i) + ', 2026'; },
+      pointShort: function (i) { return dayDate(a + i); }, prevPointShort: function (i) { return dayDate(pa + i); } };
+  };
+  var hourly = function (dayCur, dayPrev, hoursN, label, short, period, prevPeriod, cmpShort, custCur, custPrev, newShort, totalFactor) {
+    var hrsArr = []; for (var h = 0; h < hoursN; h++) hrsArr.push(h === 9 && hoursN === 10 ? 0.7 : 1);
+    var cr = hourSplit(D.rev[dayCur] * totalFactor, hrsArr), co = hourSplit(Math.round(D.ord[dayCur] * totalFactor), hrsArr, true);
+    var pf = totalFactor < 1 ? (function () { var w = HOUR_W.slice(0, hoursN).reduce(function (a, x, i) { return a + x * hrsArr[i]; }, 0); return w / HOUR_W.reduce(function (a, b) { return a + b; }, 0); })() : 1;
+    var pr = hourSplit(D.rev[dayPrev] * pf, hrsArr), po = hourSplit(Math.round(D.ord[dayPrev] * pf), hrsArr, true);
+    var hh = function (i) { return (i < 10 ? '0' : '') + i + ':00'; };
+    return { daily: false, absStart: 0, label: label, short: short, cmpShort: cmpShort, newShort: newShort, period: period, prevPeriod: prevPeriod,
+      cur: { rev: cr, ord: co }, prev: { rev: pr, ord: po }, cust: { cur: custCur, prev: custPrev, trend: [custPrev, custCur] },
+      closed: { delivered: Math.round(co.reduce(function (x, y) { return x + y; }, 0) * 0.31 + 60), cancelled: Math.max(1, Math.round(co.reduce(function (x, y) { return x + y; }, 0) * 0.02)), onTime: 0.968 },
+      tickLabel: hh, pointLabel: function (i) { return period.split(',')[0] + ', ' + hh(i); }, pointShort: function (i) { return period.split(',')[0] + ' ' + hh(i); }, prevPointShort: function (i) { return prevPeriod.split(',')[0] + ' ' + hh(i); } };
+  };
+  var todayPartial = HOUR_W.slice(0, 10).reduce(function (a, x, i) { return a + x * (i === 9 ? 0.7 : 1); }, 0) / HOUR_W.reduce(function (a, b) { return a + b; }, 0);
+  switch (s.range) {
+    case 'today': return hourly(59, 59, 10, 'Today', 'today', 'Oct 1, 00:00 – 09:42', 'Sep 30, same hours', 'yesterday, same hours', 18497, 18492, 'today', 1.04 * todayPartial);
+    case 'month': return hourly(59, 59, 10, 'This month', 'this month', 'Oct 1, month to date', 'Sep 1, same hours', 'last month, same point', 18497, 18492, 'this month', 1.04 * todayPartial);
+    case 'yesterday': return hourly(59, 58, 24, 'Yesterday', 'yesterday', 'Sep 30, 2026', 'Sep 29', 'on Sep 29', baseEnd(59), baseEnd(58), 'yesterday', 1);
+    case '7d': return daily(53, 60, 'Last 7 days', 'last 7 days', 'previous 7 days', 'in 7 days');
+    case 'custom': if (s.customA != null) { var len = s.customB - s.customA; return daily(s.customA, s.customB, dayDate(s.customA) + ' – ' + dayDate(s.customB - 1), len + ' days', 'previous ' + len + ' days', 'in ' + len + ' days'); }
+    default: return daily(30, 60, 'Last 30 days', 'last 30 days', 'previous 30 days', 'in 30 days');
+  }
+}
+var RANGES = [
+  { key: 'today', label: 'Today', sub: 'Oct 1, until now' }, { key: 'yesterday', label: 'Yesterday', sub: 'Sep 30' },
+  { key: '7d', label: 'Last 7 days', sub: 'Sep 24 – Sep 30' }, { key: '30d', label: 'Last 30 days', sub: 'Sep 1 – Sep 30' },
+  { key: 'month', label: 'This month', sub: 'Oct 1 – today' }, { key: 'custom', label: 'Custom range…', sub: 'Pick start and end dates' }
+];
+var STORES = [
+  { key: 'all', label: 'All stores', sub: '4 stores · USD', icon: 'store', factor: 1 },
+  { key: 'us', label: 'Fernhill US', sub: 'Shopify · fernhill.co', icon: 'shopping-bag', factor: 0.52 },
+  { key: 'eu', label: 'Fernhill EU', sub: 'Shopify · fernhill.eu', icon: 'shopping-bag', factor: 0.27 },
+  { key: 'wholesale', label: 'Wholesale', sub: 'B2B portal', icon: 'factory', factor: 0.13 },
+  { key: 'amazon', label: 'Amazon US', sub: 'Marketplace', icon: 'tag', factor: 0.08 }
+];
+var USER = { name: 'Priya Natarajan', role: 'Operations Manager', email: 'priya@fernhill.co', initials: 'PN' };
+function navLabel(path) { const r = window.CommerceOS.navResolve(path); return r.page ? r.page.label : r.module ? r.module.label : path; }
+var STATUS_LABEL = { pending: 'Pending', confirmed: 'Confirmed', processing: 'Processing', ready_to_ship: 'Ready to ship', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Cancelled' };
+var PIPE = { open: [
+  { key: 'pending', count: 18, avgH: 3.2, targetH: 6, note: '7 waiting on payment' },
+  { key: 'confirmed', count: 24, avgH: 6.8, targetH: 8, note: 'Oldest waiting 19h' },
+  { key: 'processing', count: 61, avgH: 31, targetH: 24, late: 17, flag: true, note: '{late} past target' },
+  { key: 'ready_to_ship', count: 37, avgH: 9, targetH: 12, note: 'Next pickup 14:00' },
+  { key: 'shipped', count: 142, avgH: 52, targetH: 72, note: '3 delivery exceptions' }
+] };
+var TASKS = [
+  { icon: 'clock', tone: 't-danger', count: 17, scoped: true, many: 'orders past the 24h processing target', one: 'order past the 24h processing target', meta: 'Oldest 41h · mostly Rotterdam DC', action: 'Review' },
+  { icon: 'truck', tone: 't-warning', count: 24, scoped: true, many: 'orders awaiting fulfillment', one: 'order awaiting fulfillment', meta: 'Oldest waiting 19h', action: 'Start picking' },
+  { icon: 'package', tone: 't-warning', count: 8, many: 'products below reorder level', one: 'product below reorder level', meta: '3 out of stock, 5 low', action: 'Create POs' },
+  { icon: 'rotate-ccw', tone: 't-info', count: 5, scoped: true, many: 'pending refunds', one: 'pending refund', meta: '$642.30 total · oldest 3 days', action: 'Review' },
+  { icon: 'clipboard-list', tone: 't-brand', count: 3, many: 'purchase orders awaiting approval', one: 'purchase order awaiting approval', meta: '$18,240.00 total', action: 'Approve' }
+];
+var INVENTORY = [
+  { name: 'Linen overshirt', variant: 'Sand / L', sku: 'SKU-OVS-SAND-L', stock: 0, reorder: 25, wh: 'Newark, NJ', status: 'out_of_stock' },
+  { name: 'Canvas tote', variant: 'Natural / One size', sku: 'SKU-TOT-NAT-OS', stock: 0, reorder: 60, wh: 'Newark, NJ', status: 'out_of_stock' },
+  { name: 'Organic hoodie', variant: 'Forest / S', sku: 'SKU-HOD-FOR-S', stock: 0, reorder: 20, wh: 'Sydney 3PL', status: 'out_of_stock' },
+  { name: 'Leather card holder', variant: 'Tan / One size', sku: 'SKU-CRD-TAN-OS', stock: 9, reorder: 15, wh: 'Newark, NJ', status: 'low_stock' },
+  { name: 'Merino crew tee', variant: 'Navy / M', sku: 'SKU-TSH-NAVY-M', stock: 12, reorder: 40, wh: 'Rotterdam DC', status: 'low_stock' },
+  { name: 'Wool beanie', variant: 'Charcoal / One size', sku: 'SKU-BNE-CHR-OS', stock: 18, reorder: 30, wh: 'Rotterdam DC', status: 'low_stock' },
+  { name: 'Recycled socks 3-pack', variant: 'Mixed / 39–42', sku: 'SKU-SCK-MIX-3942', stock: 22, reorder: 50, wh: 'Rotterdam DC', status: 'low_stock' },
+  { name: 'Merino crew tee', variant: 'Black / L', sku: 'SKU-TSH-BLK-L', stock: 31, reorder: 40, wh: 'Newark, NJ', status: 'low_stock' },
+  { name: 'North Sea rain shell', variant: 'Olive / M', sku: 'SKU-RSH-OLV-M', stock: 412, reorder: 40, max: 150, wh: 'Rotterdam DC', status: 'overstock' },
+  { name: 'Summer shorts', variant: 'Stone / 32', sku: 'SKU-SHT-STN-32', stock: 538, reorder: 30, max: 200, wh: 'Newark, NJ', status: 'overstock' },
+  { name: 'Straw bucket hat', variant: 'Natural / One size', sku: 'SKU-HAT-NAT-OS', stock: 296, reorder: 20, max: 120, wh: 'Sydney 3PL', status: 'overstock' }
+];
+var ORDERS = [
+  { id: 'SO-48231', customer: 'Lena Okafor', channel: 'Fernhill US', items: 3, total: 214.5, payment: 'paid', fulfillment: 'unfulfilled', status: 'confirmed', date: 20261001.0938, dateLabel: 'Oct 1, 09:38' },
+  { id: 'SO-48230', customer: 'Harbor & Pine Co.', channel: 'Wholesale', items: 48, total: 3920, payment: 'unpaid', fulfillment: 'unfulfilled', status: 'pending', date: 20261001.0912, dateLabel: 'Oct 1, 09:12' },
+  { id: 'SO-48229', customer: 'Marcus Lindqvist', channel: 'Fernhill EU', items: 1, total: 39, payment: 'paid', fulfillment: 'fulfilled', status: 'shipped', date: 20261001.0847, dateLabel: 'Oct 1, 08:47' },
+  { id: 'SO-48228', customer: 'Aiko Tanaka', channel: 'Fernhill US', items: 2, total: 128.9, payment: 'paid', fulfillment: 'partially_fulfilled', status: 'processing', date: 20261001.0805, dateLabel: 'Oct 1, 08:05' },
+  { id: 'SO-48227', customer: 'Daniel Ruiz', channel: 'Amazon US', items: 1, total: 64, payment: 'refunded', fulfillment: 'unfulfilled', status: 'cancelled', date: 20260930.2241, dateLabel: 'Sep 30, 22:41' },
+  { id: 'SO-48226', customer: 'Grace Mbeki', channel: 'Fernhill EU', items: 4, total: 187.2, payment: 'paid', fulfillment: 'unfulfilled', status: 'ready_to_ship', date: 20260930.2116, dateLabel: 'Sep 30, 21:16' },
+  { id: 'SO-48225', customer: 'Tomás Herrera', channel: 'Fernhill US', items: 2, total: 96, payment: 'payment_failed', fulfillment: 'unfulfilled', status: 'on_hold', date: 20260930.1902, dateLabel: 'Sep 30, 19:02' },
+  { id: 'SO-48224', customer: 'Priya Shah', channel: 'Fernhill US', items: 6, total: 342.75, payment: 'paid', fulfillment: 'fulfilled', status: 'delivered', date: 20260929.152, dateLabel: 'Sep 29, 15:20' }
+];
+var NOTIFS = [
+  { icon: 'package', tone: 't-warning', text: 'PO-20412 received at Rotterdam DC with 2 lines short.', time: '12 min ago', unread: true },
+  { icon: 'alert-circle', tone: 't-danger', text: 'Payment failed for SO-48225. The order is on hold.', time: '1 h ago', unread: true },
+  { icon: 'rotate-ccw', tone: 't-info', text: 'Aiko Tanaka requested a return for SO-48117.', time: '3 h ago', unread: true },
+  { icon: 'check-circle', tone: 't-brand', text: 'Shopify sync finished: 1,204 products updated.', time: '5 h ago', unread: false }
+];
+var SEARCH = [
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48231', code: true, meta: 'Lena Okafor · Fernhill US · Oct 1', side: '$214.50', status: 'confirmed' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48230', code: true, meta: 'Harbor & Pine Co. · Wholesale · Oct 1', side: '$3,920.00', status: 'pending' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48228', code: true, meta: 'Aiko Tanaka · Fernhill US · Oct 1', side: '$128.90', status: 'processing' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48212', code: true, meta: 'Northwind Retail · Wholesale · Sep 27', side: '$11,480.00', status: 'on_hold' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48177', code: true, meta: 'Northwind Retail · Wholesale · Sep 21', side: '$8,940.00', status: 'delivered' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48150', code: true, meta: 'Nora Whitfield · Fernhill EU · Sep 18', side: '$152.00', status: 'delivered' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48102', code: true, meta: 'Northwind Retail · Wholesale · Sep 9', side: '$6,215.00', status: 'delivered' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48061', code: true, meta: 'Northwind Retail · Wholesale · Sep 2', side: '$9,870.00', status: 'delivered' },
+  { type: 'customers', icon: 'users', title: 'Northwind Retail', meta: 'B2B · 46 orders · $182,400 lifetime', side: 'Net 30' },
+  { type: 'customers', icon: 'users', title: 'Lena Okafor', meta: 'lena.okafor@mail.com · 7 orders · $1,204 lifetime' },
+  { type: 'customers', icon: 'users', title: 'Nora Whitfield', meta: 'nora.w@mail.com · 3 orders · $388 lifetime' },
+  { type: 'customers', icon: 'users', title: 'Harbor & Pine Co.', meta: 'B2B · 12 orders · $41,760 lifetime', side: 'Net 30' },
+  { type: 'products', icon: 'tag', title: 'North Sea rain shell', meta: '6 variants · 1,140 on hand · overstocked', side: '$148.00' },
+  { type: 'products', icon: 'tag', title: 'Merino crew tee', meta: '12 variants · 1,284 on hand', side: '$58.00' },
+  { type: 'products', icon: 'tag', title: 'Linen overshirt', meta: '8 variants · 212 on hand', side: '$96.00' },
+  { type: 'skus', icon: 'package', title: 'SKU-RSH-OLV-M', code: true, meta: 'North Sea rain shell · Olive / M · Rotterdam DC', side: '412 on hand', status: 'overstock' },
+  { type: 'skus', icon: 'package', title: 'SKU-RSH-NVY-L', code: true, meta: 'North Sea rain shell · Navy / L · Newark, NJ', side: '96 on hand', status: 'in_stock' },
+  { type: 'skus', icon: 'package', title: 'SKU-TSH-NAVY-M', code: true, meta: 'Merino crew tee · Navy / M · Rotterdam DC', side: '12 on hand', status: 'low_stock' },
+  { type: 'skus', icon: 'package', title: 'SKU-OVS-SAND-L', code: true, meta: 'Linen overshirt · Sand / L · Newark, NJ', side: '0 on hand', status: 'out_of_stock' },
+  { type: 'suppliers', icon: 'factory', title: 'Northwind Textiles', meta: 'Porto, Portugal · 3 open POs · lead time 21 days', side: '$18,240.00 open' },
+  { type: 'suppliers', icon: 'factory', title: 'Harbor Leather Works', meta: 'León, Mexico · 1 open PO · lead time 30 days' },
+  { type: 'suppliers', icon: 'factory', title: 'Coastline Packaging', meta: 'Rotterdam, Netherlands · no open POs' }
+];
+var RECENT = [{ label: 'SO-48198', meta: 'Order · yesterday' }, { label: 'merino navy', meta: 'Products and SKUs · 2 days ago' }, { label: 'supplier: northwind', meta: 'Suppliers · last week' }];
+var JUMPS = [{ label: 'Create order', icon: 'plus', key: 'C' }, { label: 'Receive stock', icon: 'package', key: 'R' }, { label: 'New purchase order', icon: 'clipboard-list', key: 'P' }, { label: 'Open reports', icon: 'bar-chart', key: 'G' }];
+</script>
+</body>
+</html>

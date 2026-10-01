@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CommerceOS navigation</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css">
+<script src="ds/commerceos/components/bundle.js"></script>
+<script src="ds/commerceos/shell/shell.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:var(--bg-canvas)}
+.app{background:var(--bg-canvas);color:var(--text-primary);font-family:var(--font-sans);font-size:14px;line-height:20px}
+.main{display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:20;height:56px;display:flex;align-items:center;gap:12px;padding:0 24px;background:var(--bg-surface);border-bottom:1px solid var(--border)}
+.icon-btn{flex:none;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);cursor:pointer}
+.icon-btn:hover{background:var(--bg-muted);color:var(--text-primary)}
+.icon-btn:focus-visible,.search-trigger:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.icon-btn .cx-icon{width:20px;height:20px}
+.only-drawer{display:none}
+.search-trigger{flex:1;max-width:560px;display:flex;align-items:center;gap:8px;height:36px;padding:0 8px 0 12px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-surface);color:var(--text-muted);font:inherit;font-size:13px;text-align:left;cursor:pointer}
+.search-trigger .cx-icon{width:16px;height:16px}
+.st-text{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-actions{margin-left:auto;display:flex;gap:4px}
+.page{width:100%;max-width:1200px;margin:0 auto;box-sizing:border-box;padding:24px 32px 48px;display:flex;flex-direction:column;gap:24px}
+.ph{display:flex;flex-direction:column;gap:6px}
+.ph h1{margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-0.01em}
+.ph p{margin:0;color:var(--text-secondary)}
+.panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:20px 24px}
+.panel h2{margin:0 0 12px;font-size:14px;line-height:20px;font-weight:600}
+.loc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0}
+.loc div{padding:12px 16px;border-radius:var(--radius-sm);background:var(--bg-subtle)}
+.loc dt{font-size:11px;line-height:16px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
+.loc dd{margin:4px 0 0;font-weight:500}
+.next{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-full);background:var(--bg-surface);color:var(--text-primary);font:inherit;font-size:13px;cursor:pointer}
+.chip:hover{background:var(--bg-muted)}
+.chip:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.chip .cx-icon{width:14px;height:14px;color:var(--text-muted)}
+.note{color:var(--text-muted);font-size:13px}
+@media (max-width:767px){
+  .only-drawer{display:inline-flex}
+  .top{padding:0 8px;gap:4px}
+  .st-text{display:none}
+  .search-trigger{flex:none;width:36px;padding:0;justify-content:center;border:0}
+  .page{padding:16px 16px 32px}
+  .loc{grid-template-columns:1fr}
+}
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="{{current}}" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+<div class="main cx-shell-main">
+<header class="top">
+<button class="icon-btn only-drawer" aria-label="Open navigation" onClick="{{openDrawer}}"><x-import component-from-global-scope="CommerceOS.Icon" name="menu"></x-import></button>
+<button class="search-trigger" aria-label="Search orders, customers, products, SKUs and suppliers"><x-import component-from-global-scope="CommerceOS.Icon" name="search"></x-import><span class="st-text">Search orders, customers, products, SKUs, suppliers</span></button>
+<div class="top-actions">
+<button class="icon-btn" aria-label="Help"><x-import component-from-global-scope="CommerceOS.Icon" name="help-circle"></x-import></button>
+<button class="icon-btn" aria-label="Notifications"><x-import component-from-global-scope="CommerceOS.Icon" name="bell"></x-import></button>
+</div>
+</header>
+<main class="page" id="content">
+<div class="ph">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="{{current}}" record="{{record}}"></x-import>
+<h1>{{title}}</h1>
+<p>{{subtitle}}</p>
+</div>
+<section class="panel" aria-labelledby="loc-h">
+<h2 id="loc-h">Where am I</h2>
+<dl class="loc">
+<div><dt>Module</dt><dd>{{loc.module}}</dd></div>
+<div><dt>Submenu</dt><dd>{{loc.sub}}</dd></div>
+<div><dt>Page</dt><dd>{{loc.page}}</dd></div>
+</dl>
+</section>
+<section class="panel" aria-labelledby="next-h">
+<h2 id="next-h">Where next</h2>
+<ul class="next">
+<sc-if value="{{canOpenRecord}}" hint-placeholder-val="{{true}}"><li><button class="chip" onClick="{{openRecord}}"><x-import component-from-global-scope="CommerceOS.Icon" name="arrow-right"></x-import>Open {{sampleRecord}}</button></li></sc-if>
+<sc-if value="{{record}}" hint-placeholder-val="{{false}}"><li><button class="chip" onClick="{{closeRecord}}"><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-left"></x-import>Back to {{loc.sub}}</button></li></sc-if>
+<sc-for list="{{siblings}}" as="sib" hint-placeholder-count="3"><li><button class="chip" onClick="{{sib.go}}">{{sib.label}}</button></li></sc-for>
+</ul>
+<p class="note">This page only shows the navigation. Module pages haven’t been built yet.</p>
+</section>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"current":{"editor":"string","default":"sales/orders","section":"Navigation"},"record":{"editor":"string","default":"","section":"Navigation"},"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"drawerOpen":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { current: props.current || 'sales/orders', record: props.record || '', collapsed: !!props.collapsed, drawer: !!props.drawerOpen, dark: !!props.dark, store: 'all' };
+  }
+  componentDidUpdate(prev) {
+    if (prev.current !== this.props.current) this.setState({ current: this.props.current, record: '' });
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.drawerOpen !== this.props.drawerOpen) this.setState({ drawer: !!this.props.drawerOpen });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  renderVals() {
+    const s = this.state, C = window.CommerceOS;
+    const r = C.navResolve(s.current), mod = r.module, page = r.page;
+    const sample = page ? (SAMPLE_RECORDS[s.current] || 'Example record') : null;
+    const siblings = mod && mod.children ? mod.children.filter((c) => c !== page).map((c) => ({ label: c.label, go: () => this.setState({ current: mod.key + '/' + c.key, record: '' }) })) : [];
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light',
+      current: s.current, record: s.record || null,
+      collapsed: s.collapsed, toggleCollapse: () => this.setState((st) => ({ collapsed: !st.collapsed })),
+      drawer: s.drawer, openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: STORES, store: s.store, setStore: (k) => this.setState({ store: k }),
+      user: USER,
+      navigate: (path) => this.setState({ current: path, record: '' }),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((st) => ({ dark: !st.dark })),
+      title: s.record || (page ? page.label : mod ? mod.label : 'Not found'),
+      subtitle: s.record ? (page ? page.label : mod.label) + ' detail page' : page ? mod.label + ' module' : 'Top-level page: no breadcrumb',
+      loc: { module: mod ? mod.label : '—', sub: page ? page.label : '—', page: s.record || (page ? page.label + ' list' : mod ? mod.label : '—') },
+      canOpenRecord: !!page && !s.record, sampleRecord: sample, openRecord: () => this.setState({ record: sample }), closeRecord: () => this.setState({ record: '' }),
+      siblings
+    };
+  }
+}
+
+var STORES = [
+  { key: 'all', label: 'All stores', sub: '4 stores · USD' },
+  { key: 'us', label: 'Fernhill US', sub: 'Shopify · USD' },
+  { key: 'eu', label: 'Fernhill EU', sub: 'Shopify · EUR' },
+  { key: 'amazon', label: 'Amazon', sub: 'Marketplace · USD' },
+  { key: 'wholesale', label: 'Wholesale', sub: 'B2B portal · USD' }
+];
+var USER = { name: 'Priya Natarajan', role: 'Operations Manager', email: 'priya@fernhill.co', initials: 'PN' };
+var SAMPLE_RECORDS = { 'sales/orders': '#ORD-10482', 'products/all': 'iPhone 15 Pro', 'inventory/stock-levels': 'SKU-10284', 'customers/all': 'Maya Okafor', 'procurement/purchase-orders': 'PO-2291' };
+</script>
+</body>
+</html>

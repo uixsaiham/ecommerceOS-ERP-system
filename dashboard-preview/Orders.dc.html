@@ -1,0 +1,1528 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Orders · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css">
+<script src="ds/commerceos/components/bundle.js"></script>
+<script src="ds/commerceos/shell/shell.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:var(--bg-canvas)}
+a{color:var(--link)}a:hover{color:var(--brand-hover)}
+.app{background:var(--bg-canvas);color:var(--text-primary);font-family:var(--font-sans);font-size:14px;line-height:20px;font-feature-settings:"tnum" 1}
+
+
+/* top bar */
+.main{min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:20;height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 24px;background:var(--bg-surface);border-bottom:1px solid var(--border)}
+.icon-btn{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);cursor:pointer}
+.icon-btn:hover{background:var(--bg-muted);color:var(--text-primary)}
+.icon-btn:focus-visible,.search-trigger:focus-visible,.top-btn:focus-visible,.profile-btn:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.icon-btn .cx-icon{width:20px;height:20px}
+.icon-btn[aria-expanded="true"]{background:var(--bg-muted);color:var(--text-primary)}
+.only-drawer{display:none}
+.search-trigger{flex:1;max-width:560px;display:flex;align-items:center;gap:8px;height:36px;padding:0 8px 0 12px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-subtle);color:var(--text-muted);font:inherit;font-size:14px;cursor:text;text-align:left}
+.search-trigger:hover{border-color:var(--text-secondary)}
+.search-trigger .cx-icon{width:16px;height:16px}
+.st-text{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-keys{display:flex;gap:4px}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:4px}
+.top-btn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 10px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-primary);font:inherit;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+.top-btn:hover,.top-btn[aria-expanded="true"]{background:var(--bg-muted)}
+.top-btn .cx-icon{width:16px;height:16px;color:var(--text-secondary)}
+.top-sep{width:1px;height:24px;margin:0 8px;background:var(--border)}
+.profile-btn{display:flex;align-items:center;gap:10px;height:44px;padding:0 8px 0 4px;border:0;border-radius:var(--radius-sm);background:transparent;font:inherit;color:var(--text-primary);cursor:pointer;text-align:left}
+.profile-btn:hover,.profile-btn[aria-expanded="true"]{background:var(--bg-muted)}
+.avatar{flex:none;width:32px;height:32px;border-radius:var(--radius-full);background:var(--brand-subtle);color:var(--brand);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.avatar-lg{width:40px;height:40px;font-size:14px}
+.profile-text{display:flex;flex-direction:column;line-height:16px}
+.profile-name{font-size:13px;font-weight:500}
+.profile-role{font-size:12px;color:var(--text-muted)}
+.profile-btn .cx-icon{width:16px;height:16px;color:var(--text-muted)}
+.profile-head{display:flex;gap:12px;align-items:center;padding:8px 8px 12px}
+.profile-head .profile-text{line-height:20px}
+.notif-count{position:absolute;top:4px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:var(--radius-full);background:var(--danger);color:var(--on-danger);font-size:10px;line-height:16px;font-weight:600;text-align:center;box-shadow:0 0 0 2px var(--bg-surface)}
+
+/* popovers built from the system's menu classes */
+.pop{position:relative;display:inline-flex}
+.pop .cx-menu{min-width:240px}
+.menu-check{margin-left:auto;color:var(--brand)}
+.menu-check .cx-icon{color:var(--brand)}
+.menu-sub{display:block;font-size:12px;line-height:16px;color:var(--text-muted)}
+.menu-item-2{height:auto;min-height:40px;padding:6px 8px;align-items:flex-start}
+.menu-item-2 > .cx-icon{margin-top:2px}
+.notif-panel{width:380px;max-width:calc(100vw - 32px);padding:0}
+.np-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.np-title{font-size:15px;line-height:24px;font-weight:600}
+.np-list{list-style:none;margin:0;padding:4px}
+.np-item{display:flex;gap:12px;padding:10px 12px;border-radius:var(--radius-xs);text-decoration:none;color:var(--text-primary)}
+.np-item:hover{background:var(--bg-muted);color:var(--text-primary)}
+.np-ico{flex:none;width:32px;height:32px;border-radius:var(--radius-full);display:inline-flex;align-items:center;justify-content:center}
+.np-ico .cx-icon{width:16px;height:16px}
+.np-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:13px;line-height:20px}
+.np-time{font-size:12px;line-height:16px;color:var(--text-muted)}
+.np-unread{flex:none;width:8px;height:8px;margin-top:6px;border-radius:var(--radius-full);background:var(--brand)}
+.np-read{flex:none;width:8px}
+.np-foot{padding:10px 16px;border-top:1px solid var(--border);text-align:center;font-size:13px}
+
+/* page */
+.page{width:100%;max-width:1600px;margin:0 auto;box-sizing:border-box;padding:24px 32px 48px;display:flex;flex-direction:column;gap:24px}
+.page-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.ph-titles{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ph-titles h1{margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-0.015em}
+.ph-sub{margin:0;color:var(--text-secondary)}
+.ph-meta{margin:0;font-size:12px;line-height:16px;color:var(--text-muted);display:flex;flex-wrap:wrap;gap:4px 12px}
+.ph-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ph-actions .cx-menu{min-width:220px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.kpis > *{min-width:0}
+.duo{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:start}
+.cx-card{min-width:0}
+.card-head-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* sales chart */
+.sales-summary{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:16px}
+.ss-value{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.ss-big{font-size:28px;line-height:36px;font-weight:600;letter-spacing:-0.02em}
+.ss-cmp{font-size:12px;line-height:16px;color:var(--text-muted)}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font-size:12px;line-height:16px;color:var(--text-secondary)}
+.lg-item{display:inline-flex;align-items:center;gap:6px}
+.lg-cur{width:16px;height:0;border-top:2px solid var(--brand)}
+.lg-prev{width:16px;height:0;border-top:2px dashed var(--text-muted)}
+.lg-item.is-off{opacity:.45}
+.chart{display:grid;grid-template-columns:48px minmax(0,1fr);grid-template-rows:260px 28px;column-gap:8px}
+.chart-y{position:relative}
+.chart-y span{position:absolute;right:0;transform:translateY(50%);font-size:12px;line-height:16px;color:var(--text-muted);white-space:nowrap}
+.chart-plot{position:relative;border-bottom:1px solid var(--border-strong);user-select:none}
+.gl{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--border)}
+.chart-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.c-area{fill:var(--brand-subtle);opacity:.75}
+.c-line{fill:none;stroke:var(--brand);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.c-prev{fill:none;stroke:var(--text-muted);stroke-width:1.5;stroke-dasharray:4 4;vector-effect:non-scaling-stroke}
+.c-prev.is-hidden{display:none}
+.hits{position:absolute;inset:0;display:flex}
+.hit{flex:1;height:100%;cursor:crosshair}
+.brush{position:absolute;top:0;bottom:0;background:var(--brand);opacity:.12;pointer-events:none}
+.hv-line{position:absolute;top:0;bottom:0;width:0;border-left:1px solid var(--border-control);pointer-events:none}
+.hv-dot{position:absolute;width:10px;height:10px;margin:0 0 -5px -5px;border-radius:var(--radius-full);background:var(--brand);box-shadow:0 0 0 2px var(--bg-surface);pointer-events:none}
+.c-tip{position:absolute;top:8px;min-width:184px;padding:8px 12px;border-radius:var(--radius-md);background:var(--bg-surface);border:1px solid var(--border);box-shadow:var(--shadow-md);font-size:12px;line-height:16px;pointer-events:none;transform:translateX(12px);z-index:5}
+.c-tip.is-left{transform:translateX(calc(-100% - 12px))}
+.c-tip-date{font-weight:600;margin-bottom:6px;color:var(--text-primary)}
+.c-tip-row{display:flex;align-items:center;gap:8px;justify-content:space-between;color:var(--text-secondary)}
+.c-tip-row strong{color:var(--text-primary);font-weight:500}
+.c-tip-row span{display:inline-flex;align-items:center;gap:6px}
+.chart-corner{grid-column:1}
+.chart-x{position:relative}
+.chart-x span{position:absolute;top:8px;transform:translateX(-50%);font-size:12px;line-height:16px;color:var(--text-muted);white-space:nowrap}
+.chart-hint{margin-top:8px;font-size:12px;line-height:16px;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* tasks */
+.tasks{list-style:none;margin:0;padding:4px 0}
+.task{display:flex;align-items:center;gap:12px;padding:12px 24px;text-decoration:none;color:var(--text-primary);border-bottom:1px solid var(--border)}
+.tasks li:last-child .task{border-bottom:0}
+.task:hover{background:var(--bg-subtle);color:var(--text-primary)}
+.task:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px}
+.task-ico{flex:none;width:36px;height:36px;border-radius:var(--radius-md);display:inline-flex;align-items:center;justify-content:center}
+.task-ico .cx-icon{width:18px;height:18px}
+.t-danger{background:var(--danger-subtle);color:var(--danger)}
+.t-warning{background:var(--warning-subtle);color:var(--warning)}
+.t-info{background:var(--info-subtle);color:var(--info)}
+.t-brand{background:var(--brand-subtle);color:var(--brand)}
+.task-body{flex:1;min-width:0;display:flex;flex-direction:column}
+.task-title{font-size:14px;line-height:20px;font-weight:500}
+.task-title strong{font-weight:600}
+.task-meta{font-size:12px;line-height:16px;color:var(--text-muted)}
+.task-go{flex:none;display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:500;color:var(--link);white-space:nowrap}
+.task-go .cx-icon{width:14px;height:14px}
+.tasks-foot{font-size:12px;line-height:16px;color:var(--text-muted)}
+
+/* pipeline */
+.pipe-wrap{display:flex;flex-direction:column;gap:16px}
+.pipe{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,2fr);gap:16px}
+.pipe-group{display:flex;flex-direction:column;gap:8px;min-width:0}
+.pipe-label{font-size:11px;line-height:16px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)}
+.stages{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.stage{position:relative;display:flex;flex-direction:column;gap:8px;padding:12px 16px 14px;text-decoration:none;color:var(--text-primary);border-left:1px solid var(--border);min-width:0}
+.stage:first-child{border-left:0}
+.stage:hover{background:var(--bg-subtle);color:var(--text-primary)}
+.stage:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px}
+.stage.is-bottleneck{background:var(--danger-subtle)}
+.stage.is-bottleneck:hover{background:var(--danger-subtle)}
+.stage-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px;min-height:20px}
+.stage-count{font-size:24px;line-height:32px;font-weight:600;letter-spacing:-0.015em}
+.stage-time{font-size:12px;line-height:16px;color:var(--text-secondary)}
+.meter{height:4px;border-radius:var(--radius-full);background:var(--bg-muted);overflow:hidden}
+.meter span{display:block;height:100%;border-radius:var(--radius-full);background:var(--success)}
+.meter .m-warn{background:var(--warning)}
+.meter .m-bad{background:var(--danger)}
+.meter .m-neutral{background:var(--text-muted)}
+.stage-note{font-size:12px;line-height:16px;color:var(--text-muted)}
+.stage.is-bottleneck .stage-note{color:var(--danger);font-weight:500}
+
+/* tables */
+.tbl-scroll{overflow-x:auto}
+.cx-table td.td-strong{font-weight:500}
+.prod-name{display:block;font-weight:500;color:var(--text-primary);text-decoration:none}
+.prod-name:hover{color:var(--link);text-decoration:underline}
+.stock-cell{display:inline-flex;flex-direction:column;align-items:flex-end;gap:4px}
+.stock-cell .meter{width:72px}
+.order-link{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--link);text-decoration:none}
+.order-link:hover{text-decoration:underline}
+.muted{color:var(--text-secondary)}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 24px;border-bottom:1px solid var(--border)}
+.toolbar-end{margin-left:auto;font-size:12px;line-height:16px;color:var(--text-muted)}
+.card-foot-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:12px 24px;border-top:1px solid var(--border);font-size:12px;line-height:16px;color:var(--text-muted)}
+.inv-tabs{padding:0 24px;border-bottom:1px solid var(--border)}
+.inv-tabs .cx-tabs{border-bottom:0}
+.m-list{display:none;list-style:none;margin:0;padding:0}
+.m-card{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text-primary)}
+.m-list li:last-child .m-card{border-bottom:0}
+.m-card:hover{background:var(--bg-subtle);color:var(--text-primary)}
+.m-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.m-title{font-weight:500}
+.m-meta{font-size:12px;line-height:16px;color:var(--text-muted)}
+.m-figs{display:flex;gap:16px;font-size:13px}
+.m-figs span{color:var(--text-secondary)}
+.m-figs strong{color:var(--text-primary);font-weight:500}
+.m-badges{display:flex;gap:6px;flex-wrap:wrap}
+
+/* global search */
+.pal-scrim{position:fixed;inset:0;z-index:60;background:var(--overlay);display:flex;justify-content:center;align-items:flex-start;padding:72px 16px 16px}
+.pal{width:100%;max-width:680px;max-height:calc(100vh - 120px);display:flex;flex-direction:column;background:var(--bg-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);overflow:hidden}
+.pal-head{display:flex;gap:8px;align-items:center;padding:12px 12px 0 16px}
+.pal-head > :first-child{flex:1;min-width:0}
+.pal-head .cx-control{box-shadow:none}
+.pal-esc{flex:none;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-xs);background:var(--bg-subtle);color:var(--text-secondary);font:inherit;font-size:12px;cursor:pointer}
+.pal-scopes{padding:0 16px;border-bottom:1px solid var(--border)}
+.pal-scopes .cx-tabs{border-bottom:0;gap:20px}
+.pal-body{flex:1;overflow-y:auto;padding:8px}
+.pal-glabel{display:flex;justify-content:space-between;padding:8px 8px 4px;font-size:11px;line-height:16px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)}
+.pal-item{display:flex;align-items:center;gap:12px;padding:8px;border-radius:var(--radius-sm);text-decoration:none;color:var(--text-primary)}
+.pal-item:hover,.pal-item.is-active{background:var(--bg-selected);color:var(--text-primary)}
+.pal-ico{flex:none;width:32px;height:32px;border-radius:var(--radius-sm);background:var(--bg-muted);color:var(--text-secondary);display:inline-flex;align-items:center;justify-content:center}
+.pal-ico .cx-icon{width:16px;height:16px}
+.pal-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.pal-title{font-size:14px;line-height:20px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pal-title.is-code{font-family:var(--font-mono);font-size:13px}
+.pal-title mark:empty{display:none}
+.pal-title mark{background:var(--warning-subtle);color:inherit;border-radius:2px;padding:0 1px}
+.pal-meta{font-size:12px;line-height:16px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pal-side{flex:none;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--text-secondary)}
+.pal-enter{flex:none;opacity:0;color:var(--text-muted)}
+.pal-item.is-active .pal-enter{opacity:1}
+.pal-more{display:block;padding:6px 8px 10px 52px;font-size:12px;line-height:16px}
+.pal-foot{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:10px 16px;border-top:1px solid var(--border);background:var(--bg-subtle);font-size:12px;line-height:16px;color:var(--text-muted)}
+.pal-foot span{display:inline-flex;gap:4px;align-items:center}
+.pal-tip{margin-left:auto}
+.pal-tip code{font-family:var(--font-mono);color:var(--text-secondary)}
+
+/* tablet */
+@media (max-width:1279px){
+  .page{padding:24px 24px 40px}
+  .top{padding:0 16px 0 24px}
+  .duo{grid-template-columns:minmax(0,1fr) 320px}
+  .col-items{display:none}
+}
+/* small tablet */
+@media (max-width:1023px){
+  .profile-text,.profile-btn > .cx-icon,.top-sep,.store-name{display:none}
+  .profile-btn{padding:0 4px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .duo{display:contents}
+  .tasks-card{order:-1}
+  .page > .page-head{order:-3}
+  .kpis{order:-2}
+  .pipe{grid-template-columns:minmax(0,1fr)}
+  .col-pay{display:none}
+}
+/* phone */
+@media (max-width:767px){
+  .only-drawer{display:inline-flex}
+  .page{padding:16px 16px 32px;gap:16px}
+  .top{padding:0 8px;gap:4px}
+  .search-trigger{flex:0 0 36px;width:36px;padding:0;justify-content:center;border:0;background:transparent;color:var(--text-secondary)}
+  .search-trigger .cx-icon{width:20px;height:20px}
+  .st-text,.st-keys{display:none}
+  .ph-titles h1{font-size:20px;line-height:28px}
+  .page-head{align-items:stretch}
+  .ph-actions{width:100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+  .export-label{display:none}
+  .kpis{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:16px;gap:12px;margin:0 -16px;padding:0 16px 4px}
+  .kpis > *{flex:0 0 78%;scroll-snap-align:start}
+  .chart{grid-template-rows:200px 28px;grid-template-columns:40px minmax(0,1fr)}
+  .chart-x .xl-alt{display:none}
+  .chart-hint .drag-hint{display:none}
+  .stages{grid-auto-flow:row;grid-auto-columns:auto}
+  .stage{border-left:0;border-top:1px solid var(--border);display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;row-gap:6px;align-items:center}
+  .stage:first-child{border-top:0}
+  .stage-top{grid-column:1}
+  .stage-count{grid-column:2;grid-row:1 / span 2;font-size:20px;line-height:28px;text-align:right}
+  .stage-time{grid-column:1}
+  .stage .meter,.stage-note{grid-column:1 / -1}
+  .tbl-scroll{display:none}
+  .m-list{display:block}
+  .task{padding:12px 16px}
+  .task-go-label{display:none}
+  .toolbar,.card-foot-row,.inv-tabs{padding-left:16px;padding-right:16px}
+  .cx-card-head,.cx-card-body{padding-left:16px;padding-right:16px}
+  .pal-scrim{padding:0}
+  .pal{max-width:none;max-height:none;height:100%;border-radius:0}
+  .pal-tip{display:none}
+}
+
+/* ---------- Orders page ---------- */
+.o-head-actions{display:flex;gap:8px;align-items:center}
+.o-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.o-kpi{display:flex;flex-direction:column;gap:4px;padding:12px 16px;min-width:0;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font:inherit;color:var(--text-primary);text-align:left;cursor:pointer}
+.o-kpi:hover{border-color:var(--border-strong);background:var(--bg-subtle)}
+.o-kpi:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.o-kpi.is-active{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.o-kpi-label{display:flex;align-items:center;gap:8px;font-size:13px;line-height:20px;color:var(--text-secondary);font-weight:500}
+.o-kpi-value{font-size:22px;line-height:28px;font-weight:600;letter-spacing:-0.015em}
+.o-kpi-foot{display:flex;align-items:center;gap:6px;font-size:12px;line-height:16px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.o-kpi-note{font-size:12px;line-height:16px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.o-delta{display:inline-flex;align-items:center;gap:2px;font-weight:500}
+.o-delta .cx-icon{width:14px;height:14px;stroke-width:2}
+.o-delta.is-good{color:var(--success)}
+.o-delta.is-bad{color:var(--danger)}
+.o-delta.is-flat{color:var(--text-secondary)}
+.o-attn{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.o-attn-label{font-size:13px;line-height:20px;font-weight:500;color:var(--text-secondary);margin-right:4px;white-space:nowrap}
+.o-chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-full);background:var(--bg-surface);font:inherit;font-size:13px;color:var(--text-primary);cursor:pointer;white-space:nowrap}
+.o-chip:hover{background:var(--bg-subtle);border-color:var(--border-strong)}
+.o-chip:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.o-chip strong{font-weight:600}
+.o-chip .cx-icon{width:14px;height:14px}
+.a-danger .cx-icon{color:var(--danger)}
+.a-warning .cx-icon{color:var(--warning)}
+.a-brand .cx-icon{color:var(--brand)}
+.o-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+.o-tabs{padding:0 16px;border-bottom:1px solid var(--border)}
+.o-tabs .cx-tabs{border-bottom:0;gap:20px}
+.o-tools{display:flex;flex-direction:column;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.o-row1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.o-search{flex:1;min-width:260px}
+.o-search .cx-control{height:36px}
+.o-row2{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.o-fbtn{gap:6px;max-width:260px}
+.o-fbtn .o-fval{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.o-fbtn.is-on{background:var(--brand-subtle);border-color:var(--brand);color:var(--brand)}
+.o-fbtn.is-on .cx-icon{color:var(--brand)}
+.o-fbtn .cx-icon{width:14px;height:14px;color:var(--text-secondary)}
+.o-panel-btn{display:none}
+.o-clear{margin-left:4px}
+.o-pop{position:relative;display:inline-flex}
+.o-pop .cx-menu{min-width:240px;max-height:360px;overflow-y:auto}
+.o-checks{display:flex;flex-direction:column;padding:4px}
+.o-check-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:32px;padding:0 8px;border-radius:var(--radius-xs)}
+.o-check-row:hover{background:var(--bg-muted)}
+.o-check-row .cx-check{flex:1;font-size:13px}
+.o-count{font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.o-pop-search{padding:8px 8px 4px}
+.o-pop .o-views-pop{width:340px;max-width:calc(100vw - 32px);padding:0;max-height:min(600px,calc(100vh - 120px))}
+.o-views-head{display:flex;justify-content:space-between;align-items:center;padding:12px 12px 8px 16px;font-size:13px;font-weight:600}
+.o-view-wrap{padding:0 4px}
+.o-view{display:flex;align-items:center;gap:8px;padding:6px 4px 6px 12px;border-radius:var(--radius-xs)}
+.o-view:hover{background:var(--bg-muted)}
+.o-view.is-selected{background:var(--bg-selected)}
+.o-view-pick{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;border:0;background:transparent;padding:2px 0;font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;border-radius:2px}
+.o-view-pick:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.o-view-name{display:flex;align-items:center;gap:6px;font-size:13px;line-height:20px;font-weight:500}
+.o-view-sub{font-size:12px;line-height:16px;color:var(--text-muted)}
+.o-star{color:var(--warning);display:inline-flex}
+.o-star .cx-icon{width:12px;height:12px}
+.o-view-actions{display:flex;flex-direction:column;margin:2px 4px 6px 24px;padding:4px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface)}
+.o-view-note{padding:4px 8px 6px;font-size:12px;line-height:16px;color:var(--text-muted)}
+.o-views-foot{display:flex;flex-direction:column;gap:2px;padding:4px;border-top:1px solid var(--border);margin-top:4px}
+.o-modified{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:var(--radius-full);background:var(--warning-subtle);color:var(--warning);font-size:11px;font-weight:600}
+.o-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 16px;font-size:12px;line-height:16px;color:var(--text-muted);border-bottom:1px solid var(--border);min-height:44px;box-sizing:border-box;flex-wrap:wrap}
+.o-summary strong{color:var(--text-primary);font-weight:600}
+.o-bulkwrap{position:relative}
+.o-bulk{display:flex;align-items:center;gap:4px;min-height:44px;padding:4px 8px 4px 16px;background:var(--tooltip-bg);color:var(--text-inverse);font-size:13px;font-weight:500;flex-wrap:wrap}
+.o-bulk-count{margin-right:8px}
+.o-bulk .cx-btn-ghost{color:var(--text-inverse)}
+.o-bulk .cx-btn-ghost:hover{background:rgba(127,127,127,.24);color:var(--text-inverse)}
+.o-bulk .cx-btn-ghost[disabled],.o-bulk .cx-btn-ghost[aria-disabled="true"]{background:transparent;color:var(--text-inverse);opacity:.5;cursor:not-allowed}
+.o-bulk .cx-btn-ghost .cx-icon{color:inherit}
+.o-bulk-sep{width:1px;height:20px;margin:0 6px;background:var(--text-inverse);opacity:.25}
+.o-bulk-end{margin-left:auto;display:flex;gap:4px}
+.o-bulk .cx-menu{color:var(--text-primary);font-weight:400}
+.o-banner{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;background:var(--brand-subtle);color:var(--text-primary);font-size:13px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.o-scroll{overflow-x:auto;position:relative}
+.o-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;line-height:20px;font-variant-numeric:tabular-nums}
+.o-table th{position:sticky;top:0;z-index:2;height:40px;padding:0 12px;background:var(--bg-subtle);border-bottom:1px solid var(--border);text-align:left;font-size:12px;line-height:16px;font-weight:500;color:var(--text-secondary);white-space:nowrap}
+.o-table td{padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--bg-surface);vertical-align:middle}
+.o-table tbody tr:hover td{background:var(--bg-subtle)}
+.o-table tbody tr.is-selected td{background:var(--bg-selected)}
+.o-table .is-right{text-align:right}
+.o-table .c-check{width:20px;padding-right:4px;position:sticky;left:0;z-index:1}
+.o-table th.c-check{z-index:3}
+.o-table .c-order{position:sticky;left:36px;z-index:1;box-shadow:inset -1px 0 0 var(--border)}
+.o-table th.c-order{z-index:3}
+.o-table .c-act{position:sticky;right:0;z-index:1;width:40px;padding:0 8px;text-align:right;box-shadow:inset 1px 0 0 var(--border)}
+.o-table th.c-act{z-index:3}
+.o-id{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--link);text-decoration:none}
+.o-id:hover{text-decoration:underline}
+.o-sub{display:block;font-size:12px;line-height:16px;color:var(--text-muted)}
+.o-cust{font-weight:500;color:var(--text-primary)}
+.o-delay{display:inline-flex;margin-left:6px;vertical-align:middle}
+.o-ful{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-primary)}
+.o-ful .cx-icon{width:16px;height:16px}
+.o-ful-warning .cx-icon{color:var(--warning)}
+.o-ful-info .cx-icon{color:var(--info)}
+.o-ful-brand .cx-icon{color:var(--brand)}
+.o-ful-success .cx-icon{color:var(--success)}
+.o-ful-neutral .cx-icon{color:var(--text-secondary)}
+.o-row-act{display:inline-flex}
+.o-row-act .cx-btn[aria-expanded="true"]{background:var(--bg-muted);color:var(--text-primary)}
+.o-rowmenu{position:fixed;z-index:50;width:264px;padding:4px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-md)}
+.o-mi{height:auto;min-height:32px;padding:6px 8px;align-items:flex-start}
+.o-mi > .cx-icon{margin-top:2px}
+.o-mi-text{display:flex;flex-direction:column;min-width:0;white-space:normal}
+.o-mi-note{font-size:12px;line-height:16px;color:var(--text-muted)}
+.o-mi[disabled] .o-mi-note{color:var(--text-muted)}
+.o-mi.is-danger[disabled]{color:var(--text-disabled)}
+.o-mi.is-danger[disabled] .cx-icon{color:var(--text-disabled)}
+.o-pager{border-top:1px solid var(--border)}
+.o-state{border-top:0}
+.o-m-list{display:none;list-style:none;margin:0;padding:0}
+.o-m-card{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.o-m-card.is-selected{background:var(--bg-selected)}
+.o-m-top{display:flex;align-items:center;gap:10px}
+.o-m-top .o-id{flex:1}
+.o-m-mid{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.o-m-total{font-size:15px;font-weight:600}
+.o-m-badges{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.o-m-actions{display:flex;gap:8px}
+.o-m-actions > *{flex:1}
+.o-m-actions .cx-btn{width:100%}
+.o-skel-kpi{display:flex;flex-direction:column;gap:8px;padding:14px 16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md)}
+.o-skel-tabs{display:flex;gap:24px;align-items:center;height:41px;padding:0 16px;border-bottom:1px solid var(--border)}
+.o-skel-tools{display:flex;flex-direction:column;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.o-skel-row{display:grid;grid-template-columns:20px 1.2fr 1.6fr .6fr .7fr .8fr .9fr 1fr .8fr .9fr 24px;gap:16px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
+.o-skel-row.is-head{background:var(--bg-subtle);padding:12px 16px}
+.o-skel-stack{display:flex;flex-direction:column;gap:6px}
+.o-panel-scrim{position:fixed;inset:0;z-index:60;background:var(--overlay);border:0;padding:0}
+.o-panel{position:fixed;top:0;right:0;bottom:0;z-index:61;width:400px;max-width:100%;display:flex;flex-direction:column;background:var(--bg-surface);box-shadow:var(--shadow-lg)}
+.o-panel-head{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 16px 24px;border-bottom:1px solid var(--border)}
+.o-panel-title{margin:0;font-size:18px;line-height:28px;font-weight:600}
+.o-panel-body{flex:1;overflow-y:auto;padding:8px 24px 24px;display:flex;flex-direction:column}
+.o-panel-sec{padding:16px 0;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.o-panel-sec:last-child{border-bottom:0}
+.o-panel-sec h3{margin:0 0 4px;font-size:13px;line-height:20px;font-weight:600}
+.o-panel-sec .o-check-row{padding:0}
+.o-radio-row{display:flex;flex-wrap:wrap;gap:6px}
+.o-radio{height:28px;padding:0 10px;border:1px solid var(--border-control);border-radius:var(--radius-full);background:var(--bg-surface);font:inherit;font-size:13px;color:var(--text-primary);cursor:pointer}
+.o-radio[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.o-radio:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.o-panel-foot{display:flex;justify-content:space-between;gap:8px;padding:12px 24px;border-top:1px solid var(--border);background:var(--bg-subtle)}
+.o-modal-stack{display:flex;flex-direction:column;gap:16px}
+.o-modal-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.o-modal-note{margin:0;font-size:13px;line-height:20px;color:var(--text-secondary)}
+.cx-toasts .cx-toast{min-width:0}
+
+@media (max-width:1279px){
+  .o-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .o-table td{padding:6px 10px}
+  .o-table th{padding:0 10px;height:36px}
+  .c-wh,.c-date{display:none}
+}
+@media (max-width:1023px){
+  .o-row2{display:none}
+  .o-panel-btn{display:inline-flex}
+  .o-kpis{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:24px;margin:0 -24px;padding:0 24px 4px}
+  .o-kpis > *{flex:0 0 200px;scroll-snap-align:start}
+  .c-items{display:none}
+  .o-skel-row{grid-template-columns:20px 1.2fr 1.6fr .7fr .8fr .9fr .9fr 24px}
+  .o-skel-row > :nth-child(4),.o-skel-row > :nth-child(9),.o-skel-row > :nth-child(10){display:none}
+}
+@media (max-width:767px){
+  .o-head-actions .o-export-label{display:none}
+  .o-kpis{margin:0 -16px;padding:0 16px 4px;scroll-padding-inline:16px}
+  .o-kpis > *{flex-basis:168px}
+  .o-attn{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px;padding:0 16px 2px}
+  .o-tabs{padding:0 8px}
+  .o-tools{padding:12px}
+  .o-search{flex-basis:100%;min-width:0;order:-1}
+  .o-row1 > .o-pop,.o-row1 > .o-panel-btn{flex:1}
+  .o-row1 > .o-pop > .cx-btn,.o-row1 > .o-panel-btn{width:100%}
+  .o-sort-label,.o-view-label{max-width:90px;overflow:hidden;text-overflow:ellipsis}
+  .o-scroll{display:none}
+  .o-m-list{display:block}
+  .o-summary{padding:8px 12px}
+  .o-bulk{padding:4px 8px}
+  .o-bulk .o-bulk-label{display:none}
+  .o-skel-row{grid-template-columns:20px 1fr 80px}
+  .o-skel-row > :nth-child(n+4){display:none}
+  .o-panel{width:100%}
+  .o-views-pop{position:fixed;left:8px;right:8px;top:auto;width:auto}
+}
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}" onKeyDown="{{onRootKey}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="{{nav.current}}" collapsed="{{nav.collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{nav.drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{nav.stores}}" store="{{nav.store}}" on-store-change="{{nav.setStore}}" user="{{nav.user}}" on-navigate="{{nav.navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<header class="top">
+<button class="icon-btn only-drawer" aria-label="Open navigation" onClick="{{openDrawer}}"><x-import component-from-global-scope="CommerceOS.Icon" name="menu"></x-import></button>
+<button class="search-trigger" onClick="{{openSearch}}" aria-label="Search orders, customers, products, SKUs and suppliers" aria-keyshortcuts="Meta+K">
+<x-import component-from-global-scope="CommerceOS.Icon" name="search"></x-import>
+<span class="st-text">Search orders, customers, products, SKUs, suppliers</span>
+<span class="st-keys" aria-hidden="true"><kbd class="cx-kbd">⌘</kbd><kbd class="cx-kbd">K</kbd></span>
+</button>
+<div class="top-actions">
+<div class="pop" data-pop="store">
+<button class="top-btn" onClick="{{toggleStoreTop}}" aria-haspopup="menu" aria-expanded="{{open.storeTop}}" aria-label="Store: {{storeName}}">
+<x-import component-from-global-scope="CommerceOS.Icon" name="store"></x-import>
+<span class="store-name">{{storeName}}</span>
+<x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import>
+</button>
+<sc-if value="{{open.storeTop}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Choose store">
+<div class="cx-menu-group">Store</div>
+<sc-for list="{{storeItems}}" as="s" hint-placeholder-count="5">
+<button class="cx-menu-item menu-item-2" role="menuitemradio" aria-checked="{{s.selected}}" onClick="{{s.pick}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{s.icon}}"></x-import><span><span>{{s.label}}</span><span class="menu-sub">{{s.sub}}</span></span><sc-if value="{{s.selected}}" hint-placeholder-val="{{false}}"><span class="menu-check"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button>
+</sc-for>
+<div class="cx-menu-sep"></div>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="settings"></x-import><span>Manage stores</span></button>
+</div>
+</sc-if>
+</div>
+<div class="pop" data-pop="help">
+<x-import component-from-global-scope="CommerceOS.Tooltip" content="Help" side="bottom"><button class="icon-btn" aria-label="Help" aria-haspopup="menu" aria-expanded="{{open.help}}" onClick="{{toggleHelp}}"><x-import component-from-global-scope="CommerceOS.Icon" name="help-circle"></x-import></button></x-import>
+<sc-if value="{{open.help}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Help">
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="file-text"></x-import><span>Help center</span></button>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="keyboard"></x-import><span>Keyboard shortcuts</span><span class="cx-menu-shortcut">?</span></button>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="megaphone"></x-import><span>What’s new</span></button>
+<div class="cx-menu-sep"></div>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="users"></x-import><span>Contact support</span></button>
+</div>
+</sc-if>
+</div>
+<div class="pop" data-pop="notif">
+<x-import component-from-global-scope="CommerceOS.Tooltip" content="Notifications" side="bottom"><button class="icon-btn" aria-label="Notifications, {{unread}} unread" aria-haspopup="dialog" aria-expanded="{{open.notif}}" onClick="{{toggleNotif}}"><x-import component-from-global-scope="CommerceOS.Icon" name="bell"></x-import><sc-if value="{{unread}}" hint-placeholder-val="{{true}}"><span class="notif-count" aria-hidden="true">{{unread}}</span></sc-if></button></x-import>
+<sc-if value="{{open.notif}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end notif-panel" role="dialog" aria-label="Notifications">
+<div class="np-head"><span class="np-title">Notifications</span><x-import component-from-global-scope="CommerceOS.Button" variant="link" on-click="{{markAllRead}}">Mark all as read</x-import></div>
+<ul class="np-list">
+<sc-for list="{{notifs}}" as="n" hint-placeholder-count="4">
+<li><a class="np-item" href="#"><span class="np-ico {{n.tone}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{n.icon}}"></x-import></span><span class="np-body"><span>{{n.text}}</span><span class="np-time">{{n.time}}</span></span><span class="{{n.dot}}"></span></a></li>
+</sc-for>
+</ul>
+<div class="np-foot"><a href="#">View all notifications</a></div>
+</div>
+</sc-if>
+</div>
+<span class="top-sep"></span>
+<div class="pop" data-pop="profile">
+<button class="profile-btn" aria-haspopup="menu" aria-expanded="{{open.profile}}" onClick="{{toggleProfile}}" aria-label="Account: Priya Natarajan, Operations Manager">
+<span class="avatar" aria-hidden="true">PN</span>
+<span class="profile-text"><span class="profile-name">Priya Natarajan</span><span class="profile-role">Operations Manager</span></span>
+<x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import>
+</button>
+<sc-if value="{{open.profile}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Account">
+<div class="profile-head"><span class="avatar avatar-lg" aria-hidden="true">PN</span><span class="profile-text"><span class="profile-name">Priya Natarajan</span><span class="profile-role">priya@fernhill.co</span></span></div>
+<div class="cx-menu-sep"></div>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="user"></x-import><span>My profile</span></button>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="settings"></x-import><span>Account settings</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{toggleTheme}}"><x-import component-from-global-scope="CommerceOS.Icon" name="eye"></x-import><span>{{themeLabel}}</span></button>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="keyboard"></x-import><span>Keyboard shortcuts</span><span class="cx-menu-shortcut">?</span></button>
+<div class="cx-menu-sep"></div>
+<div class="cx-menu-group">Role: Operations Manager</div>
+<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="log-out"></x-import><span>Sign out</span></button>
+</div>
+</sc-if>
+</div>
+</div>
+</header>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="sales/orders"></x-import>
+<h1>Orders</h1>
+<p class="ph-sub">Manage, track, and process customer orders across your store.</p>
+<p class="ph-meta"><span>Last 30 days · {{storeName}}</span><span>Updated 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<div class="pop" data-pop="export">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" icon-right="chevron-down" on-click="{{toggleExport}}" aria-haspopup="menu" aria-expanded="{{openExport}}" aria-label="Export orders"><span class="o-export-label">Export</span></x-import>
+<sc-if value="{{openExport}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Export orders">
+<div class="cx-menu-group">Export as CSV</div>
+<button class="cx-menu-item" role="menuitem" onClick="{{exportView}}"><x-import component-from-global-scope="CommerceOS.Icon" name="filter"></x-import><span>{{exportViewLabel}}</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{exportAll}}"><x-import component-from-global-scope="CommerceOS.Icon" name="download"></x-import><span>{{exportAllLabel}}</span></button>
+</div>
+</sc-if>
+</div>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{createOrder}}">Create order</x-import>
+</div>
+</div>
+
+<sc-if value="{{notLoading}}" hint-placeholder-val="{{true}}">
+<section class="o-kpis" aria-label="Orders in the last 30 days">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="6">
+<button class="{{k.cls}}" aria-pressed="{{k.pressed}}" aria-label="{{k.aria}}" onClick="{{k.pick}}">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span class="{{k.deltaCls}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{k.deltaIcon}}"></x-import>{{k.delta}}</span><span>{{k.cmp}}</span></span>
+</button>
+</sc-for>
+</section>
+<div class="o-attn" role="group" aria-label="Needs attention">
+<span class="o-attn-label">Needs attention</span>
+<sc-for list="{{attn}}" as="a" hint-placeholder-count="4"><button class="o-chip {{a.tone}}" onClick="{{a.pick}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{a.icon}}"></x-import><strong>{{a.count}}</strong><span>{{a.label}}</span></button></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{loading}}" hint-placeholder-val="{{false}}">
+<section class="o-kpis" aria-label="Loading order metrics" aria-busy="true">
+<sc-for list="{{skelKpis}}" as="x" hint-placeholder-count="6"><div class="o-skel-kpi"><x-import component-from-global-scope="CommerceOS.Skeleton" width="60%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" variant="rect" width="45%" height="24px"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="80%"></x-import></div></sc-for>
+</section>
+</sc-if>
+
+<section class="o-card" aria-label="Orders">
+<sc-if value="{{loading}}" hint-placeholder-val="{{false}}">
+<div class="o-skel-tabs" aria-hidden="true"><sc-for list="{{skelTabs}}" as="x" hint-placeholder-count="7"><x-import component-from-global-scope="CommerceOS.Skeleton" width="72px" height="14px"></x-import></sc-for></div>
+<div class="o-skel-tools" aria-hidden="true"><x-import component-from-global-scope="CommerceOS.Skeleton" variant="rect" height="36px"></x-import><div class="o-radio-row"><sc-for list="{{skelTabs}}" as="x" hint-placeholder-count="7"><x-import component-from-global-scope="CommerceOS.Skeleton" variant="rect" width="104px" height="28px"></x-import></sc-for></div></div>
+<div role="status" aria-label="Loading orders">
+<div class="o-skel-row is-head"><sc-for list="{{skelTabs}}" as="x" hint-placeholder-count="7"><x-import component-from-global-scope="CommerceOS.Skeleton" width="70%"></x-import></sc-for></div>
+<sc-for list="{{skelRows}}" as="x" hint-placeholder-count="10"><div class="o-skel-row"><x-import component-from-global-scope="CommerceOS.Skeleton" variant="rect" width="16px" height="16px"></x-import><div class="o-skel-stack"><x-import component-from-global-scope="CommerceOS.Skeleton" width="80%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="55%"></x-import></div><div class="o-skel-stack"><x-import component-from-global-scope="CommerceOS.Skeleton" width="70%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="90%"></x-import></div><x-import component-from-global-scope="CommerceOS.Skeleton" width="70%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="80%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" variant="rect" width="60px" height="20px"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="80%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="85%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="75%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" width="70%"></x-import><x-import component-from-global-scope="CommerceOS.Skeleton" variant="rect" width="20px" height="20px"></x-import></div></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{notLoading}}" hint-placeholder-val="{{true}}">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Order stage" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+
+<div class="o-tools">
+<div class="o-row1">
+<div class="o-pop" data-pop="views">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="dashboard" icon-right="chevron-down" on-click="{{toggleViews}}" aria-haspopup="dialog" aria-expanded="{{openViews}}"><span class="o-view-label">{{viewLabel}}</span><sc-if value="{{viewModified}}" hint-placeholder-val="{{false}}"><span class="o-modified">Edited</span></sc-if></x-import>
+<sc-if value="{{openViews}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-start o-views-pop" role="dialog" aria-label="Saved views">
+<div class="o-views-head"><span>Saved views</span><x-import component-from-global-scope="CommerceOS.Button" variant="link" on-click="{{newView}}">New view</x-import></div>
+<div class="o-view-wrap">
+<sc-for list="{{viewItems}}" as="v" hint-placeholder-count="8">
+<div class="{{v.cls}}">
+<button class="o-view-pick" onClick="{{v.pick}}" aria-current="{{v.selected}}"><span class="o-view-name">{{v.name}}<sc-if value="{{v.isDefault}}" hint-placeholder-val="{{false}}"><span class="o-star" title="Default view"><x-import component-from-global-scope="CommerceOS.Icon" name="check-circle"></x-import></span></sc-if><sc-if value="{{v.shared}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Badge" tone="outline">Team</x-import></sc-if></span><span class="o-view-sub">{{v.sub}}</span></button>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="more-horizontal" aria-label="Options for {{v.name}}" aria-expanded="{{v.menuOpen}}" on-click="{{v.toggleMenu}}"></x-import>
+</div>
+<sc-if value="{{v.menuOpen}}" hint-placeholder-val="{{false}}">
+<div class="o-view-actions" role="menu" aria-label="Options for {{v.name}}">
+<sc-if value="{{v.system}}" hint-placeholder-val="{{false}}"><div class="o-view-note">{{v.lockNote}}</div></sc-if>
+<button class="cx-menu-item" role="menuitem" onClick="{{v.rename}}" disabled="{{v.system}}"><x-import component-from-global-scope="CommerceOS.Icon" name="edit"></x-import><span>Rename</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{v.makeDefault}}" disabled="{{v.isDefault}}"><x-import component-from-global-scope="CommerceOS.Icon" name="check-circle"></x-import><span>Set as default view</span></button>
+<button class="cx-menu-item is-danger" role="menuitem" onClick="{{v.remove}}" disabled="{{v.system}}"><x-import component-from-global-scope="CommerceOS.Icon" name="trash"></x-import><span>Delete view</span></button>
+</div>
+</sc-if>
+</sc-for>
+</div>
+<div class="o-views-foot">
+<sc-if value="{{canUpdateView}}" hint-placeholder-val="{{false}}"><button class="cx-menu-item" onClick="{{updateView}}"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import><span>Save changes to “{{viewLabel}}”</span></button></sc-if>
+<button class="cx-menu-item" onClick="{{newView}}"><x-import component-from-global-scope="CommerceOS.Icon" name="plus"></x-import><span>Save current filters as a new view</span></button>
+</div>
+</div>
+</sc-if>
+</div>
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by order ID, customer, email, phone, or SKU" label="Search orders" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<div class="o-pop" data-pop="sort">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="chevrons-up-down" icon-right="chevron-down" on-click="{{toggleSort}}" aria-haspopup="menu" aria-expanded="{{openSort}}" aria-label="Sort: {{sortLabel}}"><span class="o-sort-label">{{sortLabel}}</span></x-import>
+<sc-if value="{{openSort}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Sort orders"><div class="cx-menu-group">Sort by</div>
+<sc-for list="{{sortItems}}" as="o" hint-placeholder-count="7"><button class="cx-menu-item" role="menuitemradio" aria-checked="{{o.selected}}" onClick="{{o.pick}}"><span>{{o.label}}</span><sc-if value="{{o.selected}}" hint-placeholder-val="{{false}}"><span class="menu-check"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button></sc-for>
+</div>
+</sc-if>
+</div>
+<button class="cx-btn cx-btn-secondary o-panel-btn" onClick="{{openPanel}}" aria-haspopup="dialog"><x-import component-from-global-scope="CommerceOS.Icon" name="filter"></x-import><span>{{filtersLabel}}</span></button>
+<x-import component-from-global-scope="CommerceOS.Tooltip" content="{{exportTip}}"><button class="cx-btn cx-btn-secondary cx-btn-icononly" aria-label="{{exportTip}}" onClick="{{exportView}}"><x-import component-from-global-scope="CommerceOS.Icon" name="download"></x-import></button></x-import>
+</div>
+<div class="o-row2" role="group" aria-label="Filters">
+<div class="o-pop" data-pop="f-date">
+<button class="{{fb.date.cls}}" onClick="{{fb.date.toggle}}" aria-haspopup="menu" aria-expanded="{{fb.date.open}}" aria-label="{{fb.date.aria}}"><span>Date</span><sc-if value="{{fb.date.on}}" hint-placeholder-val="{{false}}"><span class="o-fval">{{fb.date.value}}</span></sc-if><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import></button>
+<sc-if value="{{fb.date.open}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-start" role="menu" aria-label="Order date"><sc-for list="{{dateOpts}}" as="d" hint-placeholder-count="4"><button class="cx-menu-item menu-item-2" role="menuitemradio" aria-checked="{{d.selected}}" onClick="{{d.pick}}"><span><span>{{d.label}}</span><span class="menu-sub">{{d.sub}}</span></span><sc-if value="{{d.selected}}" hint-placeholder-val="{{false}}"><span class="menu-check"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button></sc-for></div>
+</sc-if>
+</div>
+<div class="o-pop" data-pop="f-status">
+<button class="{{fb.status.cls}}" onClick="{{fb.status.toggle}}" aria-haspopup="dialog" aria-expanded="{{fb.status.open}}" aria-label="{{fb.status.aria}}"><span>Order status</span><sc-if value="{{fb.status.on}}" hint-placeholder-val="{{false}}"><span class="o-fval">{{fb.status.value}}</span></sc-if><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import></button>
+<sc-if value="{{fb.status.open}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-start" role="dialog" aria-label="Filter by Order status"><div class="o-checks"><sc-for list="{{opts.status}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div><sc-if value="{{fb.status.on}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div><button class="cx-menu-item" onClick="{{fb.status.clear}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import><span>Clear order status</span></button></sc-if></div>
+</sc-if>
+</div>
+<div class="o-pop" data-pop="f-payment">
+<button class="{{fb.payment.cls}}" onClick="{{fb.payment.toggle}}" aria-haspopup="dialog" aria-expanded="{{fb.payment.open}}" aria-label="{{fb.payment.aria}}"><span>Payment</span><sc-if value="{{fb.payment.on}}" hint-placeholder-val="{{false}}"><span class="o-fval">{{fb.payment.value}}</span></sc-if><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import></button>
+<sc-if value="{{fb.payment.open}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-start" role="dialog" aria-label="Filter by Payment"><div class="o-checks"><sc-for list="{{opts.payment}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div><sc-if value="{{fb.payment.on}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div><button class="cx-menu-item" onClick="{{fb.payment.clear}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import><span>Clear payment</span></button></sc-if></div>
+</sc-if>
+</div>
+<div class="o-pop" data-pop="f-fulfillment">
+<button class="{{fb.fulfillment.cls}}" onClick="{{fb.fulfillment.toggle}}" aria-haspopup="dialog" aria-expanded="{{fb.fulfillment.open}}" aria-label="{{fb.fulfillment.aria}}"><span>Fulfillment</span><sc-if value="{{fb.fulfillment.on}}" hint-placeholder-val="{{false}}"><span class="o-fval">{{fb.fulfillment.value}}</span></sc-if><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import></button>
+<sc-if value="{{fb.fulfillment.open}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-start" role="dialog" aria-label="Filter by Fulfillment"><div class="o-checks"><sc-for list="{{opts.fulfillment}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div><sc-if value="{{fb.fulfillment.on}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div><button class="cx-menu-item" onClick="{{fb.fulfillment.clear}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import><span>Clear fulfillment</span></button></sc-if></div>
+</sc-if>
+</div>
+<div class="o-pop" data-pop="f-customer">
+<button class="{{fb.customer.cls}}" onClick="{{fb.customer.toggle}}" aria-haspopup="dialog" aria-expanded="{{fb.customer.open}}" aria-label="{{fb.customer.aria}}"><span>Customer</span><sc-if value="{{fb.customer.on}}" hint-placeholder-val="{{false}}"><span class="o-fval">{{fb.customer.value}}</span></sc-if><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import></button>
+<sc-if value="{{fb.customer.open}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-start" role="dialog" aria-label="Filter by customer"><div class="o-pop-search"><x-import component-from-global-scope="CommerceOS.Input" size="sm" icon="search" aria-label="Find a customer" placeholder="Find a customer" value="{{custQuery}}" on-change="{{setCustQuery}}"></x-import></div><sc-for list="{{custList}}" as="c" hint-placeholder-count="6"><button class="cx-menu-item" role="menuitemradio" aria-checked="{{c.selected}}" onClick="{{c.pick}}"><span>{{c.label}}</span><sc-if value="{{c.selected}}" hint-placeholder-val="{{false}}"><span class="menu-check"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button></sc-for><sc-if value="{{fb.customer.on}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div><button class="cx-menu-item" onClick="{{fb.customer.clear}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import><span>Clear customer</span></button></sc-if></div>
+</sc-if>
+</div>
+<div class="o-pop" data-pop="f-channel">
+<button class="{{fb.channel.cls}}" onClick="{{fb.channel.toggle}}" aria-haspopup="dialog" aria-expanded="{{fb.channel.open}}" aria-label="{{fb.channel.aria}}"><span>Sales channel</span><sc-if value="{{fb.channel.on}}" hint-placeholder-val="{{false}}"><span class="o-fval">{{fb.channel.value}}</span></sc-if><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import></button>
+<sc-if value="{{fb.channel.open}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-start" role="dialog" aria-label="Filter by Sales channel"><div class="o-checks"><sc-for list="{{opts.channel}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div><sc-if value="{{fb.channel.on}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div><button class="cx-menu-item" onClick="{{fb.channel.clear}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import><span>Clear sales channel</span></button></sc-if></div>
+</sc-if>
+</div>
+<div class="o-pop" data-pop="f-warehouse">
+<button class="{{fb.warehouse.cls}}" onClick="{{fb.warehouse.toggle}}" aria-haspopup="dialog" aria-expanded="{{fb.warehouse.open}}" aria-label="{{fb.warehouse.aria}}"><span>Warehouse</span><sc-if value="{{fb.warehouse.on}}" hint-placeholder-val="{{false}}"><span class="o-fval">{{fb.warehouse.value}}</span></sc-if><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import></button>
+<sc-if value="{{fb.warehouse.open}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-start" role="dialog" aria-label="Filter by Warehouse"><div class="o-checks"><sc-for list="{{opts.warehouse}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div><sc-if value="{{fb.warehouse.on}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div><button class="cx-menu-item" onClick="{{fb.warehouse.clear}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import><span>Clear warehouse</span></button></sc-if></div>
+</sc-if>
+</div>
+<div class="o-pop" data-pop="f-payMethod">
+<button class="{{fb.payMethod.cls}}" onClick="{{fb.payMethod.toggle}}" aria-haspopup="dialog" aria-expanded="{{fb.payMethod.open}}" aria-label="{{fb.payMethod.aria}}"><span>Payment method</span><sc-if value="{{fb.payMethod.on}}" hint-placeholder-val="{{false}}"><span class="o-fval">{{fb.payMethod.value}}</span></sc-if><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import></button>
+<sc-if value="{{fb.payMethod.open}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-start" role="dialog" aria-label="Filter by Payment method"><div class="o-checks"><sc-for list="{{opts.payMethod}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div><sc-if value="{{fb.payMethod.on}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div><button class="cx-menu-item" onClick="{{fb.payMethod.clear}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import><span>Clear payment method</span></button></sc-if></div>
+</sc-if>
+</div>
+<div class="o-pop" data-pop="f-delivery">
+<button class="{{fb.delivery.cls}}" onClick="{{fb.delivery.toggle}}" aria-haspopup="dialog" aria-expanded="{{fb.delivery.open}}" aria-label="{{fb.delivery.aria}}"><span>Delivery method</span><sc-if value="{{fb.delivery.on}}" hint-placeholder-val="{{false}}"><span class="o-fval">{{fb.delivery.value}}</span></sc-if><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import></button>
+<sc-if value="{{fb.delivery.open}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-start" role="dialog" aria-label="Filter by Delivery method"><div class="o-checks"><sc-for list="{{opts.delivery}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div><sc-if value="{{fb.delivery.on}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div><button class="cx-menu-item" onClick="{{fb.delivery.clear}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import><span>Clear delivery method</span></button></sc-if></div>
+</sc-if>
+</div>
+<button class="{{moreCls}}" onClick="{{openPanel}}" aria-haspopup="dialog"><x-import component-from-global-scope="CommerceOS.Icon" name="sliders"></x-import><span>{{moreLabel}}</span></button>
+<sc-if value="{{showClear}}" hint-placeholder-val="{{false}}"><span class="o-clear"><x-import component-from-global-scope="CommerceOS.Button" variant="link" on-click="{{clearAll}}">Clear all</x-import></span></sc-if>
+</div>
+</div>
+
+<div class="o-bulkwrap">
+<sc-if value="{{bulk.show}}" hint-placeholder-val="{{false}}">
+<div class="o-bulk" role="region" aria-label="Bulk actions">
+<span class="o-bulk-count">{{bulk.count}}</span>
+<div class="o-pop" data-pop="bulk-status">
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="refresh" icon-right="chevron-down" on-click="{{bulk.toggleStatus}}" aria-haspopup="menu" aria-expanded="{{bulk.openStatus}}"><span class="o-bulk-label">Change status</span></x-import>
+<sc-if value="{{bulk.openStatus}}" hint-placeholder-val="{{false}}"><div class="cx-menu cx-menu-start" role="menu" aria-label="Move to stage"><div class="cx-menu-group">Move to</div><sc-for list="{{bulk.statusItems}}" as="b" hint-placeholder-count="5"><button class="cx-menu-item" role="menuitem" onClick="{{b.pick}}"><span>{{b.label}}</span></button></sc-for></div></sc-if>
+</div>
+<div class="o-pop" data-pop="bulk-wh">
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="warehouse" icon-right="chevron-down" on-click="{{bulk.toggleWh}}" aria-haspopup="menu" aria-expanded="{{bulk.openWh}}"><span class="o-bulk-label">Assign warehouse</span></x-import>
+<sc-if value="{{bulk.openWh}}" hint-placeholder-val="{{false}}"><div class="cx-menu cx-menu-start" role="menu" aria-label="Assign warehouse"><sc-for list="{{bulk.whItems}}" as="b" hint-placeholder-count="4"><button class="cx-menu-item" role="menuitem" onClick="{{b.pick}}"><x-import component-from-global-scope="CommerceOS.Icon" name="warehouse"></x-import><span>{{b.label}}</span></button></sc-for></div></sc-if>
+</div>
+<span class="o-bulk-sep"></span>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="file-text" on-click="{{bulk.invoice}}"><span class="o-bulk-label">Print invoice</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Tooltip" content="{{bulk.labelsTip}}"><span><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="truck" aria-disabled="{{bulk.labelsDisabled}}" on-click="{{bulk.labelsGo}}"><span class="o-bulk-label">Print shipping label</span></x-import></span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="download" on-click="{{bulk.exportSel}}"><span class="o-bulk-label">Export</span></x-import>
+<span class="o-bulk-sep"></span>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="x" on-click="{{bulk.cancel}}"><span class="o-bulk-label">Cancel orders</span></x-import>
+<div class="o-bulk-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" on-click="{{bulk.clear}}">Clear selection</x-import></div>
+</div>
+</sc-if>
+<sc-if value="{{bulk.allBanner}}" hint-placeholder-val="{{false}}"><div class="o-banner"><span>{{bulk.allBannerText}}</span><x-import component-from-global-scope="CommerceOS.Button" variant="link" on-click="{{bulk.selectAll}}">{{bulk.selectAllText}}</x-import></div></sc-if>
+<sc-if value="{{bulk.allMatchingOn}}" hint-placeholder-val="{{false}}"><div class="o-banner"><span>{{bulk.allMatchingText}}</span><x-import component-from-global-scope="CommerceOS.Button" variant="link" on-click="{{bulk.clearAll}}">Clear selection</x-import></div></sc-if>
+</div>
+
+<sc-if value="{{error}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.ErrorState" title="Unable to load orders" description="Something went wrong while loading your orders. Your filters and search are kept, so nothing is lost." code="ERR-ORD-503-7f3a" retry-label="Try again" on-retry="{{retry}}"></x-import>
+</sc-if>
+
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Orders" aria-rowcount="{{total}}">
+<thead><tr>
+<th class="c-check" scope="col"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="Select all orders on this page" checked="{{pageAll}}" indeterminate="{{pageSome}}" on-change="{{togglePage}}"></x-import></th>
+<th class="c-order" scope="col" aria-sort="{{cols.id.ariaSort}}"><button class="{{cols.id.sortCls}}" onClick="{{cols.id.sort}}">Order<x-import component-from-global-scope="CommerceOS.Icon" name="{{cols.id.icon}}"></x-import></button></th>
+<th scope="col" aria-sort="{{cols.customer.ariaSort}}"><button class="{{cols.customer.sortCls}}" onClick="{{cols.customer.sort}}">Customer<x-import component-from-global-scope="CommerceOS.Icon" name="{{cols.customer.icon}}"></x-import></button></th>
+<th class="c-items is-right" scope="col">Items</th>
+<th class="is-right" scope="col" aria-sort="{{cols.total.ariaSort}}"><button class="{{cols.total.sortCls}}" onClick="{{cols.total.sort}}">Total<x-import component-from-global-scope="CommerceOS.Icon" name="{{cols.total.icon}}"></x-import></button></th>
+<th scope="col">Payment</th>
+<th scope="col">Fulfillment</th>
+<th class="c-wh" scope="col">Warehouse</th>
+<th class="c-date" scope="col" aria-sort="{{cols.date.ariaSort}}"><button class="{{cols.date.sortCls}}" onClick="{{cols.date.sort}}">Date<x-import component-from-global-scope="CommerceOS.Icon" name="{{cols.date.icon}}"></x-import></button></th>
+<th scope="col" aria-sort="{{cols.status.ariaSort}}"><button class="{{cols.status.sortCls}}" onClick="{{cols.status.sort}}">Status<x-import component-from-global-scope="CommerceOS.Icon" name="{{cols.status.icon}}"></x-import></button></th>
+<th class="c-act" scope="col"><span class="cx-sr">Actions</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="25">
+<tr class="{{r.trCls}}" aria-selected="{{r.sel}}">
+<td class="c-check"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="{{r.selAria}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import></td>
+<td class="c-order"><a class="o-id" href="#">{{r.id}}</a><sc-if value="{{r.delayed}}" hint-placeholder-val="{{false}}"><span class="o-delay"><x-import component-from-global-scope="CommerceOS.Tooltip" content="{{r.delayNote}}"><span tabindex="0"><x-import component-from-global-scope="CommerceOS.Badge" tone="danger" icon="clock">Delayed</x-import></span></x-import></span></sc-if><span class="o-sub">{{r.when}}</span></td>
+<td><span class="o-cust">{{r.customer}}</span><span class="o-sub">{{r.email}}</span></td>
+<td class="c-items is-right">{{r.items}}</td>
+<td class="is-right td-strong">{{r.total}}</td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.payTone}}" icon="{{r.payIcon}}">{{r.payLabel}}</x-import></td>
+<td><span class="{{r.fulCls}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{r.fulIcon}}"></x-import>{{r.fulLabel}}</span></td>
+<td class="c-wh muted">{{r.warehouse}}</td>
+<td class="c-date muted">{{r.date}}</td>
+<td><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{r.status}}" label="{{r.statusLabel}}"></x-import></td>
+<td class="c-act"><span class="o-row-act" data-pop="row"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="more-horizontal" aria-label="{{r.menuAria}}" aria-haspopup="menu" aria-expanded="{{r.menuOpen}}" on-click="{{r.openMenu}}"></x-import></span></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Orders">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<li class="o-m-card {{r.trCls}}">
+<div class="o-m-top"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="{{r.selAria}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import><a class="o-id" href="#">{{r.id}}</a><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{r.status}}" label="{{r.statusLabel}}"></x-import></div>
+<div class="o-m-mid"><div><span class="o-cust">{{r.customer}}</span><span class="o-sub">{{r.when}} · {{r.items}}</span></div><span class="o-m-total">{{r.total}}</span></div>
+<div class="o-m-badges"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.payTone}}" icon="{{r.payIcon}}">{{r.payLabel}}</x-import><span class="{{r.fulCls}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{r.fulIcon}}"></x-import>{{r.fulLabel}}</span><sc-if value="{{r.delayed}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Badge" tone="danger" icon="clock">Delayed</x-import></sc-if></div>
+<div class="o-m-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="{{r.primary.icon}}" on-click="{{r.primaryGo}}">{{r.primary.label}}</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-right="chevron-right" on-click="{{r.viewGo}}" aria-label="View details for {{r.id}}">View details</x-import></div>
+</li>
+</sc-for>
+</ul>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="orders" on-page-change="{{setPage}}" on-page-size-change="{{setPageSize}}"></x-import></div>
+</sc-if>
+
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.EmptyState" icon="search" title="{{emptyTitle}}" description="{{emptyDesc}}"><div class="o-modal-actions" style="justify-content: center"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="x" on-click="{{clearAll}}">Clear filters</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{createOrder}}">Create order</x-import></div></x-import>
+</sc-if>
+</sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{search}}" hint-placeholder-val="{{false}}">
+<div class="pal-scrim" onMouseDown="{{scrimDown}}">
+<div class="pal" role="dialog" aria-modal="true" aria-label="Search CommerceOS" onKeyDown="{{palKey}}">
+<div class="pal-head">
+<x-import component-from-global-scope="CommerceOS.SearchField" size="lg" placeholder="Search orders, customers, products, SKUs, suppliers" label="Search CommerceOS" shortcut="{{none}}" value="{{q}}" on-change="{{setQ}}"></x-import>
+<button class="pal-esc" onClick="{{closeSearch}}" aria-label="Close search">Esc</button>
+</div>
+<div class="pal-scopes"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Search in" items="{{scopeTabs}}" value="{{scope}}" on-change="{{setScope}}"></x-import></div>
+<div class="pal-body">
+<sc-if value="{{hasQ}}" hint-placeholder-val="{{false}}">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+<div class="pal-group" role="group" aria-label="{{g.label}}">
+<div class="pal-glabel"><span>{{g.label}}</span><span>{{g.countLabel}}</span></div>
+<sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+<a class="pal-item {{it.cls}}" href="#" onMouseEnter="{{it.hover}}" onClick="{{it.open}}">
+<span class="pal-ico"><x-import component-from-global-scope="CommerceOS.Icon" name="{{it.icon}}"></x-import></span>
+<span class="pal-main"><span class="pal-title {{it.titleCls}}">{{it.pre}}<mark>{{it.match}}</mark>{{it.post}}</span><span class="pal-meta">{{it.meta}}</span></span>
+<span class="pal-side"><span>{{it.side}}</span><sc-if value="{{it.status}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{it.status}}"></x-import></sc-if><span class="pal-enter"><kbd class="cx-kbd">↵</kbd></span></span>
+</a>
+</sc-for>
+<sc-if value="{{g.more}}" hint-placeholder-val="{{false}}"><a class="pal-more" href="#" onClick="{{g.showAll}}">Show all {{g.total}} {{g.noun}}</a></sc-if>
+</div>
+</sc-for>
+<sc-if value="{{noResults}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.EmptyState" size="sm" icon="search" title="{{noResultsTitle}}" description="Try an order number, a SKU, or part of a customer or supplier name."></x-import>
+</sc-if>
+</sc-if>
+<sc-if value="{{noQ}}" hint-placeholder-val="{{true}}">
+<div class="pal-glabel"><span>Recent searches</span></div>
+<sc-for list="{{recent}}" as="r" hint-placeholder-count="3">
+<a class="pal-item" href="#" onClick="{{r.use}}"><span class="pal-ico"><x-import component-from-global-scope="CommerceOS.Icon" name="clock"></x-import></span><span class="pal-main"><span class="pal-title">{{r.label}}</span><span class="pal-meta">{{r.meta}}</span></span></a>
+</sc-for>
+<div class="pal-glabel"><span>Jump to</span></div>
+<sc-for list="{{jumps}}" as="j" hint-placeholder-count="4">
+<a class="pal-item" href="#"><span class="pal-ico"><x-import component-from-global-scope="CommerceOS.Icon" name="{{j.icon}}"></x-import></span><span class="pal-main"><span class="pal-title">{{j.label}}</span></span><span class="pal-side"><kbd class="cx-kbd">{{j.key}}</kbd></span></a>
+</sc-for>
+</sc-if>
+</div>
+<div class="pal-foot">
+<span><kbd class="cx-kbd">↑</kbd><kbd class="cx-kbd">↓</kbd> to move</span>
+<span><kbd class="cx-kbd">↵</kbd> to open</span>
+<span><kbd class="cx-kbd">Tab</kbd> to change scope</span>
+<span class="pal-tip">Narrow with <code>sku:</code> <code>order:</code> <code>customer:</code> <code>supplier:</code></span>
+</div>
+</div>
+</div>
+</sc-if>
+
+
+<sc-if value="{{rowMenu}}" hint-placeholder-val="{{false}}">
+<div class="o-rowmenu" data-pop="row" role="menu" aria-label="Actions for {{rowMenu.id}}" style="top: {{rowMenu.top}}; left: {{rowMenu.left}}">
+<sc-for list="{{rowMenu.main}}" as="i" hint-placeholder-count="3"><button class="{{i.cls}}" role="menuitem" disabled="{{i.disabled}}" onClick="{{i.run}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{i.icon}}"></x-import><span class="o-mi-text"><span>{{i.label}}</span><sc-if value="{{i.hasNote}}" hint-placeholder-val="{{false}}"><span class="o-mi-note">{{i.note}}</span></sc-if></span></button></sc-for>
+<div class="cx-menu-sep"></div>
+<sc-for list="{{rowMenu.docs}}" as="i" hint-placeholder-count="3"><button class="{{i.cls}}" role="menuitem" disabled="{{i.disabled}}" onClick="{{i.run}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{i.icon}}"></x-import><span class="o-mi-text"><span>{{i.label}}</span><sc-if value="{{i.hasNote}}" hint-placeholder-val="{{false}}"><span class="o-mi-note">{{i.note}}</span></sc-if></span></button></sc-for>
+<button class="{{rowMenu.refund.cls}}" role="menuitem" disabled="{{rowMenu.refund.disabled}}"><x-import component-from-global-scope="CommerceOS.Icon" name="lock"></x-import><span class="o-mi-text"><span>Refund</span><span class="o-mi-note">{{rowMenu.refund.note}}</span></span></button>
+<div class="cx-menu-sep"></div>
+<button class="{{rowMenu.cancelItem.cls}}" role="menuitem" disabled="{{rowMenu.cancelItem.disabled}}" onClick="{{rowMenu.cancelItem.run}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import><span class="o-mi-text"><span>Cancel order</span><sc-if value="{{rowMenu.cancelItem.hasNote}}" hint-placeholder-val="{{false}}"><span class="o-mi-note">{{rowMenu.cancelItem.note}}</span></sc-if></span></button>
+</div>
+</sc-if>
+<sc-if value="{{panel}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close filters" onClick="{{closePanel}}"></button>
+<div class="o-panel" role="dialog" aria-modal="true" aria-labelledby="o-panel-title">
+<div class="o-panel-head"><h2 class="o-panel-title" id="o-panel-title">{{filtersLabel}}</h2><button class="icon-btn" aria-label="Close filters" onClick="{{closePanel}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec"><h3>Date</h3><div class="o-radio-row"><sc-for list="{{dateOpts}}" as="d" hint-placeholder-count="4"><button class="o-radio" aria-pressed="{{d.selected}}" onClick="{{d.pick}}">{{d.label}}</button></sc-for></div></section>
+<section class="o-panel-sec"><h3>Order status</h3><div class="o-checks"><sc-for list="{{opts.status}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div></section>
+<section class="o-panel-sec"><h3>Payment</h3><div class="o-checks"><sc-for list="{{opts.payment}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div></section>
+<section class="o-panel-sec"><h3>Fulfillment</h3><div class="o-checks"><sc-for list="{{opts.fulfillment}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div></section>
+<section class="o-panel-sec"><h3>Sales channel</h3><div class="o-checks"><sc-for list="{{opts.channel}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div></section>
+<section class="o-panel-sec"><h3>Warehouse</h3><div class="o-checks"><sc-for list="{{opts.warehouse}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div></section>
+<section class="o-panel-sec"><h3>Payment method</h3><div class="o-checks"><sc-for list="{{opts.payMethod}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div></section>
+<section class="o-panel-sec"><h3>Delivery method</h3><div class="o-checks"><sc-for list="{{opts.delivery}}" as="op" hint-placeholder-count="4"><div class="o-check-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{op.label}}" checked="{{op.checked}}" on-change="{{op.onChange}}"></x-import><span class="o-count">{{op.count}}</span></div></sc-for></div></section>
+<section class="o-panel-sec"><h3>Customer</h3><x-import component-from-global-scope="CommerceOS.Input" size="sm" icon="search" aria-label="Find a customer" placeholder="Find a customer" value="{{custQuery}}" on-change="{{setCustQuery}}"></x-import><div class="o-radio-row"><sc-for list="{{custList}}" as="c" hint-placeholder-count="6"><button class="o-radio" aria-pressed="{{c.selected}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for></div></section>
+<section class="o-panel-sec"><h3>Order total</h3><x-import component-from-global-scope="CommerceOS.Input" label="Minimum total" prefix="$" inputmode="decimal" placeholder="0" value="{{minTotal}}" on-change="{{setMinTotal}}" width="180px"></x-import></section>
+<section class="o-panel-sec"><h3>More</h3>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Delayed orders only" checked="{{delayedOnly}}" on-change="{{setDelayed}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Assigned to me" checked="{{mineOnly}}" on-change="{{setMine}}"></x-import>
+</section>
+</div>
+<div class="o-panel-foot"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{clearAll}}">Clear all</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{closePanel}}">{{panelCta}}</x-import></div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{cancelOpen}}" on-close="{{closeCancel}}" tone="danger" size="sm" title="{{cancelInfo.title}}" description="{{cancelInfo.desc}}">
+<div class="o-modal-stack">
+<sc-if value="{{cancelInfo.skipped}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">{{cancelInfo.skippedText}}</x-import></sc-if>
+<x-import component-from-global-scope="CommerceOS.Select" label="Reason" options="{{reasons}}" value="{{cancelReason}}" on-value-change="{{setCancelReason}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Email the customer about the cancellation" checked="{{cancelNotify}}" on-change="{{setCancelNotify}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeCancel}}" data-autofocus="true">Keep order</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="danger" on-click="{{cancelInfo.confirm}}" disabled="{{cancelInfo.blocked}}">{{cancelInfo.confirmLabel}}</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{viewModalOpen}}" on-close="{{closeViewModal}}" size="sm" title="{{viewModal.title}}" description="{{viewModal.desc}}">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Input" label="View name" placeholder="e.g. Rush wholesale orders" value="{{viewName}}" on-change="{{setViewName}}" error="{{viewModal.error}}" data-autofocus="true"></x-import>
+<sc-if value="{{viewModal.create}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.Select" label="Who can see it" options="{{shareOpts}}" value="{{viewShare}}" on-value-change="{{setViewShare}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Open Orders with this view by default" checked="{{viewDefault}}" on-change="{{setViewDefault}}"></x-import>
+</sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeViewModal}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{saveView}}">{{viewModal.confirmLabel}}</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{delOpen}}" on-close="{{closeDel}}" tone="danger" size="sm" title="{{delTitle}}" description="{{delDesc}}">
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeDel}}">Keep view</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="danger" icon="trash" on-click="{{confirmDel}}">Delete view</x-import></div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed": {"editor": "boolean", "default": false, "section": "Shell"}, "dark": {"editor": "boolean", "default": false, "section": "Theme"}, "demo": {"editor": "enum", "options": ["none", "loading", "error", "empty", "bulk", "views", "cancel", "rowmenu", "filters"], "default": "none", "section": "State"}, "$preview": {"width": 1440, "height": 2000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none';
+    const views = DEFAULT_VIEWS.map((v) => Object.assign({}, v, { f: Object.assign({}, EMPTY_F, v.f) }));
+    const def = views.find((v) => v.isDefault) || views[0];
+    this.state = {
+      // shell
+      collapsed: !!props.collapsed, drawer: false, search: false, q: '', scope: 'all', active: 0, dark: !!props.dark, menu: null, store: 'all', read: false, toast: null,
+      // page
+      views, viewId: def.id, tab: def.tab, f: Object.assign({}, def.f), sort: Object.assign({}, def.sort), query: '',
+      page: 1, pageSize: 25, sel: [], allMatching: false, ov: {},
+      loading: demo === 'loading', error: demo === 'error', panel: demo === 'filters', rowMenu: null, viewMenu: null,
+      cancel: null, cancelReason: 'customer', cancelNotify: true, viewModal: null, viewName: '', viewDefault: false, viewShare: 'me', deleteView: null,
+      custQuery: ''
+    };
+    if (demo === 'empty') this.state.query = 'ORD-99999';
+    if (demo === 'bulk') { this.state.sel = ORDERS.slice(0, 4).map((o) => o.id); this.state.menu = 'bulk:status'; }
+    if (demo === 'views') { this.state.menu = 'views'; this.state.viewMenu = 'high_value'; }
+    if (demo === 'cancel') this.state.cancel = { ids: [ORDERS[2].id] };
+    this.demo = demo;
+  }
+  componentDidMount() {
+    this._onDoc = (e) => {
+      const inside = e.target.closest && e.target.closest('[data-pop]');
+      if (!inside && (this.state.menu || this.state.rowMenu)) this.setState({ menu: null, rowMenu: null, viewMenu: null });
+    };
+    this._onScroll = () => { if (this.state.rowMenu) this.setState({ rowMenu: null }); };
+    document.addEventListener('mousedown', this._onDoc);
+    window.addEventListener('scroll', this._onScroll, true);
+    if (this.demo === 'rowmenu') setTimeout(() => {
+      const b = document.querySelectorAll('.o-row-act button')[1];
+      if (b) this.openRowMenu(ORDERS[1].id, b.getBoundingClientRect());
+    }, 400);
+  }
+  componentWillUnmount() { document.removeEventListener('mousedown', this._onDoc); window.removeEventListener('scroll', this._onScroll, true); clearTimeout(this._toastT); clearTimeout(this._loadT); }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prevProps.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+    if (this.state.search && !prevState.search) setTimeout(() => { const i = document.querySelector('.pal input'); if (i) i.focus(); }, 0);
+  }
+  toggleMenu(name) { return () => this.setState((s) => ({ menu: s.menu === name ? null : name, viewMenu: null })); }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null }, menu: null, rowMenu: null });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  openRowMenu(id, r) {
+    const W = 264, H = 372, vw = window.innerWidth, vh = window.innerHeight;
+    const left = Math.max(8, Math.min(r.right - W, vw - W - 8));
+    const top = r.bottom + 4 + H > vh && r.top - H - 4 > 0 ? r.top - H - 4 : r.bottom + 4;
+    this.setState({ rowMenu: { id, top, left }, menu: null });
+  }
+  setFilters(patch) { this.setState((s) => ({ f: Object.assign({}, s.f, patch), page: 1, sel: [], allMatching: false })); }
+  toggleIn(key, val) { return () => this.setState((s) => { const cur = s.f[key]; const next = cur.indexOf(val) >= 0 ? cur.filter((x) => x !== val) : cur.concat([val]); return { f: Object.assign({}, s.f, { [key]: next }), page: 1, sel: [], allMatching: false }; }); }
+  applyView(v) { this.setState({ viewId: v.id, tab: v.tab, f: Object.assign({}, EMPTY_F, v.f), sort: Object.assign({}, v.sort), query: '', page: 1, sel: [], allMatching: false, menu: null, viewMenu: null }); }
+  retry() {
+    this.setState({ error: false, loading: true });
+    clearTimeout(this._loadT);
+    this._loadT = setTimeout(() => this.setState({ loading: false }), 1200);
+  }
+  applyStatus(ids, stage) {
+    const prev = this.state.ov, ov = Object.assign({}, prev);
+    ids.forEach((id) => { ov[id] = Object.assign({}, ov[id] || {}, STAGE_FIELDS[stage], { stage }); });
+    this.setState({ ov, sel: [], allMatching: false, menu: null });
+    this.showToast(int(ids.length) + (ids.length === 1 ? ' order' : ' orders') + ' moved to ' + STAGE_LABEL[stage], null, 'success', { label: 'Undo', onClick: () => { this.setState({ ov: prev, toast: null }); } });
+  }
+  applyWarehouse(ids, wh) {
+    const prev = this.state.ov, ov = Object.assign({}, prev);
+    ids.forEach((id) => { ov[id] = Object.assign({}, ov[id] || {}, { warehouse: wh }); });
+    this.setState({ ov, sel: [], allMatching: false, menu: null });
+    this.showToast(int(ids.length) + (ids.length === 1 ? ' order' : ' orders') + ' assigned to ' + wh, 'Pick lists update within a minute.', 'success', { label: 'Undo', onClick: () => { this.setState({ ov: prev, toast: null }); } });
+  }
+
+  shellVals(s) {
+    const store = STORES.find((x) => x.key === s.store);
+    const parsed = parseQuery(s.q);
+    const scope = parsed.scope || s.scope;
+    const matches = SEARCH.filter((it) => parsed.term && (it.title.toLowerCase().includes(parsed.term) || it.meta.toLowerCase().includes(parsed.term)));
+    const TYPES = [['orders', 'Orders', 'orders'], ['customers', 'Customers', 'customers'], ['products', 'Products', 'products'], ['skus', 'SKUs', 'SKUs'], ['suppliers', 'Suppliers', 'suppliers']];
+    let flat = 0;
+    const groups = TYPES.filter(([t]) => scope === 'all' || scope === t).map(([t, label, noun]) => {
+      const list = matches.filter((m) => m.type === t), lim = scope === 'all' ? 3 : 8;
+      const items = list.slice(0, lim).map((m) => {
+        const idx = flat++, hl = highlight(m.title, parsed.term);
+        return { icon: m.icon, pre: hl[0], match: hl[1], post: hl[2], meta: m.meta, side: m.side || '', status: m.status || null, titleCls: m.code ? 'is-code' : '',
+          cls: idx === s.active ? 'is-active' : '', hover: () => this.setState({ active: idx }), open: () => this.setState({ search: false }) };
+      });
+      return { label, noun, total: list.length, countLabel: list.length + (list.length === 1 ? ' result' : ' results'), items, more: list.length > lim, showAll: () => this.setState({ scope: t }) };
+    }).filter((g) => g.items.length);
+    const scopeTabs = [{ id: 'all', label: 'All', count: parsed.term ? matches.length : undefined }].concat(TYPES.map(([t, label]) => ({ id: t, label, count: parsed.term ? matches.filter((m) => m.type === t).length : undefined })));
+    this._flatCount = flat;
+    return {
+      zero: 0, none: null, yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light',
+      toggleCollapse: () => this.setState((st) => ({ collapsed: !st.collapsed })),
+      openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      nav: { current: 'sales/orders', collapsed: s.collapsed, drawer: s.drawer, stores: STORES, store: s.store, user: USER,
+        setStore: (k) => this.setState({ store: k, menu: null, page: 1, sel: [], allMatching: false }), navigate: (path) => this.showToast(navLabel(path) + ' isn’t built yet', 'Only the dashboard and Orders pages exist so far.', 'info') },
+      toggleStoreTop: this.toggleMenu('storeTop'), toggleHelp: this.toggleMenu('help'), toggleNotif: this.toggleMenu('notif'), toggleProfile: this.toggleMenu('profile'),
+      storeName: store.label,
+      storeItems: STORES.map((st) => ({ label: st.label, sub: st.sub, icon: st.icon, selected: s.store === st.key, pick: () => this.setState({ store: st.key, menu: null, page: 1, sel: [], allMatching: false }) })),
+      unread: s.read ? 0 : NOTIFS.filter((n) => n.unread).length,
+      notifs: NOTIFS.map((n) => ({ icon: n.icon, tone: n.tone, text: n.text, time: n.time, dot: n.unread && !s.read ? 'np-unread' : 'np-read' })),
+      markAllRead: () => this.setState({ read: true }),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((st) => ({ dark: !st.dark, menu: null })),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null }),
+      search: s.search, q: s.q, setQ: (v) => this.setState({ q: v, active: 0 }), hasQ: !!parsed.term, noQ: !parsed.term,
+      openSearch: () => this.setState({ search: true, menu: null }), closeSearch: () => this.setState({ search: false }),
+      scrimDown: (e) => { if (e.target === e.currentTarget) this.setState({ search: false }); },
+      scope, scopeTabs, setScope: (id) => this.setState({ scope: id, active: 0 }), groups,
+      noResults: !!parsed.term && groups.length === 0, noResultsTitle: 'Nothing matches “' + s.q.trim() + '”',
+      palKey: (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); this.setState((st) => ({ active: Math.min(st.active + 1, Math.max(0, this._flatCount - 1)) })); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); this.setState((st) => ({ active: Math.max(0, st.active - 1) })); }
+        else if (e.key === 'Enter') { e.preventDefault(); this.setState({ search: false }); }
+        else if (e.key === 'Tab') { e.preventDefault(); const ids = scopeTabs.map((t) => t.id); const i = ids.indexOf(s.scope); this.setState({ scope: ids[(i + (e.shiftKey ? ids.length - 1 : 1)) % ids.length], active: 0 }); }
+      },
+      recent: RECENT.map((r) => ({ label: r.label, meta: r.meta, use: () => this.setState({ q: r.label, active: 0 }) })),
+      jumps: JUMPS,
+      onRootKey: (e) => {
+        if (e.key !== 'Escape') return;
+        const st = this.state;
+        if (st.search) this.setState({ search: false });
+        else if (st.rowMenu || st.menu) this.setState({ rowMenu: null, menu: null, viewMenu: null });
+        else if (st.panel) this.setState({ panel: false });
+        else if (st.drawer) this.setState({ drawer: false });
+      }
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const shell = this.shellVals(s);
+    const store = STORES.find((x) => x.key === s.store);
+    const open = { storeTop: s.menu === 'storeTop', help: s.menu === 'help', notif: s.menu === 'notif', profile: s.menu === 'profile' };
+
+    // rows with local edits applied, then store scope
+    const rows = ORDERS.map((o) => (s.ov[o.id] ? Object.assign({}, o, s.ov[o.id]) : o)).filter((o) => s.store === 'all' || o.channel === store.label);
+    const q = s.query.trim().toLowerCase().replace(/^#/, '');
+    const qDigits = /^[0-9\s()+-]+$/.test(q) ? q.replace(/[^0-9]/g, '') : '';
+    const searchHit = (o) => !q || o.idLower.includes(q) || o.customerLower.includes(q) || o.email.includes(q) || o.skusLower.includes(q) || (qDigits.length >= 4 && o.phoneDigits.includes(qDigits));
+    const base = rows.filter((o) => searchHit(o));
+    const fx = s.f;
+    const passes = (o, skip) => FILTER_KEYS.every((k) => k === skip || filterOk(o, k, fx[k]));
+    const inFilters = base.filter((o) => passes(o, null));
+    const tabCounts = {}; STAGES.forEach((st) => { tabCounts[st.key] = 0; });
+    inFilters.forEach((o) => { tabCounts[o.stage]++; });
+    const listed = s.tab === 'all' ? inFilters : inFilters.filter((o) => o.stage === s.tab);
+    const sk = s.sort;
+    const sorted = listed.slice().sort((a, b) => {
+      const x = sortVal(a, sk.key), y = sortVal(b, sk.key);
+      const r = typeof x === 'number' ? x - y : String(x).localeCompare(String(y));
+      return sk.dir === 'asc' ? r : -r;
+    });
+    const total = sorted.length, pages = Math.max(1, Math.ceil(total / s.pageSize)), page = Math.min(s.page, pages);
+    const pageRows = sorted.slice((page - 1) * s.pageSize, page * s.pageSize);
+    const selSet = new Set(s.allMatching ? sorted.map((o) => o.id) : s.sel);
+    const selCount = selSet.size;
+    const pageIds = pageRows.map((o) => o.id);
+    const pageAll = pageIds.length > 0 && pageIds.every((id) => selSet.has(id));
+    const pageSome = !pageAll && pageIds.some((id) => selSet.has(id));
+    const selectedRows = selCount ? sorted.filter((o) => selSet.has(o.id)) : [];
+
+    // tabs
+    const tabs = [{ id: 'all', label: 'All', count: int(inFilters.length) }].concat(STAGES.map((st) => ({ id: st.key, label: st.label, count: int(tabCounts[st.key]) })));
+
+    // KPIs (period totals for the last 30 days)
+    const kpis = KPIS.map((k) => {
+      const d = k.cur / k.prev - 1, up = d > 0, good = k.upGood ? up : !up;
+      return { label: k.label, value: int(k.cur), dot: 'cx-dot cx-dot-' + k.tone, note: k.note || '',
+        deltaCls: 'o-delta ' + (Math.abs(d) < 0.0005 ? 'is-flat' : good ? 'is-good' : 'is-bad'), deltaIcon: up ? 'trending-up' : 'trending-down', delta: (Math.abs(d) * 100).toFixed(1) + '%',
+        cmp: 'vs ' + int(k.prev), pressed: s.tab === k.tab, cls: 'o-kpi' + (s.tab === k.tab ? ' is-active' : ''),
+        aria: k.label + ': ' + int(k.cur) + ', ' + (up ? 'up ' : 'down ') + (Math.abs(d) * 100).toFixed(1) + '% against the previous 30 days. Show these orders.',
+        pick: () => this.setState({ tab: k.tab, page: 1, sel: [], allMatching: false }) };
+    });
+
+    // attention chips
+    const attnBase = rows;
+    const nFailed = attnBase.filter((o) => o.payment === 'failed').length;
+    const nDelayed = attnBase.filter((o) => o.delayed).length;
+    const nAwaiting = attnBase.filter((o) => o.stage === 'confirmed').length;
+    const nReady = attnBase.filter((o) => o.stage === 'ready_to_ship').length;
+    const attn = [
+      { key: 'failed', icon: 'alert-circle', tone: 'a-danger', count: int(nFailed), label: 'failed payments', pick: () => this.applyView(Object.assign({}, VIEW_ALL, { id: 'adhoc', f: Object.assign({}, EMPTY_F, { payment: ['failed'] }) })) },
+      { key: 'delayed', icon: 'clock', tone: 'a-danger', count: int(nDelayed), label: 'delayed', pick: () => this.applyView(this.state.views.find((v) => v.id === 'delayed') || Object.assign({}, VIEW_ALL, { f: Object.assign({}, EMPTY_F, { delayed: true }) })) },
+      { key: 'awaiting', icon: 'inbox', tone: 'a-warning', count: int(nAwaiting), label: 'awaiting fulfillment', pick: () => this.setState({ tab: 'confirmed', f: Object.assign({}, EMPTY_F), query: '', page: 1, sel: [], viewId: 'adhoc' }) },
+      { key: 'ready', icon: 'truck', tone: 'a-brand', count: int(nReady), label: 'ready to ship', pick: () => this.setState({ tab: 'ready_to_ship', f: Object.assign({}, EMPTY_F), query: '', page: 1, sel: [], viewId: 'adhoc' }) }
+    ];
+
+    // filters: buttons, popovers, chips
+    const countFor = (key, val) => base.filter((o) => passes(o, key) && (s.tab === 'all' || o.stage === s.tab) && filterOk(o, key, Array.isArray(fx[key]) ? [val] : val)).length;
+    const menuKey = s.menu && s.menu.indexOf('f:') === 0 ? s.menu.slice(2) : null;
+    const needCounts = (key) => s.panel || menuKey === key;
+    const optList = (key) => FILTER_OPTIONS[key].map((op) => ({ label: op.label, value: op.value, checked: fx[key].indexOf(op.value) >= 0,
+      count: needCounts(key) ? int(countFor(key, op.value)) : '', toggle: this.toggleIn(key, op.value), onChange: this.toggleIn(key, op.value) }));
+    const dateOpts = DATE_OPTS.map((d) => ({ label: d.label, sub: d.sub, selected: fx.date === d.key, pick: () => { this.setFilters({ date: d.key }); this.setState({ menu: null }); } }));
+    const custList = CUSTOMERS.filter((c) => !s.custQuery || c.toLowerCase().includes(s.custQuery.toLowerCase())).slice(0, 8)
+      .map((c) => ({ label: c, selected: fx.customer === c, pick: () => { this.setFilters({ customer: fx.customer === c ? '' : c }); this.setState({ menu: null }); } }));
+    const fbtn = (key, label) => {
+      const v = fx[key], on = Array.isArray(v) ? v.length > 0 : key === 'date' ? v !== 'all' : !!v;
+      let val = '';
+      if (on) {
+        if (key === 'date') val = DATE_OPTS.find((d) => d.key === v).label;
+        else if (key === 'customer') val = v;
+        else { const labels = v.map((x) => FILTER_OPTIONS[key].find((o) => o.value === x).label); val = labels.length > 2 ? labels[0] + ' +' + (labels.length - 1) : labels.join(', '); }
+      }
+      return { key, label, value: val, on, cls: 'cx-btn cx-btn-secondary cx-btn-sm o-fbtn' + (on ? ' is-on' : ''), open: s.menu === 'f:' + key, toggle: this.toggleMenu('f:' + key),
+        clear: () => this.setFilters({ [key]: key === 'date' ? 'all' : key === 'customer' ? '' : [] }), aria: label + (on ? ': ' + val : '') };
+    };
+    const fButtons = {
+      date: fbtn('date', 'Date'), status: fbtn('status', 'Order status'), payment: fbtn('payment', 'Payment'), fulfillment: fbtn('fulfillment', 'Fulfillment'),
+      customer: fbtn('customer', 'Customer'), channel: fbtn('channel', 'Sales channel'), warehouse: fbtn('warehouse', 'Warehouse'),
+      payMethod: fbtn('payMethod', 'Payment method'), delivery: fbtn('delivery', 'Delivery method')
+    };
+    const extraOn = (fx.minTotal ? 1 : 0) + (fx.delayed ? 1 : 0) + (fx.mine ? 1 : 0);
+    const activeCount = Object.keys(fButtons).filter((k) => fButtons[k].on).length + extraOn;
+    const opts = {}; ['status', 'payment', 'fulfillment', 'channel', 'warehouse', 'payMethod', 'delivery'].forEach((k) => { opts[k] = optList(k); });
+    const clearAll = () => this.setState({ f: Object.assign({}, EMPTY_F), query: '', tab: 'all', page: 1, sel: [], allMatching: false, viewId: 'all', panel: false });
+
+    // saved views
+    const cur = { tab: s.tab, f: s.f, sort: s.sort };
+    const activeView = s.views.find((v) => v.id === s.viewId);
+    const modified = !activeView || JSON.stringify({ tab: activeView.tab, f: activeView.f, sort: activeView.sort }) !== JSON.stringify(cur) || !!s.query;
+    const viewItems = s.views.map((v) => ({
+      id: v.id, name: v.name, isDefault: v.isDefault, selected: v.id === s.viewId, system: !!v.system, shared: v.share === 'team',
+      cls: 'o-view' + (v.id === s.viewId ? ' is-selected' : ''), pick: () => this.applyView(v), sub: v.desc,
+      menuOpen: s.viewMenu === v.id, toggleMenu: () => this.setState((st) => ({ viewMenu: st.viewMenu === v.id ? null : v.id })),
+      rename: () => this.setState({ viewModal: { mode: 'rename', id: v.id }, viewName: v.name, menu: null, viewMenu: null }),
+      makeDefault: () => { this.setState((st) => ({ views: st.views.map((x) => Object.assign({}, x, { isDefault: x.id === v.id })), viewMenu: null })); this.showToast('“' + v.name + '” is now your default view', 'Orders opens with it next time.'); },
+      remove: () => this.setState({ deleteView: v.id, menu: null, viewMenu: null }),
+      canEdit: !v.system, lockNote: v.system ? 'Built-in view. Duplicate it to change the filters.' : ''
+    }));
+
+    // sort
+    const sortItems = SORTS.map((o) => ({ label: o.label, selected: sk.key === o.key && sk.dir === o.dir, pick: () => this.setState({ sort: { key: o.key, dir: o.dir }, menu: null, page: 1 }) }));
+    const sortLabel = (SORTS.find((o) => o.key === sk.key && o.dir === sk.dir) || { label: COL_LABEL[sk.key] + (sk.dir === 'asc' ? ' ↑' : ' ↓') }).label;
+    const head = (key, label, cls) => {
+      const on = sk.key === key;
+      return { label, cls: cls || '', sortCls: 'cx-th-sort' + (on ? ' is-sorted' : ''), icon: on ? (sk.dir === 'asc' ? 'arrow-up' : 'arrow-down') : 'chevrons-up-down',
+        ariaSort: on ? (sk.dir === 'asc' ? 'ascending' : 'descending') : 'none',
+        sort: () => this.setState((st) => ({ sort: st.sort.key === key ? { key, dir: st.sort.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: key === 'date' || key === 'total' ? 'desc' : 'asc' }, page: 1 })) };
+    };
+    const cols = { id: head('id', 'Order'), customer: head('customer', 'Customer'), total: head('total', 'Total', 'is-right'), date: head('date', 'Date'), status: head('status', 'Status') };
+
+    // rows
+    const toggleRow = (id) => (on) => this.setState((st) => {
+      const set = new Set(st.allMatching ? sorted.map((o) => o.id) : st.sel);
+      if (on) set.add(id); else set.delete(id);
+      return { sel: Array.from(set), allMatching: false };
+    });
+    const tableRows = pageRows.map((o) => {
+      const sel = selSet.has(o.id);
+      return Object.assign(view(o), { sel, trCls: sel ? 'is-selected' : '', toggle: toggleRow(o.id), selAria: 'Select order ' + o.id,
+        openMenu: (e) => { const r = e.currentTarget.getBoundingClientRect(); if (this.state.rowMenu && this.state.rowMenu.id === o.id) this.setState({ rowMenu: null }); else this.openRowMenu(o.id, r); },
+        menuOpen: !!s.rowMenu && s.rowMenu.id === o.id,
+        primary: primaryAction(o), primaryGo: () => this.showToast(primaryAction(o).done, o.id + ' · ' + o.customer),
+        viewGo: () => this.showToast('Opening ' + o.id, 'The order details page is designed separately.', 'info') });
+    });
+
+    // row menu
+    let rowMenu = null;
+    if (s.rowMenu) {
+      const o = rows.find((x) => x.id === s.rowMenu.id);
+      if (o) {
+        const shippedish = ['shipped', 'delivered', 'returned'].indexOf(o.stage) >= 0;
+        const cancelled = o.stage === 'cancelled';
+        const item = (label, icon, note, disabled, run, danger) => ({ label, icon, note: note || '', hasNote: !!note, disabled: !!disabled, cls: 'cx-menu-item o-mi' + (danger ? ' is-danger' : ''), run: disabled ? null : run });
+        rowMenu = {
+          id: o.id, top: s.rowMenu.top + 'px', left: s.rowMenu.left + 'px',
+          main: [
+            item('View order', 'eye', '', false, () => this.showToast('Opening ' + o.id, 'The order details page is designed separately.', 'info')),
+            item('Edit order', 'edit', shippedish || cancelled ? 'Shipped and cancelled orders can’t be edited.' : '', shippedish || cancelled, () => this.showToast('Editing ' + o.id, 'Changes are saved to the order history.', 'info')),
+            item('Duplicate order', 'copy', '', false, () => this.showToast('Draft created from ' + o.id, 'Find it under Pending with the same items and address.'))
+          ],
+          docs: [
+            item('Print invoice', 'file-text', '', false, () => this.showToast('Invoice ready', o.id + ' · PDF sent to your downloads.')),
+            item('Print shipping label', 'truck', o.payment !== 'paid' || cancelled ? 'Available once payment is captured.' : '', o.payment !== 'paid' || cancelled, () => this.showToast('Shipping label ready', o.id + ' · ' + o.delivery + ' via ' + o.carrier + '.')),
+            item('Contact customer', 'user', '', false, () => this.showToast('Email draft opened', 'To ' + o.email + ' about ' + o.id + '.', 'info'))
+          ],
+          refund: item('Refund', 'lock', 'Needs the Finance Manager role. Ask a finance manager or an admin.', true, null),
+          cancelItem: item('Cancel order', 'x', shippedish ? 'Shipped orders can’t be cancelled. Start a return instead.' : cancelled ? 'This order is already cancelled.' : '', shippedish || cancelled, () => this.setState({ cancel: { ids: [o.id] }, rowMenu: null }), true)
+        };
+      }
+    }
+
+    // bulk
+    const selIds = Array.from(selSet);
+    const labelBlocked = selectedRows.filter((o) => o.payment !== 'paid' || o.stage === 'cancelled').length;
+    const cancelBlocked = selectedRows.filter((o) => ['shipped', 'delivered', 'returned', 'cancelled'].indexOf(o.stage) >= 0).length;
+    const bulk = {
+      show: selCount > 0, count: int(selCount) + ' selected',
+      openStatus: s.menu === 'bulk:status', openWh: s.menu === 'bulk:wh',
+      toggleStatus: this.toggleMenu('bulk:status'), toggleWh: this.toggleMenu('bulk:wh'),
+      statusItems: ['confirmed', 'processing', 'ready_to_ship', 'shipped', 'delivered'].map((k) => ({ label: STAGE_LABEL[k], pick: () => this.applyStatus(selIds, k) })),
+      whItems: WAREHOUSES.map((w) => ({ label: w, pick: () => this.applyWarehouse(selIds, w) })),
+      invoice: () => this.showToast('Preparing ' + int(selCount) + ' invoices', 'One PDF with an invoice per page.'),
+      labels: () => this.showToast('Preparing ' + int(selCount) + ' shipping labels', 'Labels print in warehouse pick order.'),
+      labelsGo: labelBlocked > 0 ? () => this.showToast('Can’t print labels for this selection', null, 'warning') : () => this.showToast('Preparing ' + int(selCount) + ' shipping labels', 'Labels print in warehouse pick order.'),
+      labelsDisabled: labelBlocked > 0, labelsTip: labelBlocked ? labelBlocked + ' selected ' + (labelBlocked === 1 ? 'order isn’t' : 'orders aren’t') + ' paid or ' + (labelBlocked === 1 ? 'is' : 'are') + ' cancelled. Deselect ' + (labelBlocked === 1 ? 'it' : 'them') + ' to print labels.' : 'Print shipping labels',
+      exportSel: () => this.showToast('Exporting ' + int(selCount) + ' orders', 'CSV with every column, sent to your downloads.'),
+      cancel: () => this.setState({ cancel: { ids: selIds }, menu: null }),
+      clear: () => this.setState({ sel: [], allMatching: false }),
+      allBanner: pageAll && !s.allMatching && total > pageRows.length,
+      allBannerText: 'All ' + pageRows.length + ' orders on this page are selected.', selectAllText: 'Select all ' + int(total) + ' matching orders',
+      allMatchingOn: s.allMatching, allMatchingText: 'All ' + int(total) + ' matching orders are selected.',
+      selectAll: () => this.setState({ allMatching: true }), clearAll: () => this.setState({ sel: [], allMatching: false })
+    };
+
+    // cancel modal
+    let cancelInfo = null;
+    if (s.cancel) {
+      const list = rows.filter((o) => s.cancel.ids.indexOf(o.id) >= 0);
+      const ok = list.filter((o) => ['shipped', 'delivered', 'returned', 'cancelled'].indexOf(o.stage) < 0);
+      const paid = ok.filter((o) => o.payment === 'paid').length;
+      const one = ok.length === 1;
+      cancelInfo = {
+        title: one ? 'Cancel order ' + ok[0].id + '?' : 'Cancel ' + int(ok.length) + ' orders?',
+        desc: (one ? 'Reserved stock goes back to ' + ok[0].warehouse + '.' : 'Reserved stock goes back to each order’s warehouse.') + (paid ? ' ' + int(paid) + (paid === 1 ? ' order was paid and needs a refund' : ' orders were paid and need refunds') + ' from Finance.' : '') + ' This can’t be undone.',
+        skipped: list.length - ok.length, skippedText: int(list.length - ok.length) + ' shipped or already cancelled ' + (list.length - ok.length === 1 ? 'order is' : 'orders are') + ' left out.',
+        confirmLabel: one ? 'Cancel order' : 'Cancel ' + int(ok.length) + ' orders', blocked: ok.length === 0,
+        confirm: () => {
+          const ov = Object.assign({}, this.state.ov);
+          ok.forEach((o) => { ov[o.id] = Object.assign({}, ov[o.id] || {}, STAGE_FIELDS.cancelled, { stage: 'cancelled', delayed: false }); });
+          this.setState({ ov, cancel: null, sel: [], allMatching: false });
+          this.showToast(one ? ok[0].id + ' cancelled' : int(ok.length) + ' orders cancelled', this.state.cancelNotify ? 'Customers were emailed.' : 'Customers were not notified.');
+        }
+      };
+    }
+
+    // view modal
+    let viewModal = null;
+    if (s.viewModal) {
+      const rename = s.viewModal.mode === 'rename';
+      viewModal = { title: rename ? 'Rename view' : 'Save view', desc: rename ? 'Only the name changes. Filters stay as they are.' : 'Saves the current tab, search filters and sort.', rename, create: !rename,
+        error: s.viewName.trim() ? (s.views.some((v) => v.name.toLowerCase() === s.viewName.trim().toLowerCase() && (!rename || v.id !== s.viewModal.id)) ? 'A view with this name already exists.' : null) : null,
+        confirmLabel: rename ? 'Rename view' : 'Save view' };
+    }
+    const saveView = () => {
+      const st = this.state, name = st.viewName.trim();
+      if (!name || (viewModal && viewModal.error)) return;
+      if (st.viewModal.mode === 'rename') {
+        this.setState({ views: st.views.map((v) => (v.id === st.viewModal.id ? Object.assign({}, v, { name }) : v)), viewModal: null });
+        this.showToast('View renamed', '“' + name + '”');
+      } else {
+        const id = 'v' + Date.now();
+        const nv = { id, name, tab: st.tab, f: Object.assign({}, st.f), sort: Object.assign({}, st.sort), share: st.viewShare, desc: 'Custom view', isDefault: st.viewDefault };
+        const views = st.views.map((v) => (st.viewDefault ? Object.assign({}, v, { isDefault: false }) : v)).concat([nv]);
+        this.setState({ views, viewId: id, viewModal: null });
+        this.showToast('View saved', '“' + name + '”' + (st.viewDefault ? ' is now your default view.' : ' is in Saved views.'));
+      }
+    };
+    const delView = s.deleteView ? s.views.find((v) => v.id === s.deleteView) : null;
+
+    const pagerNote = total ? int((page - 1) * s.pageSize + 1) + '–' + int(Math.min(total, page * s.pageSize)) : '0';
+    const loading = s.loading, error = s.error;
+    const shown = !loading && !error && total > 0, empty = !loading && !error && total === 0;
+    const hasFilters = activeCount > 0 || !!s.query || s.tab !== 'all';
+
+    return Object.assign(shell, {
+      open, loading, notLoading: !loading, error, shown, empty, hasFilters,
+      kpis, attn, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id, page: 1, sel: [], allMatching: false }),
+      query: s.query, setQuery: (v) => this.setState({ query: v, page: 1, sel: [], allMatching: false }),
+      fb: fButtons, opts, dateOpts, custList, custQuery: s.custQuery, setCustQuery: (e) => this.setState({ custQuery: e.target.value }),
+      activeCount, filtersLabel: activeCount ? 'Filters · ' + activeCount : 'Filters', moreCls: 'cx-btn cx-btn-secondary cx-btn-sm o-fbtn' + (extraOn ? ' is-on' : ''),
+      moreLabel: extraOn ? 'More filters · ' + extraOn : 'More filters',
+      openPanel: () => this.setState({ panel: true, menu: null }), closePanel: () => this.setState({ panel: false }), panel: s.panel,
+      minTotal: fx.minTotal ? String(fx.minTotal) : '', setMinTotal: (e) => this.setFilters({ minTotal: Number(e.target.value) || 0 }),
+      delayedOnly: fx.delayed, setDelayed: (on) => this.setFilters({ delayed: on }), mineOnly: fx.mine, setMine: (on) => this.setFilters({ mine: on }),
+      clearAll, showClear: hasFilters, resultsLabel: int(total) + (total === 1 ? ' order' : ' orders'),
+      panelCta: 'Show ' + int(total) + (total === 1 ? ' order' : ' orders'),
+      sortItems, sortLabel, openSort: s.menu === 'sort', toggleSort: this.toggleMenu('sort'),
+      viewItems, viewLabel: activeView && s.viewId !== 'adhoc' ? activeView.name : 'Custom filters', modified, viewModified: modified && s.viewId !== 'adhoc',
+      openViews: s.menu === 'views', toggleViews: this.toggleMenu('views'),
+      canUpdateView: modified && activeView && !activeView.system && s.viewId !== 'adhoc',
+      updateView: () => { this.setState((st) => ({ views: st.views.map((v) => (v.id === st.viewId ? Object.assign({}, v, { tab: st.tab, f: Object.assign({}, st.f), sort: Object.assign({}, st.sort) }) : v)), menu: null })); this.showToast('View updated', '“' + activeView.name + '” now uses these filters.'); },
+      newView: () => this.setState({ viewModal: { mode: 'create' }, viewName: '', viewDefault: false, viewShare: 'me', menu: null }),
+      viewModal, viewName: s.viewName, setViewName: (e) => this.setState({ viewName: e.target.value }), viewDefault: s.viewDefault, setViewDefault: (on) => this.setState({ viewDefault: on }),
+      viewShare: s.viewShare, setViewShare: (v) => this.setState({ viewShare: v }), shareOpts: [{ value: 'me', label: 'Only me' }, { value: 'team', label: 'Everyone in Operations' }],
+      closeViewModal: () => this.setState({ viewModal: null }), saveView, viewModalOpen: !!s.viewModal,
+      delView, delOpen: !!delView, delTitle: delView ? 'Delete “' + delView.name + '”?' : '', delDesc: delView ? (delView.share === 'team' ? 'Everyone in Operations loses this view. ' : '') + 'Orders stay as they are; only the saved filters are removed.' : '',
+      closeDel: () => this.setState({ deleteView: null }),
+      confirmDel: () => { const st = this.state, v = st.views.find((x) => x.id === st.deleteView), rest = st.views.filter((x) => x.id !== st.deleteView);
+        if (v.isDefault) rest[0] = Object.assign({}, rest[0], { isDefault: true });
+        this.setState({ views: rest, deleteView: null, viewId: st.viewId === v.id ? 'all' : st.viewId }); this.showToast('View deleted', '“' + v.name + '”'); },
+      cols, rows: tableRows, pageAll, pageSome, noRows: pageRows.length === 0,
+      togglePage: (on) => this.setState((st) => { const set = new Set(st.allMatching ? sorted.map((o) => o.id) : st.sel); pageIds.forEach((id) => (on ? set.add(id) : set.delete(id))); return { sel: Array.from(set), allMatching: false }; }),
+      bulk, rowMenu, closeRowMenu: () => this.setState({ rowMenu: null }),
+      cancelInfo, cancelOpen: !!cancelInfo, closeCancel: () => this.setState({ cancel: null }),
+      cancelReason: s.cancelReason, setCancelReason: (v) => this.setState({ cancelReason: v }), reasons: REASONS,
+      cancelNotify: s.cancelNotify, setCancelNotify: (on) => this.setState({ cancelNotify: on }),
+      page, pageSize: s.pageSize, total, setPage: (p) => this.setState({ page: p }), setPageSize: (n) => this.setState({ pageSize: n, page: 1 }),
+      pagerNote, retry: () => this.retry(),
+      emptyTitle: 'No orders found', emptyDesc: s.query ? 'Nothing matches “' + s.query.trim() + '” with the current filters. Check the order ID, email or SKU, or clear the filters.' : 'Try adjusting your filters or search criteria.',
+      exportView: () => this.showToast('Exporting ' + int(total) + ' orders', 'CSV of the current view, sent to your downloads.'),
+      exportAll: () => this.showToast('Exporting all orders', int(ORDERS.length) + ' orders as CSV. We’ll email you when it’s ready.'),
+      exportTip: 'Export these ' + int(total) + ' orders as CSV',
+      openExport: s.menu === 'export', toggleExport: this.toggleMenu('export'), exportViewLabel: 'This view (' + int(total) + ' orders)', exportAllLabel: 'All orders (' + int(ORDERS.length) + ')',
+      createOrder: () => this.showToast('New order', 'The create-order form is designed separately.', 'info'),
+      skelKpis: [1, 2, 3, 4, 5, 6], skelRows: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], skelTabs: [1, 2, 3, 4, 5, 6, 7]
+    });
+  }
+}
+
+/* ---------- order data ---------- */
+var NOW = Date.UTC(2026, 9, 1, 9, 42);
+var DAY0 = Date.UTC(2026, 9, 1);
+function rng(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+var STAGES = [
+  { key: 'pending', label: 'Pending' }, { key: 'confirmed', label: 'Confirmed' }, { key: 'processing', label: 'Processing' }, { key: 'ready_to_ship', label: 'Ready to ship' },
+  { key: 'shipped', label: 'Shipped' }, { key: 'delivered', label: 'Delivered' }, { key: 'cancelled', label: 'Cancelled' }, { key: 'returned', label: 'Returned' }
+];
+var STAGE_LABEL = {}; STAGES.forEach(function (s) { STAGE_LABEL[s.key] = s.label; });
+var STAGE_FIELDS = {
+  pending: { status: 'pending', fulfillment: 'unfulfilled' }, confirmed: { status: 'confirmed', fulfillment: 'unfulfilled', payment: 'paid' },
+  processing: { status: 'processing', fulfillment: 'processing', payment: 'paid' }, ready_to_ship: { status: 'processing', fulfillment: 'ready_to_ship', payment: 'paid' },
+  shipped: { status: 'processing', fulfillment: 'shipped', payment: 'paid' }, delivered: { status: 'completed', fulfillment: 'delivered', payment: 'paid' },
+  returned: { status: 'completed', fulfillment: 'returned' }, cancelled: { status: 'cancelled', fulfillment: 'unfulfilled' }
+};
+var PAY = { paid: ['success', 'Paid', 'check-circle'], pending: ['warning', 'Pending', 'clock'], failed: ['danger', 'Failed', 'alert-circle'], partially_refunded: ['info', 'Partially refunded', 'rotate-ccw'], refunded: ['neutral', 'Refunded', 'rotate-ccw'] };
+var FUL = { unfulfilled: ['warning', 'Unfulfilled', 'inbox'], processing: ['info', 'Processing', 'package'], ready_to_ship: ['brand', 'Ready to ship', 'clipboard-list'], shipped: ['brand', 'Shipped', 'truck'], delivered: ['success', 'Delivered', 'check-circle'], returned: ['neutral', 'Returned', 'rotate-ccw'] };
+var ORD_STATUS = { pending: 'Pending', confirmed: 'Confirmed', processing: 'Processing', completed: 'Completed', cancelled: 'Cancelled' };
+var WAREHOUSES = ['Dhaka Warehouse', 'Chattogram Warehouse', 'Rotterdam DC', 'Newark, NJ'];
+var CHANNELS = ['Fernhill US', 'Fernhill EU', 'Wholesale', 'Amazon US'];
+var PAY_METHODS = ['Card', 'PayPal', 'bKash', 'Bank transfer', 'Cash on delivery'];
+var DELIVERY = ['Standard', 'Express', 'Same-day', 'Store pickup'];
+var CARRIERS = { Standard: 'DHL eCommerce', Express: 'FedEx', 'Same-day': 'Pathao Courier', 'Store pickup': 'pickup' };
+var TEAM = ['Priya Natarajan', 'Rafiq Hasan', 'Mei Lin', 'Jonas Weber'];
+var FIRST = ['Sarah', 'Ayesha', 'Daniel', 'Lena', 'Marcus', 'Nusrat', 'Tomás', 'Grace', 'Hiroshi', 'Fatima', 'Oliver', 'Priya', 'Tanvir', 'Chloé', 'Kwame', 'Sofia', 'Imran', 'Emily', 'Lucas', 'Mehjabin', 'Noah', 'Aiko', 'Rahim', 'Elena', 'James', 'Zara', 'Arjun', 'Hannah', 'Mateo', 'Sadia'];
+var LAST = ['Johnson', 'Rahman', 'Okafor', 'Lindqvist', 'Chowdhury', 'Herrera', 'Mbeki', 'Tanaka', 'Hossain', 'Bennett', 'Shah', 'Dubois', 'Mensah', 'Rossi', 'Karim', 'Walsh', 'Silva', 'Islam', 'Nguyen', 'Fischer', 'Ahmed', 'Kowalski', 'Patel', 'Haque', 'Moreau'];
+var DOMAINS = ['gmail.com', 'outlook.com', 'proton.me', 'icloud.com', 'yahoo.com'];
+var B2B = ['Harbor & Pine Co.', 'Northwind Retail', 'Lakeside Outfitters', 'Dhaka Lifestyle Ltd.', 'Bramble & Co.'];
+var PRODUCTS = [
+  ['Merino crew tee', 'SKU-TSH-NAVY-M', 58], ['Merino crew tee', 'SKU-TSH-BLK-L', 58], ['Linen overshirt', 'SKU-OVS-SAND-L', 96], ['Canvas tote', 'SKU-TOT-NAT-OS', 34],
+  ['Organic hoodie', 'SKU-HOD-FOR-S', 88], ['Wool beanie', 'SKU-BNE-CHR-OS', 29], ['Recycled socks 3-pack', 'SKU-SCK-MIX-3942', 24], ['North Sea rain shell', 'SKU-RSH-OLV-M', 148],
+  ['Summer shorts', 'SKU-SHT-STN-32', 54], ['Leather card holder', 'SKU-CRD-TAN-OS', 42], ['Straw bucket hat', 'SKU-HAT-NAT-OS', 36], ['Jamdani scarf', 'SKU-SCF-IND-OS', 64]
+];
+var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function fmtDate(ts) { var d = new Date(ts); return MON[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear(); }
+function fmtWhen(ts) { var d = new Date(ts), t = pad2(d.getUTCHours()) + ':' + pad2(d.getUTCMinutes()); if (ts >= DAY0) return 'Today, ' + t; if (ts >= DAY0 - 864e5) return 'Yesterday, ' + t; return MON[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + t; }
+function hoursAgo(ts) { return (NOW - ts) / 36e5; }
+function buildOrders() {
+  var r = rng(20261001);
+  // age in days drawn per stage, then sorted: newest first. Deterministic in every engine.
+  var AGE = { pending: [0, 2.2], confirmed: [0.1, 1.6], processing: [0.3, 3.2], ready_to_ship: [0.6, 2.6], shipped: [1, 16], delivered: [5, 25], returned: [9, 21], cancelled: [0, 30] };
+  var QUOTA = [['pending', 124], ['confirmed', 58], ['processing', 187], ['ready_to_ship', 41], ['shipped', 1842], ['delivered', 505], ['returned', 19], ['cancelled', 70]];
+  var keyed = [];
+  QUOTA.forEach(function (q) { for (var n = 0; n < q[1]; n++) { var g = AGE[q[0]]; keyed.push({ st: q[0], k: g[0] + Math.pow(r(), q[0] === 'shipped' ? 1.4 : 1) * (g[1] - g[0]) }); } });
+  keyed.sort(function (x, y) { return x.k - y.k; });
+  var seq = keyed.map(function (x) { return x.st; }), i;
+  var out = [], step = 30 * 24 * 60 / seq.length;
+  for (i = 0; i < seq.length; i++) {
+    var stage = seq[i], ts = NOW - Math.round((i + 0.2 + r() * 0.7) * step * 60000);
+    var b2b = r() < 0.04, first = FIRST[Math.floor(r() * FIRST.length)], last = LAST[Math.floor(r() * LAST.length)];
+    var name = b2b ? B2B[Math.floor(r() * B2B.length)] : first + ' ' + last;
+    var email = b2b ? 'orders@' + name.toLowerCase().replace(/[^a-z]+/g, '') + '.com' : (first + '.' + last).toLowerCase().normalize('NFD').replace(/[^a-z.]/g, '') + '@' + DOMAINS[Math.floor(r() * DOMAINS.length)];
+    var wh = WAREHOUSES[Math.floor(Math.pow(r(), 1.3) * 4)];
+    var bd = wh === 'Dhaka Warehouse' || wh === 'Chattogram Warehouse';
+    var phone = bd ? '+880 17' + Math.floor(10 + r() * 89) + '-' + Math.floor(100000 + r() * 899999) : '+1 (' + Math.floor(201 + r() * 700) + ') 555-' + pad2(Math.floor(r() * 100)) + pad2(Math.floor(r() * 100));
+    var lines = b2b ? 3 + Math.floor(r() * 4) : 1 + Math.floor(Math.pow(r(), 2) * 4), items = 0, total = 0, skus = [];
+    for (var l = 0; l < lines; l++) { var p = PRODUCTS[Math.floor(r() * PRODUCTS.length)], qty = b2b ? 10 + Math.floor(r() * 30) : (r() < 0.8 ? 1 : 2); items += qty; total += p[2] * qty * (b2b ? 0.55 : 1); skus.push(p[1]); }
+    var delivery = b2b ? 'Standard' : DELIVERY[Math.floor(Math.pow(r(), 1.6) * 4)];
+    total += delivery === 'Express' ? 18 : delivery === 'Same-day' ? 12 : delivery === 'Store pickup' ? 0 : (total > 120 ? 0 : 8.5);
+    var payMethod = b2b ? 'Bank transfer' : bd ? (r() < 0.45 ? 'bKash' : r() < 0.5 ? 'Cash on delivery' : 'Card') : (r() < 0.75 ? 'Card' : 'PayPal');
+    var f = STAGE_FIELDS[stage], payment = f.payment || 'paid';
+    if (stage === 'pending') payment = r() < 0.27 ? 'failed' : 'pending';
+    if (stage === 'cancelled') payment = r() < 0.4 ? 'refunded' : r() < 0.6 ? 'failed' : 'pending';
+    if (stage === 'returned') payment = r() < 0.6 ? 'refunded' : 'partially_refunded';
+    if (stage === 'delivered' && r() < 0.03) payment = 'partially_refunded';
+    var age = hoursAgo(ts), delayed = false, delayNote = '';
+    if ((stage === 'confirmed' || stage === 'processing') && age > 36 && r() < 0.3) { delayed = true; delayNote = 'Past the 24h processing target by ' + Math.round(age - 24) + 'h'; }
+    if (stage === 'ready_to_ship' && age > 36 && r() < 0.5) { delayed = true; delayNote = 'Missed carrier pickup, waiting ' + Math.round(age) + 'h'; }
+    if (stage === 'shipped' && age > 24 * 9 && r() < 0.006) { delayed = true; delayNote = 'Delivery exception reported by carrier'; }
+    out.push({ id: '', stage: stage, status: f.status, fulfillment: f.fulfillment, payment: payment, ts: ts, customer: name, email: email, phone: phone, items: items, total: Math.round(total * 100) / 100,
+      skus: skus, warehouse: wh, channel: b2b ? 'Wholesale' : bd ? (r() < 0.5 ? 'Fernhill US' : 'Fernhill EU') : CHANNELS[Math.floor(r() * 4)], payMethod: payMethod, delivery: delivery,
+      carrier: CARRIERS[delivery], delayed: delayed, delayNote: delayNote, owner: TEAM[Math.floor(r() * TEAM.length)] });
+  }
+  out.sort(function (a, b) { return b.ts - a.ts; });
+  // the order from the brief
+  var k = out.findIndex(function (o) { return o.ts < Date.UTC(2026, 8, 30, 21, 20) && o.stage === 'shipped'; });
+  Object.assign(out[k], { customer: 'Sarah Johnson', email: 'sarah.johnson@gmail.com', phone: '+1 (415) 555-0142', items: 3, total: 248.5, payment: 'paid', stage: 'shipped', status: 'processing', fulfillment: 'shipped', warehouse: 'Dhaka Warehouse', channel: 'Fernhill US', delayed: false, skus: ['SKU-OVS-SAND-L', 'SKU-TSH-NAVY-M', 'SKU-SCF-IND-OS'], ts: Date.UTC(2026, 8, 30, 21, 14) });
+  out.forEach(function (o, i) {
+    o.id = '#ORD-' + (10482 + k - i); o.idLower = o.id.toLowerCase().slice(1); o.customerLower = o.customer.toLowerCase(); o.skusLower = o.skus.join(' ').toLowerCase();
+    o.phoneDigits = o.phone.replace(/[^0-9]/g, ''); o.idNum = 10482 + k - i;
+  });
+  return out;
+}
+var ORDERS = buildOrders();
+var CUSTOMERS = (function () { var c = {}; ORDERS.forEach(function (o) { c[o.customer] = (c[o.customer] || 0) + 1; }); return Object.keys(c).sort(function (a, b) { return c[b] - c[a]; }); })();
+function view(o) {
+  var p = PAY[o.payment], fl = FUL[o.fulfillment];
+  return { id: o.id, when: fmtWhen(o.ts), date: fmtDate(o.ts), customer: o.customer, email: o.email, items: o.items + (o.items === 1 ? ' item' : ' items'), total: money2(o.total),
+    payTone: p[0], payLabel: p[1], payIcon: p[2], fulCls: 'o-ful o-ful-' + fl[0], fulLabel: fl[1], fulIcon: fl[2], warehouse: o.warehouse, status: o.status, statusLabel: ORD_STATUS[o.status],
+    delayed: o.delayed, delayNote: o.delayNote, channel: o.channel, menuAria: 'Actions for order ' + o.id };
+}
+function primaryAction(o) {
+  if (o.payment === 'failed') return { label: 'Contact customer', icon: 'user', done: 'Email draft opened' };
+  if (o.stage === 'pending') return { label: 'Send payment link', icon: 'credit-card', done: 'Payment link sent' };
+  if (o.stage === 'confirmed') return { label: 'Start picking', icon: 'package', done: 'Added to the next pick list' };
+  if (o.stage === 'ready_to_ship') return { label: 'Print label', icon: 'truck', done: 'Shipping label ready' };
+  if (o.stage === 'shipped') return { label: 'Track shipment', icon: 'truck', done: 'Opening carrier tracking' };
+  return { label: 'Print invoice', icon: 'file-text', done: 'Invoice ready' };
+}
+var EMPTY_F = { date: 'all', status: [], payment: [], fulfillment: [], customer: '', channel: [], warehouse: [], payMethod: [], delivery: [], minTotal: 0, delayed: false, mine: false };
+var FILTER_KEYS = Object.keys(EMPTY_F);
+function filterOk(o, k, v) {
+  switch (k) {
+    case 'date': return v === 'all' || (v === 'today' ? o.ts >= DAY0 : v === 'yesterday' ? o.ts >= DAY0 - 864e5 && o.ts < DAY0 : v === '7d' ? o.ts >= NOW - 7 * 864e5 : true);
+    case 'status': return !v.length || v.indexOf(o.status) >= 0;
+    case 'payment': return !v.length || v.indexOf(o.payment) >= 0;
+    case 'fulfillment': return !v.length || v.indexOf(o.fulfillment) >= 0;
+    case 'customer': return !v || o.customer === v;
+    case 'channel': return !v.length || v.indexOf(o.channel) >= 0;
+    case 'warehouse': return !v.length || v.indexOf(o.warehouse) >= 0;
+    case 'payMethod': return !v.length || v.indexOf(o.payMethod) >= 0;
+    case 'delivery': return !v.length || v.indexOf(o.delivery) >= 0;
+    case 'minTotal': return !v || o.total >= v;
+    case 'delayed': return !v || o.delayed;
+    case 'mine': return !v || o.owner === 'Priya Natarajan';
+  }
+  return true;
+}
+var opt = function (arr) { return arr.map(function (x) { return { value: x, label: x }; }); };
+var FILTER_OPTIONS = {
+  status: Object.keys(ORD_STATUS).map(function (k) { return { value: k, label: ORD_STATUS[k] }; }),
+  payment: Object.keys(PAY).map(function (k) { return { value: k, label: PAY[k][1] }; }),
+  fulfillment: Object.keys(FUL).map(function (k) { return { value: k, label: FUL[k][1] }; }),
+  channel: opt(CHANNELS), warehouse: opt(WAREHOUSES), payMethod: opt(PAY_METHODS), delivery: opt(DELIVERY)
+};
+var DATE_OPTS = [{ key: 'all', label: 'Last 30 days', sub: 'Sep 1 – Oct 1' }, { key: 'today', label: 'Today', sub: 'Oct 1' }, { key: 'yesterday', label: 'Yesterday', sub: 'Sep 30' }, { key: '7d', label: 'Last 7 days', sub: 'Sep 24 – Oct 1' }];
+var SORTS = [
+  { key: 'date', dir: 'desc', label: 'Newest first' }, { key: 'date', dir: 'asc', label: 'Oldest first' }, { key: 'total', dir: 'desc', label: 'Total, high to low' },
+  { key: 'total', dir: 'asc', label: 'Total, low to high' }, { key: 'customer', dir: 'asc', label: 'Customer, A–Z' }, { key: 'id', dir: 'desc', label: 'Order ID, newest' }, { key: 'status', dir: 'asc', label: 'Status' }
+];
+var COL_LABEL = { id: 'Order ID', customer: 'Customer', total: 'Total', date: 'Date', status: 'Status' };
+var STATUS_RANK = { pending: 0, confirmed: 1, processing: 2, completed: 3, cancelled: 4 };
+function sortVal(o, k) { return k === 'date' ? o.ts : k === 'id' ? o.idNum : k === 'total' ? o.total : k === 'status' ? STATUS_RANK[o.status] : o.customerLower; }
+var SORT_NEWEST = { key: 'date', dir: 'desc' };
+var VIEW_ALL = { id: 'all', name: 'All orders', tab: 'all', f: {}, sort: SORT_NEWEST, system: true, isDefault: true, desc: 'Every order in the last 30 days' };
+var DEFAULT_VIEWS = [
+  VIEW_ALL,
+  { id: 'today', name: 'Today’s orders', tab: 'all', f: { date: 'today' }, sort: SORT_NEWEST, desc: 'Placed since midnight' },
+  { id: 'pending_payment', name: 'Pending payment', tab: 'all', f: { payment: ['pending', 'failed'] }, sort: SORT_NEWEST, desc: 'Payment pending or failed', share: 'team' },
+  { id: 'awaiting', name: 'Awaiting fulfillment', tab: 'confirmed', f: {}, sort: { key: 'date', dir: 'asc' }, desc: 'Paid, not yet picked · oldest first', share: 'team' },
+  { id: 'high_value', name: 'High value orders', tab: 'all', f: { minTotal: 500 }, sort: { key: 'total', dir: 'desc' }, desc: '$500 and over', share: 'team' },
+  { id: 'delayed', name: 'Delayed orders', tab: 'all', f: { delayed: true }, sort: { key: 'date', dir: 'asc' }, desc: 'Past target or carrier exception', share: 'team' },
+  { id: 'returns', name: 'Returns', tab: 'returned', f: {}, sort: SORT_NEWEST, desc: 'Returned orders' },
+  { id: 'mine', name: 'My orders', tab: 'all', f: { mine: true }, sort: SORT_NEWEST, desc: 'Assigned to you' }
+];
+var KPIS = [
+  { label: 'Total orders', cur: 2846, prev: 2613, tone: 'brand', tab: 'all', upGood: true },
+  { label: 'Pending', cur: 124, prev: 98, tone: 'warning', tab: 'pending', upGood: false },
+  { label: 'Processing', cur: 286, prev: 301, tone: 'info', tab: 'processing', upGood: false, note: 'Incl. 58 confirmed, 41 ready to ship' },
+  { label: 'Shipped', cur: 1842, prev: 1716, tone: 'brand', tab: 'shipped', upGood: true },
+  { label: 'Delivered', cur: 524, prev: 489, tone: 'success', tab: 'delivered', upGood: true, note: 'Incl. 19 returned' },
+  { label: 'Cancelled', cur: 70, prev: 58, tone: 'neutral', tab: 'cancelled', upGood: false }
+];
+var REASONS = [{ value: 'customer', label: 'Customer asked to cancel' }, { value: 'payment', label: 'Payment not completed' }, { value: 'stock', label: 'Item out of stock' }, { value: 'fraud', label: 'Suspected fraud' }, { value: 'duplicate', label: 'Duplicate order' }];
+
+var STORES = [
+  { key: 'all', label: 'All stores', sub: '4 stores · USD', icon: 'store', factor: 1 },
+  { key: 'us', label: 'Fernhill US', sub: 'Shopify · fernhill.co', icon: 'shopping-bag', factor: 0.52 },
+  { key: 'eu', label: 'Fernhill EU', sub: 'Shopify · fernhill.eu', icon: 'shopping-bag', factor: 0.27 },
+  { key: 'wholesale', label: 'Wholesale', sub: 'B2B portal', icon: 'factory', factor: 0.13 },
+  { key: 'amazon', label: 'Amazon US', sub: 'Marketplace', icon: 'tag', factor: 0.08 }
+];
+var USER = { name: 'Priya Natarajan', role: 'Operations Manager', email: 'priya@fernhill.co', initials: 'PN' };
+function navLabel(path) { const r = window.CommerceOS.navResolve(path); return r.page ? r.page.label : r.module ? r.module.label : path; }
+var NOTIFS = [
+  { icon: 'package', tone: 't-warning', text: 'PO-20412 received at Rotterdam DC with 2 lines short.', time: '12 min ago', unread: true },
+  { icon: 'alert-circle', tone: 't-danger', text: 'Payment failed for SO-48225. The order is on hold.', time: '1 h ago', unread: true },
+  { icon: 'rotate-ccw', tone: 't-info', text: 'Aiko Tanaka requested a return for SO-48117.', time: '3 h ago', unread: true },
+  { icon: 'check-circle', tone: 't-brand', text: 'Shopify sync finished: 1,204 products updated.', time: '5 h ago', unread: false }
+];
+var SEARCH = [
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48231', code: true, meta: 'Lena Okafor · Fernhill US · Oct 1', side: '$214.50', status: 'confirmed' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48230', code: true, meta: 'Harbor & Pine Co. · Wholesale · Oct 1', side: '$3,920.00', status: 'pending' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48228', code: true, meta: 'Aiko Tanaka · Fernhill US · Oct 1', side: '$128.90', status: 'processing' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48212', code: true, meta: 'Northwind Retail · Wholesale · Sep 27', side: '$11,480.00', status: 'on_hold' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48177', code: true, meta: 'Northwind Retail · Wholesale · Sep 21', side: '$8,940.00', status: 'delivered' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48150', code: true, meta: 'Nora Whitfield · Fernhill EU · Sep 18', side: '$152.00', status: 'delivered' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48102', code: true, meta: 'Northwind Retail · Wholesale · Sep 9', side: '$6,215.00', status: 'delivered' },
+  { type: 'orders', icon: 'shopping-bag', title: 'SO-48061', code: true, meta: 'Northwind Retail · Wholesale · Sep 2', side: '$9,870.00', status: 'delivered' },
+  { type: 'customers', icon: 'users', title: 'Northwind Retail', meta: 'B2B · 46 orders · $182,400 lifetime', side: 'Net 30' },
+  { type: 'customers', icon: 'users', title: 'Lena Okafor', meta: 'lena.okafor@mail.com · 7 orders · $1,204 lifetime' },
+  { type: 'customers', icon: 'users', title: 'Nora Whitfield', meta: 'nora.w@mail.com · 3 orders · $388 lifetime' },
+  { type: 'customers', icon: 'users', title: 'Harbor & Pine Co.', meta: 'B2B · 12 orders · $41,760 lifetime', side: 'Net 30' },
+  { type: 'products', icon: 'tag', title: 'North Sea rain shell', meta: '6 variants · 1,140 on hand · overstocked', side: '$148.00' },
+  { type: 'products', icon: 'tag', title: 'Merino crew tee', meta: '12 variants · 1,284 on hand', side: '$58.00' },
+  { type: 'products', icon: 'tag', title: 'Linen overshirt', meta: '8 variants · 212 on hand', side: '$96.00' },
+  { type: 'skus', icon: 'package', title: 'SKU-RSH-OLV-M', code: true, meta: 'North Sea rain shell · Olive / M · Rotterdam DC', side: '412 on hand', status: 'overstock' },
+  { type: 'skus', icon: 'package', title: 'SKU-RSH-NVY-L', code: true, meta: 'North Sea rain shell · Navy / L · Newark, NJ', side: '96 on hand', status: 'in_stock' },
+  { type: 'skus', icon: 'package', title: 'SKU-TSH-NAVY-M', code: true, meta: 'Merino crew tee · Navy / M · Rotterdam DC', side: '12 on hand', status: 'low_stock' },
+  { type: 'skus', icon: 'package', title: 'SKU-OVS-SAND-L', code: true, meta: 'Linen overshirt · Sand / L · Newark, NJ', side: '0 on hand', status: 'out_of_stock' },
+  { type: 'suppliers', icon: 'factory', title: 'Northwind Textiles', meta: 'Porto, Portugal · 3 open POs · lead time 21 days', side: '$18,240.00 open' },
+  { type: 'suppliers', icon: 'factory', title: 'Harbor Leather Works', meta: 'León, Mexico · 1 open PO · lead time 30 days' },
+  { type: 'suppliers', icon: 'factory', title: 'Coastline Packaging', meta: 'Rotterdam, Netherlands · no open POs' }
+];
+var RECENT = [{ label: 'SO-48198', meta: 'Order · yesterday' }, { label: 'merino navy', meta: 'Products and SKUs · 2 days ago' }, { label: 'supplier: northwind', meta: 'Suppliers · last week' }];
+var JUMPS = [{ label: 'Create order', icon: 'plus', key: 'C' }, { label: 'Receive stock', icon: 'package', key: 'R' }, { label: 'New purchase order', icon: 'clipboard-list', key: 'P' }, { label: 'Open reports', icon: 'bar-chart', key: 'G' }];
+function int(n) { return Math.round(n).toLocaleString('en-US'); }
+function money0(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+function money2(n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function signedPct(d) { return (d > 0 ? '+' : d < 0 ? '−' : '') + (Math.abs(d) * 100).toFixed(1) + '%'; }
+function highlight(text, term) {
+  var i = term ? text.toLowerCase().indexOf(term) : -1;
+  if (i < 0) return [text, '', ''];
+  return [text.slice(0, i), text.slice(i, i + term.length), text.slice(i + term.length)];
+}
+function parseQuery(raw) {
+  var q = (raw || '').trim().toLowerCase(), m = /^(sku|order|customer|supplier|product):\s*(.*)$/.exec(q);
+  var map = { sku: 'skus', order: 'orders', customer: 'customers', supplier: 'suppliers', product: 'products' };
+  if (m) return { scope: map[m[1]], term: m[2].trim() };
+  if (q.charAt(0) === '#') return { scope: 'orders', term: q.slice(1) };
+  return { scope: null, term: q };
+}
+</script>
+</body>
+</html>
