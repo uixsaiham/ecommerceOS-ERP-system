@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stock Adjustments · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=4">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=5"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=6"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Stock adjustments ---------- */
+.sa-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.td-strong{font-weight:500}
+.sa-table td.c-prod{white-space:normal;min-width:220px}
+.sa-table td.c-note{white-space:normal;min-width:200px;max-width:280px;color:var(--text-secondary)}
+.sa-qty{font-variant-numeric:tabular-nums}
+.sa-id{border:0;background:none;padding:0;cursor:pointer}
+.sa-id:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:2px}
+.sa-reasons{display:flex;flex-direction:column;gap:8px}
+.sa-reason{display:grid;grid-template-columns:150px minmax(0,1fr) 90px;gap:10px;align-items:center;font-size:13px}
+.sa-reason .pr-meter{height:8px}
+.sa-reason .pr-meter > span{background:var(--danger)}
+.sa-reason .pr-meter.is-pos > span{background:var(--success)}
+.sa-reason span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.sa-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px}
+.sa-panel h2{margin:0 0 2px;font-size:15px;line-height:22px;font-weight:600}
+.sa-panel p{margin:0 0 12px;font-size:12px;color:var(--text-muted)}
+.sa-duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.sa-wh{display:flex;flex-direction:column;gap:8px}
+.sa-wh div{display:grid;grid-template-columns:150px minmax(0,1fr) 90px;gap:10px;align-items:center;font-size:13px}
+.sa-wh .pr-meter > span{background:var(--warning)}
+.sa-wh span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+/* panel + modal */
+.dp-wide{width:480px}
+.sa-before{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center}
+.sa-before strong{display:block;font-size:22px;line-height:28px}
+.sa-before .cx-icon{color:var(--text-muted)}
+.dp-kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:6px 12px;margin:0;font-size:13px;line-height:20px}
+.dp-kv dt{color:var(--text-muted)}
+.dp-kv dd{margin:0}
+.sa-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sa-mode{display:flex;gap:6px;flex-wrap:wrap}
+.sa-preview{margin:0;padding:10px 12px;border-radius:var(--radius-sm);background:var(--bg-subtle);font-size:13px;line-height:20px}
+.dp-foot-end{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:1599px){ .c-by{display:none} }
+@media (max-width:1279px){ .c-note{display:none} .sa-duo{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:1023px){ .sa-kpis{display:flex} .c-value{display:none} }
+@media (max-width:767px){ .dp-wide{width:100%} .sa-grid2{grid-template-columns:1fr} .sa-reason,.sa-wh div{grid-template-columns:110px minmax(0,1fr) 70px} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="inventory/adjustments" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="inventory/adjustments"></x-import>
+<h1>Stock Adjustments</h1>
+<p class="ph-sub">Every stock change that isn’t a sale, receipt or transfer: counts, damage, losses and restocked returns.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Changes of 20+ units or $500+ need approval</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openNew}}">New adjustment</x-import>
+</div>
+</div>
+
+<section class="o-kpis sa-kpis" aria-label="Adjustments in the last 30 days">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<div class="sa-duo">
+<section class="sa-panel" aria-labelledby="sa-r-h"><h2 id="sa-r-h">By reason, last 30 days</h2><p>Value at cost of applied adjustments</p>
+<div class="sa-reasons"><sc-for list="{{byReason}}" as="r" hint-placeholder-count="6"><div class="sa-reason"><span>{{r.label}}</span><span class="{{r.meterCls}}" aria-hidden="true"><span style="width: {{r.pct}}%"></span></span><span class="{{r.cls}}">{{r.value}}</span></div></sc-for></div>
+</section>
+<section class="sa-panel" aria-labelledby="sa-w-h"><h2 id="sa-w-h">Shrinkage by warehouse</h2><p>Damaged, lost and stolen stock as a share of each warehouse’s inventory value</p>
+<div class="sa-wh"><sc-for list="{{byWh}}" as="w" hint-placeholder-count="5"><div><span>{{w.name}}</span><span class="pr-meter is-warn" aria-hidden="true"><span style="width: {{w.pct}}%"></span></span><span>{{w.label}}</span></div></sc-for></div>
+</section>
+</div>
+
+<section class="o-card" aria-label="Adjustments">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Adjustment status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools">
+<div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by adjustment, SKU, product, person or note" label="Search adjustments" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Reason" options="{{reasonFilterOpts}}" value="{{fReason}}" on-value-change="{{setReason}}" width="210px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Warehouse" options="{{whFilterOpts}}" value="{{fWh}}" on-value-change="{{setWh}}" width="210px"></x-import>
+</div>
+</div>
+<div class="o-bulkwrap">
+<sc-if value="{{bulk.show}}" hint-placeholder-val="{{false}}">
+<div class="o-bulk" role="region" aria-label="Bulk actions">
+<span class="o-bulk-count">{{bulk.count}}</span>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="check-circle" on-click="{{bulk.approve}}"><span class="o-bulk-label">Approve</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="x" on-click="{{bulk.reject}}"><span class="o-bulk-label">Reject</span></x-import>
+<div class="o-bulk-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" on-click="{{bulk.clear}}">Clear selection</x-import></div>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table sa-table" aria-label="Adjustments">
+<thead><tr>
+<sc-if value="{{canSelect}}" hint-placeholder-val="{{false}}"><th class="c-check" scope="col"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="Select all pending" checked="{{allSel}}" indeterminate="{{someSel}}" on-change="{{toggleAll}}"></x-import></th></sc-if>
+<th scope="col">Adjustment</th>
+<th scope="col">Product</th>
+<th scope="col">Warehouse</th>
+<th class="is-right" scope="col">Change</th>
+<th scope="col">Reason</th>
+<th class="c-note" scope="col">Note</th>
+<th class="c-by" scope="col">By</th>
+<th scope="col">Status</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="20">
+<tr class="{{r.trCls}}">
+<sc-if value="{{canSelect}}" hint-placeholder-val="{{false}}"><td class="c-check"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="Select {{r.id}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import></td></sc-if>
+<td><button class="o-id sa-id" onClick="{{r.open}}">{{r.id}}</button><span class="o-sub">{{r.when}}</span></td>
+<td class="c-prod"><span class="td-strong">{{r.name}}</span><span class="o-sub">{{r.variant}} · <span class="iv-sku">{{r.sku}}</span></span></td>
+<td>{{r.wh}}</td>
+<td class="is-right"><span class="{{r.qtyCls}}">{{r.qty}}</span><span class="o-sub">{{r.after}}</span></td>
+<td>{{r.reason}}</td>
+<td class="c-note">{{r.note}}</td>
+<td class="c-by"><span>{{r.by}}</span><span class="o-sub">{{r.approved}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Adjustments">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<li class="o-m-card">
+<div class="o-m-top"><button class="o-id sa-id" onClick="{{r.open}}">{{r.id}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import></div>
+<div class="o-m-mid"><div><span class="td-strong">{{r.name}}</span><span class="o-sub">{{r.reason}} · {{r.wh}} · {{r.when}}</span></div><span class="o-m-total"><span class="{{r.qtyCls}}">{{r.qty}}</span></span></div>
+</li>
+</sc-for>
+</ul>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="adjustments" on-page-change="{{setPage}}"></x-import></div>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.EmptyState" icon="{{emptyIcon}}" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import>
+</sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close adjustment" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="sa-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="sa-dp-title">{{dp.id}}</h2><span class="o-sub">{{dp.reason}} · {{dp.when}}</span></div><button class="icon-btn" aria-label="Close adjustment" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.statusLabel}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<div class="sa-before"><div><span class="o-sub">{{dp.beforeLabel}}</span><strong>{{dp.before}}</strong></div><x-import component-from-global-scope="CommerceOS.Icon" name="arrow-right"></x-import><div><span class="o-sub">{{dp.afterLabel}}</span><strong>{{dp.after}}</strong></div></div>
+<span class="o-sub" style="text-align: center"><span class="{{dp.qtyCls}}">{{dp.qty}}</span> · {{dp.value}} at cost</span>
+</section>
+<section class="o-panel-sec"><h3>Details</h3>
+<dl class="dp-kv"><dt>Product</dt><dd>{{dp.name}} · {{dp.variant}}</dd><dt>SKU</dt><dd><span class="iv-sku">{{dp.sku}}</span></dd><dt>Warehouse</dt><dd>{{dp.wh}}</dd><dt>Recorded by</dt><dd>{{dp.by}}</dd><dt>Note</dt><dd>{{dp.note}}</dd><sc-if value="{{dp.decision}}" hint-placeholder-val="{{false}}"><dt>Decision</dt><dd>{{dp.decision}}</dd></sc-if></dl>
+<a href="StockLevels.dc.html?sku={{dp.sku}}">Open {{dp.sku}} in Stock Levels</a>
+</section>
+<sc-if value="{{dp.isPending}}" hint-placeholder-val="{{false}}">
+<section class="o-panel-sec"><h3>Why it needs approval</h3><p class="o-modal-note">{{dp.why}}</p>
+<x-import component-from-global-scope="CommerceOS.Input" label="Note for {{dp.byFirst}}" optional="{{yes}}" value="{{dp.reply}}" on-change="{{dp.setReply}}" placeholder="Required if you reject"></x-import>
+</section>
+</sc-if>
+</div>
+<sc-if value="{{dp.isPending}}" hint-placeholder-val="{{false}}">
+<div class="o-panel-foot"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="x" on-click="{{dp.reject}}">Reject</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check-circle" on-click="{{dp.approve}}">Approve and apply</x-import></div>
+</sc-if>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{newOpen}}" on-close="{{closeNew}}" size="md" title="New adjustment" description="Record stock that changed outside an order, transfer or receipt.">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Select" label="SKU" options="{{nw.skuOpts}}" value="{{nw.sku}}" on-value-change="{{nw.setSku}}" hint="Top 60 sellers. For others, open the SKU in Stock Levels."></x-import>
+<div class="sa-grid2">
+<x-import component-from-global-scope="CommerceOS.Select" label="Warehouse" options="{{nw.whOpts}}" value="{{nw.wh}}" on-value-change="{{nw.setWh}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Reason" options="{{reasonOpts}}" value="{{nw.reason}}" on-value-change="{{nw.setReason}}"></x-import>
+</div>
+<div class="sa-mode" role="group" aria-label="Adjustment type"><sc-for list="{{nw.modes}}" as="m" hint-placeholder-count="3"><button class="o-radio" aria-pressed="{{m.on}}" onClick="{{m.pick}}">{{m.label}}</button></sc-for></div>
+<x-import component-from-global-scope="CommerceOS.Input" label="{{nw.qtyLabel}}" inputmode="numeric" suffix="units" value="{{nw.qty}}" on-change="{{nw.setQty}}" error="{{nw.qtyError}}" width="200px"></x-import>
+<p class="sa-preview">{{nw.preview}}</p>
+<x-import component-from-global-scope="CommerceOS.Input" label="Note" value="{{nw.note}}" on-change="{{nw.setNote}}" error="{{nw.noteError}}" placeholder="What happened? Required for damage, losses and counts."></x-import>
+<sc-if value="{{nw.approval}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="info">{{nw.approval}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeNew}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{nw.save}}">{{nw.cta}}</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","detail","new"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none';
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      adjs: I.ADJUSTMENTS.map((a) => Object.assign({}, a)), tab: 'pending', query: '', fReason: '', fWh: '', page: 1, sel: [], detail: null, reply: '', nw: null, seq: 5522
+    };
+    if (demo === 'detail') this.state.detail = 'ADJ-5521';
+    if (demo === 'new') this.state.nw = newDraft();
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.nw) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  decide(ids, approve, note) {
+    const prev = this.state.adjs, list = prev.filter((a) => ids.indexOf(a.id) >= 0 && a.status === 'pending');
+    if (!list.length) return;
+    if (!approve && !note.trim() && list.length === 1) return this.showToast('Add a note to reject', 'Tell ' + list[0].by.split(' ')[0] + ' why, so they can recount or fix it.', 'info');
+    this.setState({ adjs: prev.map((a) => (list.indexOf(a) >= 0 ? Object.assign({}, a, { status: approve ? 'applied' : 'rejected', approvedBy: 'Priya Natarajan', decidedAt: F.NOW, rejectNote: approve ? null : note.trim() || 'Rejected in bulk. Please recount.' }) : a)), sel: [], detail: null, reply: '' });
+    const units = list.reduce((a, x) => a + x.qty, 0);
+    this.showToast(approve ? (list.length === 1 ? list[0].id + ' approved' : F.plural(list.length, 'adjustment') + ' approved') : (list.length === 1 ? list[0].id + ' rejected' : F.plural(list.length, 'adjustment') + ' rejected'),
+      approve ? 'Stock changed by ' + (units > 0 ? '+' : '−') + F.int(Math.abs(units)) + ' units.' : 'Stock is unchanged. ' + (list.length === 1 ? list[0].by.split(' ')[0] + ' is notified.' : 'Everyone involved is notified.'), 'success',
+      { label: 'Undo', onClick: () => this.setState({ adjs: prev, toast: null }) });
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store);
+    const q = s.query.trim().toLowerCase();
+    const searched = s.adjs.filter((a) => { const it = I.BY_SKU[a.sku];
+      return (!s.fReason || a.reason === s.fReason) && (!s.fWh || a.wh === s.fWh) && (!q || a.id.toLowerCase().indexOf(q) >= 0 || a.sku.toLowerCase().indexOf(q) >= 0 || it.p.name.toLowerCase().indexOf(q) >= 0 || a.by.toLowerCase().indexOf(q) >= 0 || (a.note || '').toLowerCase().indexOf(q) >= 0); });
+    const inTab = (a, t) => t === 'all' || a.status === t;
+    const list = searched.filter((a) => inTab(a, s.tab)).sort((a, b) => b.ts - a.ts);
+    const pageSize = 25, total = list.length, page = Math.min(s.page, Math.max(1, Math.ceil(total / pageSize)));
+    const rows = list.slice((page - 1) * pageSize, page * pageSize).map((a) => {
+      const it = I.BY_SKU[a.sku], sv = STATUS_V[a.status], sel = s.sel.indexOf(a.id) >= 0, cur = it.stock[a.wh];
+      return { id: a.id, when: F.fmtWhen(a.ts), name: it.p.name, variant: it.v.label, sku: a.sku, wh: I.WH[a.wh].short,
+        qty: signed(a.qty), qtyCls: 'sa-qty ' + (a.qty > 0 ? 'iv-pos' : 'iv-neg'), value: signedMoney(a.qty * it.p.cost),
+        after: a.status === 'pending' ? F.int(cur) + ' → ' + F.int(Math.max(0, cur + a.qty)) + ' if approved' : signedMoney(a.qty * it.p.cost) + ' at cost',
+        reason: I.REASON[a.reason].label, note: a.status === 'rejected' && a.rejectNote ? 'Rejected: ' + a.rejectNote : a.note, by: a.by,
+        approved: a.status === 'applied' && a.approvedBy ? 'Approved by ' + a.approvedBy.split(' ')[0] : a.status === 'rejected' ? 'Rejected by ' + (a.approvedBy || 'Priya Natarajan').split(' ')[0] : '',
+        tone: sv[0], icon: sv[2], statusLabel: sv[1], sel, trCls: sel ? 'is-selected' : '',
+        open: () => this.setState({ detail: a.id, reply: '' }), toggle: () => this.setState((x) => ({ sel: sel ? x.sel.filter((k) => k !== a.id) : x.sel.concat([a.id]) })) };
+    });
+
+    // KPIs over the last 30 days of applied adjustments
+    const recent = s.adjs.filter((a) => a.status === 'applied' && F.NOW - a.ts <= 30 * F.DAY);
+    const val = (a) => a.qty * I.BY_SKU[a.sku].p.cost;
+    const net = recent.reduce((x, a) => x + val(a), 0), netUnits = recent.reduce((x, a) => x + a.qty, 0);
+    const shrink = recent.filter((a) => a.reason === 'damaged' || a.reason === 'lost'), shrinkVal = -shrink.reduce((x, a) => x + val(a), 0);
+    const invValue = I.ITEMS.reduce((x, it) => x + (it.p.status === 'active' ? I.onHand(it) * it.p.cost : 0), 0);
+    const pending = s.adjs.filter((a) => a.status === 'pending'), pendVal = pending.reduce((x, a) => x + Math.abs(val(a)), 0);
+    const counts = recent.filter((a) => a.reason === 'count');
+    const kpis = [
+      { label: 'Net change, 30 days', dot: 'cx-dot cx-dot-brand', value: signedMoney(net), cmp: signed(netUnits) + ' units across ' + F.plural(recent.length, 'adjustment') },
+      { label: 'Shrinkage, 30 days', dot: 'cx-dot cx-dot-danger', value: F.money0(shrinkVal), cmp: (shrinkVal / invValue * 100).toFixed(2) + '% of inventory value' },
+      { label: 'Awaiting approval', dot: 'cx-dot cx-dot-warning', value: F.int(pending.length), cmp: pending.length ? F.money0(pendVal) + ' at cost · oldest ' + F.timeAgo(Math.min.apply(null, pending.map((a) => a.ts))) : 'Nothing waiting' },
+      { label: 'Cycle count corrections', dot: 'cx-dot cx-dot-info', value: F.int(counts.length), cmp: signed(counts.reduce((x, a) => x + a.qty, 0)) + ' units net after counting' }
+    ];
+    const reasonVals = I.REASONS.map((r) => { const v = recent.filter((a) => a.reason === r.key).reduce((x, a) => x + val(a), 0); return { r, v }; }).filter((x) => x.v !== 0).sort((a, b) => Math.abs(b.v) - Math.abs(a.v));
+    const maxR = Math.max.apply(null, reasonVals.map((x) => Math.abs(x.v)).concat([1]));
+    const byReason = reasonVals.map((x) => ({ label: x.r.label, value: signedMoney(x.v), cls: x.v > 0 ? 'iv-pos' : 'iv-neg', pct: (Math.abs(x.v) / maxR * 100).toFixed(1), meterCls: 'pr-meter' + (x.v > 0 ? ' is-pos' : '') }));
+    const whRates = I.WAREHOUSES.map((w) => { const sv = -shrink.filter((a) => a.wh === w.key).reduce((x, a) => x + val(a), 0), iv = I.ITEMS.reduce((x, it) => x + (it.p.status === 'active' ? it.stock[w.key] * it.p.cost : 0), 0); return { w, rate: iv ? sv / iv : 0, sv }; });
+    const maxW = Math.max.apply(null, whRates.map((x) => x.rate).concat([0.0001]));
+    const byWh = whRates.map((x) => ({ name: x.w.short, pct: (x.rate / maxW * 100).toFixed(1), label: (x.rate * 100).toFixed(2) + '% · ' + F.money0(Math.abs(x.sv)) }));
+    const tabs = [{ id: 'pending', label: 'Awaiting approval' }, { id: 'applied', label: 'Applied' }, { id: 'rejected', label: 'Rejected' }, { id: 'all', label: 'All' }]
+      .map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((a) => inTab(a, t.id)).length) }));
+
+    let dp = null;
+    if (s.detail) {
+      const a = s.adjs.find((x) => x.id === s.detail), it = I.BY_SKU[a.sku], sv = STATUS_V[a.status], cur = it.stock[a.wh];
+      const before = a.status === 'pending' ? cur : cur - (a.status === 'applied' && a.decidedAt ? a.qty : 0);
+      dp = { id: a.id, reason: I.REASON[a.reason].label, when: F.fmtWhen(a.ts), tone: sv[0], icon: sv[2], statusLabel: sv[1],
+        statusSub: a.status === 'pending' ? 'Waiting since ' + F.timeAgo(a.ts) : a.status === 'applied' ? (a.approvedBy ? 'Approved by ' + a.approvedBy : 'Applied automatically, under the approval limit') : 'Rejected by ' + (a.approvedBy || 'Priya Natarajan'),
+        beforeLabel: a.status === 'pending' ? 'On hand now' : 'Before', afterLabel: a.status === 'pending' ? 'If approved' : a.status === 'rejected' ? 'Unchanged' : 'After',
+        before: F.int(before), after: F.int(a.status === 'rejected' ? before : Math.max(0, before + a.qty)), qty: signed(a.qty) + ' units', qtyCls: a.qty > 0 ? 'iv-pos' : 'iv-neg', value: signedMoney(a.qty * it.p.cost),
+        name: it.p.name, variant: it.v.label, sku: a.sku, wh: I.WH[a.wh].name, by: a.by, byFirst: a.by.split(' ')[0], note: a.note || '—',
+        decision: a.status === 'rejected' ? a.rejectNote : null, isPending: a.status === 'pending',
+        why: Math.abs(a.qty) >= 20 ? F.int(Math.abs(a.qty)) + ' units is over the 20-unit limit for adjustments without approval.' : F.money0(Math.abs(a.qty * it.p.cost)) + ' is over the $500 limit for adjustments without approval.',
+        reply: s.reply, setReply: (e) => this.setState({ reply: e.target.value }),
+        approve: () => this.decide([a.id], true, s.reply), reject: () => this.decide([a.id], false, s.reply) };
+    }
+
+    let nw = { skuOpts: [], whOpts: [], modes: [] };
+    if (s.nw) {
+      const d = s.nw, it = I.BY_SKU[d.sku], before = it.stock[d.wh], n = Number(d.qty);
+      const up = (k) => (v) => { const val2 = v && v.target ? v.target.value : v; this.setState((x) => ({ nw: Object.assign({}, x.nw, { [k]: val2 }) })); };
+      const valid = d.qty !== '' && Math.round(n) === n && n >= 0 && (d.mode === 'set' || n > 0);
+      const after = !valid ? before : d.mode === 'add' ? before + n : d.mode === 'remove' ? before - n : n, delta = after - before;
+      const qtyError = !valid ? (d.mode === 'set' ? 'Enter the counted quantity' : 'Enter a quantity above 0') : after < 0 ? 'Only ' + F.int(before) + ' on hand' : delta === 0 ? 'That matches what’s on hand' : null;
+      const noteError = ['damaged', 'lost', 'count', 'quality'].indexOf(d.reason) >= 0 && !d.note.trim() ? 'Add a note for ' + I.REASON[d.reason].label.toLowerCase() : null;
+      const big = Math.abs(delta) >= 20 || Math.abs(delta) * it.p.cost >= 500;
+      nw = { sku: d.sku, skuOpts: TOP.map((x) => ({ value: x.sku, label: x.p.name + ' · ' + x.v.label + ' (' + x.sku + ')' })), wh: d.wh, whOpts: I.WAREHOUSES.map((w) => ({ value: w.key, label: w.name + ' · ' + F.int(it.stock[w.key]) + ' on hand' })),
+        reason: d.reason, modes: [['remove', 'Remove'], ['add', 'Add'], ['set', 'Set counted quantity']].map((m) => ({ label: m[1], on: d.mode === m[0], pick: () => this.setState((x) => ({ nw: Object.assign({}, x.nw, { mode: m[0] }) })) })),
+        qtyLabel: d.mode === 'set' ? 'Counted quantity' : d.mode === 'add' ? 'Units to add' : 'Units to remove', qty: d.qty, qtyError: d.touched || (valid && after < 0) ? qtyError : null,
+        preview: I.WH[d.wh].short + ': ' + F.int(before) + ' → ' + F.int(Math.max(0, after)) + (valid && delta ? ' (' + signed(delta) + ', ' + signedMoney(delta * it.p.cost) + ' at cost)' : ''),
+        note: d.note, noteError: d.touched ? noteError : null, approval: valid && !qtyError && big ? 'Over the approval limit, so it goes to the Awaiting approval tab. Stock doesn’t change until it’s approved.' : null,
+        cta: valid && !qtyError && big ? 'Submit for approval' : 'Save adjustment',
+        setSku: up('sku'), setWh: up('wh'), setReason: up('reason'), setQty: up('qty'), setNote: up('note'),
+        save: () => {
+          if (qtyError || noteError) return this.setState({ nw: Object.assign({}, d, { touched: true }) });
+          const id = 'ADJ-' + s.seq, a = { id, sku: d.sku, wh: d.wh, qty: delta, reason: d.reason, status: big ? 'pending' : 'applied', ts: F.NOW, by: 'Priya Natarajan', note: d.note.trim() };
+          this.setState({ adjs: [a].concat(s.adjs), nw: null, seq: s.seq + 1, tab: big ? 'pending' : 'applied', page: 1 });
+          this.showToast(big ? id + ' sent for approval' : id + ' saved', big ? 'An Operations Manager has to approve it before stock changes.' : d.sku + ' at ' + I.WH[d.wh].short + ' is now ' + F.int(after) + '.');
+        } };
+    }
+
+    const pendIds = list.filter((a) => a.status === 'pending').map((a) => a.id), selIn = pendIds.filter((id) => s.sel.indexOf(id) >= 0);
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(s.adjs.length, 'adjustment') + ' in the last 60 days',
+      kpis, byReason, byWh, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id, page: 1, sel: [] }), query: s.query, setQuery: (v) => this.setState({ query: v, page: 1 }),
+      reasonFilterOpts: [{ value: '', label: 'Any reason' }].concat(I.REASONS.map((r) => ({ value: r.key, label: r.label }))), fReason: s.fReason, setReason: (v) => this.setState({ fReason: v, page: 1 }),
+      whFilterOpts: [{ value: '', label: 'All warehouses' }].concat(I.WAREHOUSES.map((w) => ({ value: w.key, label: w.name }))), fWh: s.fWh, setWh: (v) => this.setState({ fWh: v, page: 1 }),
+      rows, total, page, pageSize, setPage: (p) => this.setState({ page: p }), shown: total > 0, empty: total === 0,
+      emptyIcon: s.tab === 'pending' && !q ? 'check-circle' : 'search', emptyTitle: s.tab === 'pending' && !q && !s.fReason && !s.fWh ? 'Nothing waiting for approval' : 'No adjustments match',
+      emptyDesc: s.tab === 'pending' && !q ? 'Adjustments over 20 units or $500 show up here for an Operations Manager.' : 'Try another search, reason or warehouse.',
+      canSelect: s.tab === 'pending' && pendIds.length > 0, allSel: selIn.length > 0 && selIn.length === pendIds.length, someSel: selIn.length > 0 && selIn.length < pendIds.length,
+      toggleAll: () => this.setState({ sel: selIn.length === pendIds.length ? [] : pendIds }),
+      bulk: { show: s.sel.length > 0, count: F.int(s.sel.length) + ' selected', approve: () => this.decide(s.sel.slice(), true, ''), reject: () => this.decide(s.sel.slice(), false, ''), clear: () => this.setState({ sel: [] }) },
+      dp, closeDetail: () => this.setState({ detail: null }),
+      newOpen: !!s.nw, closeNew: () => this.setState({ nw: null }), nw, openNew: () => this.setState({ nw: newDraft() }), reasonOpts: I.REASONS.map((r) => ({ value: r.key, label: r.label })),
+      exportView: () => this.showToast('Exporting ' + F.plural(total, 'adjustment'), 'CSV with quantities, values, reasons and approvals for your accountant.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- adjustment data: Fernhill inventory (inventory.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory;
+var STATUS_V = { pending: ['warning', 'Awaiting approval', 'clock'], applied: ['success', 'Applied', 'check-circle'], rejected: ['neutral', 'Rejected', 'x'] };
+var TOP = I.ITEMS.filter(function (it) { return it.p.status === 'active'; }).sort(function (a, b) { return b.v30 - a.v30; }).slice(0, 60);
+function newDraft() { return { sku: TOP[0].sku, wh: 'ewr', reason: 'damaged', mode: 'remove', qty: '', note: '', touched: false }; }
+function signed(n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + F.int(Math.abs(n)); }
+function signedMoney(n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + F.money0(Math.abs(n)); }
+</script>
+</body>
+</html>

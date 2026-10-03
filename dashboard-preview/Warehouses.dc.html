@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>All Warehouses · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=4">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=5"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=6"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- All warehouses ---------- */
+.wh-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.td-strong{font-weight:500}
+.wh-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.wh-card{display:flex;flex-direction:column;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+.wh-card.is-busy{border-color:var(--warning)}
+.wh-card.is-paused{background:var(--bg-subtle)}
+.wh-head{display:flex;align-items:flex-start;gap:12px;padding:16px 16px 10px}
+.wh-logo{flex:none;width:40px;height:40px;border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;background:var(--brand-subtle);color:var(--brand)}
+.wh-logo.is-3pl{background:var(--bg-muted);color:var(--text-secondary)}
+.wh-logo .cx-icon{width:20px;height:20px}
+.wh-titles{flex:1;min-width:0;display:flex;flex-direction:column}
+.wh-name{border:0;background:none;padding:0;font:inherit;font-size:15px;line-height:22px;font-weight:600;color:var(--text-primary);text-align:left;cursor:pointer}
+.wh-name:hover{color:var(--link);text-decoration:underline}
+.wh-name:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:2px}
+.wh-cap{padding:0 16px 12px;display:flex;flex-direction:column;gap:6px}
+.wh-cap-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)}
+.wh-cap .pr-meter{height:8px}
+.wh-cap .pr-meter > span{background:var(--brand)}
+.wh-cap .pr-meter.is-warn > span{background:var(--warning)}
+.wh-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:12px 16px;border-top:1px solid var(--border)}
+.wh-metrics dt{font-size:12px;line-height:16px;color:var(--text-muted)}
+.wh-metrics dd{margin:2px 0 0;font-size:16px;line-height:24px;font-weight:600}
+.wh-metrics .is-bad{color:var(--danger)}
+.wh-note{display:flex;gap:8px;align-items:flex-start;margin:0;padding:10px 16px;border-top:1px solid var(--border);font-size:12px;line-height:18px;color:var(--warning)}
+.wh-note .cx-icon{flex:none;width:14px;height:14px;margin-top:2px}
+.wh-foot{display:flex;align-items:center;gap:8px;margin-top:auto;padding:12px 16px;border-top:1px solid var(--border)}
+.wh-foot .o-sub{margin-right:auto}
+/* routing */
+.wh-card-plain{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+.wh-sec-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 20px 12px;flex-wrap:wrap}
+.wh-sec-head h2{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.wh-sec-head p{margin:2px 0 0;font-size:12px;line-height:16px;color:var(--text-muted)}
+.rt-rows{list-style:none;margin:0;padding:0}
+.rt-row{display:grid;grid-template-columns:150px minmax(0,1fr) 210px;gap:16px;align-items:center;padding:12px 20px;border-top:1px solid var(--border)}
+.rt-row.is-dirty{background:var(--brand-subtle)}
+.rt-chain{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.rt-step{display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 4px 0 10px;border:1px solid var(--border);border-radius:var(--radius-full);background:var(--bg-surface);font-size:13px}
+.rt-step strong{font-weight:600;color:var(--text-muted);margin-right:2px}
+.rt-step button{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:0;border-radius:var(--radius-full);background:transparent;color:var(--text-secondary);cursor:pointer;padding:0}
+.rt-step button:hover{background:var(--bg-muted);color:var(--text-primary)}
+.rt-step button:disabled{opacity:.35;cursor:default;background:transparent}
+.rt-step button:focus-visible{outline:2px solid var(--focus-ring)}
+.rt-step .cx-icon{width:14px;height:14px}
+.rt-arrow{color:var(--text-muted);display:inline-flex}
+.rt-arrow .cx-icon{width:14px;height:14px}
+.rt-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--border);background:var(--bg-subtle);border-radius:0 0 var(--radius-md) var(--radius-md)}
+/* panel */
+.dp-wide{width:520px}
+.dp-kv{display:grid;grid-template-columns:120px minmax(0,1fr);gap:6px 12px;margin:0;font-size:13px;line-height:20px}
+.dp-kv dt{color:var(--text-muted)}
+.dp-kv dd{margin:0}
+.wh-perf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+.wh-perf div{padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.wh-perf dt{font-size:12px;color:var(--text-muted)}
+.wh-perf dd{margin:2px 0 0;font-size:15px;font-weight:600}
+.wh-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dp-foot-end{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:1279px){ .wh-grid{grid-template-columns:repeat(2,minmax(0,1fr))} .rt-row{grid-template-columns:120px minmax(0,1fr)} .rt-row > :last-child{grid-column:2} }
+@media (max-width:1023px){ .wh-kpis{display:flex} }
+@media (max-width:767px){ .wh-grid{grid-template-columns:minmax(0,1fr)} .dp-wide{width:100%} .wh-grid2{grid-template-columns:1fr} .rt-row{grid-template-columns:1fr} .rt-row > :last-child{grid-column:1} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="warehouses/all" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="warehouses/all"></x-import>
+<h1>All Warehouses</h1>
+<p class="ph-sub">Your fulfillment sites: capacity, today’s shipping, and which warehouse ships each channel’s orders.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Today, Oct 1 · as of 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openAdd}}">Add warehouse</x-import>
+</div>
+</div>
+
+<sc-if value="{{issue}}" hint-placeholder-val="{{true}}">
+<x-import component-from-global-scope="CommerceOS.Alert" tone="warning" title="{{issue.title}}" actions="{{issue.actions}}">{{issue.text}}</x-import>
+</sc-if>
+
+<section class="o-kpis wh-kpis" aria-label="Network today">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section aria-label="Warehouses">
+<div class="wh-grid">
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="5">
+<article class="{{c.cls}}" aria-labelledby="wh-n-{{c.key}}">
+<div class="wh-head">
+<span class="{{c.logoCls}}" aria-hidden="true"><x-import component-from-global-scope="CommerceOS.Icon" name="{{c.icon}}"></x-import></span>
+<div class="wh-titles"><button class="wh-name" id="wh-n-{{c.key}}" onClick="{{c.open}}">{{c.name}}</button><span class="o-sub">{{c.kind}} · {{c.city}}</span></div>
+<x-import component-from-global-scope="CommerceOS.Badge" tone="{{c.tone}}" dot="{{yes}}">{{c.statusLabel}}</x-import>
+</div>
+<div class="wh-cap"><div class="wh-cap-row"><span>{{c.units}} units · {{c.value}}</span><span>{{c.capLabel}}</span></div><span class="{{c.meterCls}}" aria-hidden="true"><span style="width: {{c.capPct}}%"></span></span></div>
+<dl class="wh-metrics">
+<div><dt>Shipped today</dt><dd>{{c.shipped}}</dd></div>
+<div><dt>Waiting to ship</dt><dd><span>{{c.toShip}}</span></dd><span class="{{c.lateCls}}">{{c.late}}</span></div>
+<div><dt>On time, 30 days</dt><dd class="{{c.onTimeCls}}">{{c.onTime}}</dd></div>
+</dl>
+<sc-if value="{{c.note}}" hint-placeholder-val="{{false}}"><p class="wh-note"><x-import component-from-global-scope="CommerceOS.Icon" name="alert-triangle"></x-import><span>{{c.note}}</span></p></sc-if>
+<div class="wh-foot"><span class="o-sub">{{c.cutoff}}</span>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="package" href="{{c.stockHref}}">Stock</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" on-click="{{c.open}}">Details</x-import>
+</div>
+</article>
+</sc-for>
+</div>
+</section>
+
+<section class="wh-card-plain" aria-labelledby="rt-h">
+<div class="wh-sec-head"><div><h2 id="rt-h">Order routing</h2><p>Which warehouse ships each channel’s orders. If the first one is out of stock, the next one takes the order.</p></div><span class="o-sub">{{routeMeta}}</span></div>
+<ul class="rt-rows">
+<sc-for list="{{routes}}" as="r" hint-placeholder-count="4">
+<li class="{{r.cls}}">
+<span><span class="td-strong">{{r.label}}</span><span class="o-sub">{{r.sub}}</span></span>
+<div class="rt-chain">
+<sc-for list="{{r.steps}}" as="st" hint-placeholder-count="3">
+<sc-if value="{{st.notFirst}}" hint-placeholder-val="{{false}}"><span class="rt-arrow" aria-hidden="true"><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-right"></x-import></span></sc-if>
+<span class="rt-step"><strong>{{st.n}}</strong>{{st.name}}<button aria-label="Move {{st.name}} earlier" disabled="{{st.first}}" onClick="{{st.up}}"><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-left"></x-import></button><button aria-label="Move {{st.name}} later" disabled="{{st.last}}" onClick="{{st.down}}"><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-right"></x-import></button><button aria-label="Remove {{st.name}}" disabled="{{st.only}}" onClick="{{st.remove}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></span>
+</sc-for>
+<sc-if value="{{r.canAdd}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Select" size="sm" aria-label="Add a warehouse to {{r.label}}" options="{{r.addOpts}}" value="" on-value-change="{{r.add}}" width="150px"></x-import></sc-if>
+</div>
+<x-import component-from-global-scope="CommerceOS.Select" size="sm" aria-label="Routing rule for {{r.label}}" options="{{ruleOpts}}" value="{{r.rule}}" on-value-change="{{r.setRule}}"></x-import>
+</li>
+</sc-for>
+</ul>
+<sc-if value="{{routeDirty}}" hint-placeholder-val="{{false}}"><div class="rt-foot"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{discardRoutes}}">Discard</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{saveRoutes}}">Save routing</x-import></div></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close warehouse" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="wh-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="wh-dp-title">{{dp.name}}</h2><span class="o-sub">{{dp.kind}} · {{dp.city}}</span></div><button class="icon-btn" aria-label="Close warehouse" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec"><div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" dot="{{yes}}">{{dp.statusLabel}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<dl class="wh-perf"><div><dt>Pick accuracy</dt><dd>{{dp.accuracy}}</dd></div><div><dt>Order to ship</dt><dd>{{dp.pickHours}}</dd></div><div><dt>Cost per order</dt><dd>{{dp.cost}}</dd></div></dl>
+</section>
+<section class="o-panel-sec"><h3>Site</h3>
+<dl class="dp-kv"><dt>Address</dt><dd>{{dp.address}}</dd><dt>Contact</dt><dd>{{dp.phone}}</dd><dt>Size</dt><dd>{{dp.size}}</dd><dt>Ships</dt><dd>{{dp.serves}}</dd><dt>Routing</dt><dd>{{dp.routing}}</dd><dt>Carrier</dt><dd>{{dp.carrier}}</dd></dl>
+</section>
+<section class="o-panel-sec"><h3>Settings</h3>
+<div class="wh-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Site manager" value="{{dp.manager}}" on-change="{{dp.setManager}}" error="{{dp.managerError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Capacity" suffix="units" inputmode="numeric" value="{{dp.capacity}}" on-change="{{dp.setCapacity}}" error="{{dp.capError}}"></x-import></div>
+<div class="wh-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Same-day cut-off" options="{{cutoffOpts}}" value="{{dp.cutoff}}" on-value-change="{{dp.setCutoff}}" hint="Orders placed before this ship today ({{dp.tz}})."></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Opening hours" value="{{dp.hours}}" on-change="{{dp.setHours}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Accept new orders for fulfillment" checked="{{dp.accepting}}" on-change="{{dp.setAccepting}}"></x-import>
+<sc-if value="{{dp.pauseNote}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">{{dp.pauseNote}}</x-import></sc-if>
+</section>
+</div>
+<div class="o-panel-foot"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="package" href="{{dp.stockHref}}">View stock</x-import><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" on-click="{{closeDetail}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" disabled="{{dp.pristine}}" on-click="{{dp.save}}">Save changes</x-import></div></div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{addOpen}}" on-close="{{closeAdd}}" size="md" title="Add warehouse" description="New sites start in setup. Add stock with a transfer or a purchase order, then switch on fulfillment.">
+<div class="o-modal-stack">
+<div class="wh-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Name" value="{{ad.name}}" on-change="{{ad.setName}}" error="{{ad.nameError}}" placeholder="e.g. Toronto 3PL" data-autofocus="true"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Type" options="{{kindOpts}}" value="{{ad.kind}}" on-value-change="{{ad.setKind}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Input" label="City and country" value="{{ad.city}}" on-change="{{ad.setCity}}" error="{{ad.cityError}}" placeholder="e.g. Toronto, Canada"></x-import>
+<div class="wh-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Capacity" suffix="units" inputmode="numeric" value="{{ad.capacity}}" on-change="{{ad.setCapacity}}" error="{{ad.capError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Site manager" value="{{ad.manager}}" on-change="{{ad.setManager}}" optional="{{yes}}"></x-import></div>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeAdd}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{ad.save}}">Add warehouse</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","detail","add"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none';
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      whs: I.WAREHOUSES.map((w) => Object.assign({ accepting: true }, w)), routes: cloneRoutes(I.ROUTING), saved: cloneRoutes(I.ROUTING), detail: null, edit: null, add: null
+    };
+    if (demo === 'detail') { this.state.detail = 'rtm'; this.state.edit = this.editFor(this.state.whs.find((w) => w.key === 'rtm')); }
+    if (demo === 'add') this.state.add = newAdd();
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.add) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  editFor(w) { return { manager: w.manager, capacity: String(w.capacity), cutoff: w.cutoff, hours: w.hours, accepting: w.accepting, touched: false }; }
+  setRoute(i, fn) { this.setState((s) => ({ routes: s.routes.map((r, j) => (j === i ? fn(Object.assign({}, r, { order: r.order.slice() })) : r)) })); }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store);
+    const name = (k) => (s.whs.find((w) => w.key === k) || {}).short || k;
+    const stockOf = (k) => ACTIVE.reduce((a, it) => a + (it.stock[k] || 0), 0), valueOf = (k) => ACTIVE.reduce((a, it) => a + (it.stock[k] || 0) * it.p.cost, 0);
+    const cards = s.whs.map((w) => {
+      const units = w.setup ? 0 : stockOf(w.key), cap = units / w.capacity, paused = !w.accepting, status = w.setup ? 'setup' : paused ? 'paused' : w.status;
+      const sv = STATUS_V[status];
+      return { key: w.key, name: w.name, kind: w.kind, city: w.city, icon: w.kind === 'Third-party logistics' ? 'truck' : 'warehouse', logoCls: 'wh-logo' + (w.kind === 'Third-party logistics' ? ' is-3pl' : ''),
+        cls: 'wh-card' + (status === 'busy' ? ' is-busy' : '') + (paused || w.setup ? ' is-paused' : ''), tone: sv[0], statusLabel: sv[1],
+        units: F.int(units), value: F.money0(w.setup ? 0 : valueOf(w.key)), capLabel: Math.round(cap * 100) + '% of ' + F.int(w.capacity), capPct: Math.min(100, cap * 100).toFixed(1), meterCls: 'pr-meter' + (cap > 0.65 ? ' is-warn' : ''),
+        shipped: w.setup ? '—' : F.int(w.shippedToday), toShip: w.setup ? '—' : F.int(w.toShip), late: w.late ? F.int(w.late) + ' late' : 'none late', lateCls: w.late ? 'o-sub iv-neg' : 'o-sub',
+        onTime: w.setup ? '—' : Math.round(w.onTime * 100) + '%', onTimeCls: w.onTime < 0.9 ? 'is-bad' : '',
+        note: paused ? 'Not taking new orders. ' + (w.note || '') : w.setup ? 'Setting up. Add stock and switch on fulfillment when ready.' : w.note,
+        cutoff: 'Cut-off ' + w.cutoff + ' ' + w.tz, stockHref: 'StockByWarehouse.dc.html?wh=' + w.key,
+        open: () => this.setState({ detail: w.key, edit: this.editFor(w) }) };
+    });
+
+    const live = s.whs.filter((w) => !w.setup), shipped = live.reduce((a, w) => a + w.shippedToday, 0), waiting = live.reduce((a, w) => a + w.toShip, 0), late = live.reduce((a, w) => a + w.late, 0);
+    const onTime = live.reduce((a, w) => a + w.onTime * w.shippedToday, 0) / Math.max(1, shipped), units = live.reduce((a, w) => a + stockOf(w.key), 0), cap = live.reduce((a, w) => a + w.capacity, 0);
+    const kpis = [
+      { label: 'Shipped today', dot: 'cx-dot cx-dot-success', value: F.int(shipped), cmp: 'across ' + F.plural(live.length, 'warehouse') },
+      { label: 'Waiting to ship', dot: 'cx-dot cx-dot-warning', value: F.int(waiting), cmp: F.int(late) + ' past the 24-hour target' },
+      { label: 'On-time shipping, 30 days', dot: 'cx-dot cx-dot-brand', value: (onTime * 100).toFixed(1) + '%', cmp: 'Target 95%' },
+      { label: 'Network capacity used', dot: 'cx-dot cx-dot-info', value: Math.round(units / cap * 100) + '%', cmp: F.int(units) + ' of ' + F.int(cap) + ' units' }
+    ];
+
+    // Rotterdam backlog: offer to send new EU orders to Chattogram first
+    const rtm = s.whs.find((w) => w.key === 'rtm'), eu = s.saved.find((r) => r.channel === 'eu');
+    const issue = rtm && rtm.status === 'busy' && rtm.accepting && eu && eu.order[0] === 'rtm' ? {
+      title: 'Rotterdam DC is behind: ' + rtm.late + ' orders past the 24-hour target',
+      text: rtm.note + ' Chattogram has ' + F.int(ACTIVE.filter((it) => it.p.channels.indexOf('eu') >= 0).reduce((a, it) => a + it.stock.ctg, 0)) + ' units of EU stock and ships to the EU in 6–8 days.',
+      actions: [h(CommerceOS.Button, { key: 'r', variant: 'secondary', size: 'sm', onClick: () => this.rerouteEu() }, 'Send new EU orders to Chattogram first'),
+        h(CommerceOS.Button, { key: 'o', variant: 'ghost', size: 'sm', onClick: () => this.setState({ detail: 'rtm', edit: this.editFor(rtm) }) }, 'Open Rotterdam DC')]
+    } : null;
+
+    const options = s.whs.filter((w) => w.accepting && !w.setup);
+    const routes = s.routes.map((r, i) => {
+      const saved = s.saved[i], dirty = JSON.stringify(saved) !== JSON.stringify(r);
+      return { label: r.label, cls: 'rt-row' + (dirty ? ' is-dirty' : ''), rule: r.rule, sub: RULE_SUB[r.rule] + (r.note ? ' · ' + r.note : ''),
+        steps: r.order.map((k, j) => ({ n: j + 1, name: name(k), first: j === 0, last: j === r.order.length - 1, notFirst: j > 0, only: r.order.length === 1,
+          up: () => this.setRoute(i, (x) => { x.order.splice(j - 1, 0, x.order.splice(j, 1)[0]); return x; }),
+          down: () => this.setRoute(i, (x) => { x.order.splice(j + 1, 0, x.order.splice(j, 1)[0]); return x; }),
+          remove: () => this.setRoute(i, (x) => { x.order.splice(j, 1); return x; }) })),
+        canAdd: options.some((w) => r.order.indexOf(w.key) < 0),
+        addOpts: [{ value: '', label: '+ Add warehouse', disabled: true }].concat(options.filter((w) => r.order.indexOf(w.key) < 0).map((w) => ({ value: w.key, label: w.short }))),
+        add: (v) => v && this.setRoute(i, (x) => { x.order.push(v); return x; }), setRule: (v) => this.setRoute(i, (x) => { x.rule = v; return x; }) };
+    });
+    const routeDirty = JSON.stringify(s.routes) !== JSON.stringify(s.saved);
+
+    let dp = null;
+    if (s.detail) {
+      const w = s.whs.find((x) => x.key === s.detail), e = s.edit, sv = STATUS_V[w.setup ? 'setup' : !w.accepting ? 'paused' : w.status];
+      const up = (k) => (v) => { const val = v && v.target ? v.target.value : v; this.setState((x) => ({ edit: Object.assign({}, x.edit, { [k]: val }) })); };
+      const capN = Number(e.capacity), used = stockOf(w.key);
+      const capError = !/^\d+$/.test(e.capacity) ? 'Enter a whole number' : capN < used ? 'Already holds ' + F.int(used) + ' units' : null, managerError = !e.manager.trim() ? 'Enter a name' : null;
+      const routedHere = s.saved.filter((r) => r.order[0] === w.key);
+      dp = { name: w.name, kind: w.kind, city: w.city, tone: sv[0], statusLabel: sv[1], statusSub: w.setup ? 'Not shipping yet' : F.int(w.shippedToday) + ' shipped today · ' + F.int(w.toShip) + ' waiting',
+        accuracy: w.setup ? '—' : (w.accuracy * 100).toFixed(1) + '%', pickHours: w.setup ? '—' : w.pickHours.toFixed(1) + ' h', cost: w.setup ? '—' : F.money2(w.cost),
+        address: w.address || w.city, phone: (w.phone || '—'), size: w.sqm ? F.int(w.sqm) + ' m² · ' + w.docks + ' docks · ' + w.staff + ' staff' : '—', serves: w.serves || '—', carrier: w.carrier || '—',
+        routing: routedHere.length ? 'First choice for ' + routedHere.map((r) => r.label).join(', ') : s.saved.some((r) => r.order.indexOf(w.key) >= 0) ? 'Backup for ' + s.saved.filter((r) => r.order.indexOf(w.key) > 0).map((r) => r.label).join(', ') : 'Not in any routing',
+        manager: e.manager, capacity: e.capacity, cutoff: e.cutoff, hours: e.hours, accepting: e.accepting, tz: w.tz || 'local time',
+        managerError: e.touched ? managerError : null, capError: e.touched || (capN < used && /^\d+$/.test(e.capacity)) ? capError : null,
+        pauseNote: !e.accepting && w.accepting ? 'New orders for ' + (routedHere.length ? routedHere.map((r) => r.label).join(' and ') : 'its channels') + ' go to the next warehouse in routing. ' + F.int(w.toShip) + ' orders already here still ship from here.' : null,
+        setManager: up('manager'), setCapacity: up('capacity'), setCutoff: up('cutoff'), setHours: up('hours'), setAccepting: up('accepting'),
+        pristine: e.manager === w.manager && e.capacity === String(w.capacity) && e.cutoff === w.cutoff && e.hours === w.hours && e.accepting === w.accepting,
+        stockHref: 'StockByWarehouse.dc.html?wh=' + w.key,
+        save: () => {
+          if (capError || managerError) return this.setState({ edit: Object.assign({}, e, { touched: true }) });
+          const prev = s.whs;
+          this.setState({ whs: prev.map((x) => (x.key === w.key ? Object.assign({}, x, { manager: e.manager.trim(), capacity: capN, cutoff: e.cutoff, hours: e.hours, accepting: e.accepting }) : x)), detail: null });
+          this.showToast(w.name + ' saved', e.accepting !== w.accepting ? (e.accepting ? 'It’s taking new orders again.' : 'New orders route to the next warehouse.') : e.cutoff !== w.cutoff ? 'Same-day cut-off is now ' + e.cutoff + ' ' + w.tz + '. Checkout delivery estimates update.' : 'Changes are live.', 'success',
+            { label: 'Undo', onClick: () => this.setState({ whs: prev, toast: null }) });
+        } };
+    }
+
+    let ad = {};
+    if (s.add) {
+      const d = s.add, up = (k) => (v) => { const val = v && v.target ? v.target.value : v; this.setState((x) => ({ add: Object.assign({}, x.add, { [k]: val }) })); };
+      const nameError = !d.name.trim() ? 'Enter a name' : s.whs.some((w) => w.name.toLowerCase() === d.name.trim().toLowerCase()) ? 'A warehouse already has this name' : null;
+      const cityError = !d.city.trim() ? 'Enter a city' : null, capError = !/^\d+$/.test(d.capacity) || Number(d.capacity) < 100 ? 'Enter at least 100 units' : null;
+      ad = { name: d.name, kind: d.kind, city: d.city, capacity: d.capacity, manager: d.manager, nameError: d.touched ? nameError : null, cityError: d.touched ? cityError : null, capError: d.touched ? capError : null,
+        setName: up('name'), setKind: up('kind'), setCity: up('city'), setCapacity: up('capacity'), setManager: up('manager'),
+        save: () => {
+          if (nameError || cityError || capError) return this.setState({ add: Object.assign({}, d, { touched: true }) });
+          const key = 'new' + s.whs.length, short = d.name.trim().split(/[ ,]/)[0];
+          this.setState({ whs: s.whs.concat([{ key, name: d.name.trim(), short, city: d.city.trim(), kind: d.kind, capacity: Number(d.capacity), manager: d.manager.trim() || 'Not assigned', setup: true, accepting: false,
+            status: 'operational', cutoff: '14:00', tz: 'local', hours: 'Mon–Fri, 08:00–17:00', shippedToday: 0, toShip: 0, late: 0, onTime: 1, accuracy: 1, pickHours: 0, cost: 0 }]), add: null });
+          this.showToast(d.name.trim() + ' added', 'It’s in setup. Send stock with a transfer, then turn on fulfillment from its details.');
+        } };
+    }
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(s.whs.length, 'warehouse') + ' · ' + s.whs.filter((w) => w.kind === 'Third-party logistics').length + ' run by a 3PL partner',
+      issue, kpis, cards, routes, routeDirty, ruleOpts: RULE_OPTS, routeMeta: 'Last changed Sep 12 by Priya Natarajan',
+      discardRoutes: () => this.setState({ routes: cloneRoutes(s.saved) }),
+      saveRoutes: () => { const prev = s.saved; this.setState({ saved: cloneRoutes(s.routes) });
+        this.showToast('Routing saved', 'New orders follow it right away. Orders already assigned keep their warehouse.', 'success', { label: 'Undo', onClick: () => this.setState({ saved: prev, routes: cloneRoutes(prev), toast: null }) }); },
+      dp, closeDetail: () => this.setState({ detail: null }), cutoffOpts: CUTOFFS,
+      addOpen: !!s.add, openAdd: () => this.setState({ add: newAdd() }), closeAdd: () => this.setState({ add: null }), ad, kindOpts: KINDS,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+  rerouteEu() {
+    const prevSaved = this.state.saved, prevRoutes = this.state.routes;
+    const next = prevSaved.map((r) => (r.channel === 'eu' ? Object.assign({}, r, { order: ['ctg', 'rtm'] }) : Object.assign({}, r, { order: r.order.slice() })));
+    this.setState({ saved: next, routes: cloneRoutes(next) });
+    this.showToast('New EU orders go to Chattogram first', 'Rotterdam keeps shipping its 96-order backlog. Switch back in Order routing once it’s cleared.', 'success',
+      { label: 'Undo', onClick: () => this.setState({ saved: prevSaved, routes: prevRoutes, toast: null }) });
+  }
+}
+
+/* ---------- warehouse data: Fernhill inventory (inventory.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, h = window.React.createElement, CommerceOS = window.CommerceOS;
+var ACTIVE = I.ITEMS.filter(function (it) { return it.p.status === 'active'; });
+var STATUS_V = { operational: ['success', 'Operational'], busy: ['warning', 'Behind'], paused: ['neutral', 'Paused'], setup: ['info', 'Setting up'] };
+var RULE_OPTS = [{ value: 'priority', label: 'In this order' }, { value: 'nearest', label: 'Nearest to customer' }, { value: 'stock', label: 'Most stock first' }];
+var RULE_SUB = { priority: 'In this order', nearest: 'Nearest to the customer', stock: 'Warehouse with the most stock' };
+var CUTOFFS = ['12:00', '13:00', '14:00', '15:00', '16:00', '17:00'].map(function (t) { return { value: t, label: t }; });
+var KINDS = ['Own warehouse', 'Distribution center', 'Third-party logistics'].map(function (k) { return { value: k, label: k }; });
+function cloneRoutes(r) { return r.map(function (x) { return Object.assign({}, x, { order: x.order.slice() }); }); }
+function newAdd() { return { name: '', kind: 'Third-party logistics', city: '', capacity: '3000', manager: '', touched: false }; }
+</script>
+</body>
+</html>

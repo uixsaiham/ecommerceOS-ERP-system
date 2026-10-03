@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stock by Warehouse · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=4">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=5"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=6"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Stock by warehouse ---------- */
+.sw-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.td-strong{font-weight:500}
+.sw-whbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.sw-whbar .cx-tabs{border-bottom:0;gap:20px}
+.sw-zones{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.sw-zone{display:flex;flex-direction:column;gap:6px;padding:12px 14px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;min-width:0}
+.sw-zone:hover{border-color:var(--border-strong)}
+.sw-zone[aria-pressed="true"]{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.sw-zone:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.sw-zone strong{font-size:13px}
+.sw-zone .pr-meter > span{background:var(--brand)}
+.sw-zone .pr-meter.is-warn > span{background:var(--warning)}
+.sw-zone-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)}
+.sw-due{color:var(--warning);font-weight:500}
+.sw-duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.sw-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px;min-width:0}
+.sw-card h2{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.sw-card > p{margin:2px 0 12px;font-size:12px;line-height:16px;color:var(--text-muted)}
+.sw-age{display:flex;height:14px;gap:2px;border-radius:var(--radius-full);overflow:hidden;background:var(--bg-muted);margin-bottom:12px}
+.sw-age span{display:block;height:100%}
+.ag-0{background:#c7d2fe}.ag-1{background:#818cf8}.ag-2{background:#4f46e5}.ag-3{background:#3730a3}.ag-4{background:#1e1b4b}
+.app[data-theme="dark"] .ag-0{background:#312e81}.app[data-theme="dark"] .ag-1{background:#4338ca}.app[data-theme="dark"] .ag-2{background:#6366f1}.app[data-theme="dark"] .ag-3{background:#a5b4fc}.app[data-theme="dark"] .ag-4{background:#e0e7ff}
+.sw-legend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.sw-legend li button{display:grid;grid-template-columns:12px minmax(0,1fr) 80px 48px;gap:10px;align-items:center;width:100%;padding:6px 4px;border:0;border-radius:var(--radius-xs);background:transparent;font:inherit;font-size:13px;color:var(--text-primary);text-align:left;cursor:pointer}
+.sw-legend li button:hover{background:var(--bg-subtle)}
+.sw-legend li button[aria-pressed="true"]{background:var(--brand-subtle)}
+.sw-legend .sw-sw{width:10px;height:10px;border-radius:3px}
+.sw-legend .r{text-align:right;font-variant-numeric:tabular-nums}
+.sw-legend .m{text-align:right;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.sw-tasks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.sw-tasks li{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.sw-tasks li:last-child{border-bottom:0}
+.sw-tasks .pr-cell-main{flex:1}
+.sw-bin{font-family:var(--font-mono);font-size:12px;font-weight:500;padding:2px 6px;border-radius:var(--radius-xs);background:var(--bg-muted)}
+.sw-table td.c-order{min-width:230px;white-space:normal}
+.sw-table .c-order{left:36px}
+.sw-old{color:var(--warning);font-weight:500}
+.sw-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:1279px){ .sw-zones{grid-template-columns:repeat(3,minmax(0,1fr))} .sw-duo{grid-template-columns:minmax(0,1fr)} .c-value{display:none} }
+@media (max-width:1023px){ .sw-kpis{display:flex} .c-avail{display:none} }
+@media (max-width:767px){ .sw-zones{grid-template-columns:repeat(2,minmax(0,1fr))} .sw-grid2{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="warehouses/stock" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="warehouses/stock"></x-import>
+<h1>Stock by Warehouse</h1>
+<p class="ph-sub">Inside one warehouse: zones, bin locations, how old the stock is, and which areas are due a count.</p>
+<p class="ph-meta"><span>{{metaWh}}</span><span>{{metaManager}}</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export bin list</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="clipboard-list" on-click="{{countDue}}">{{countDueLabel}}</x-import>
+</div>
+</div>
+
+<div class="sw-whbar"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Warehouse" items="{{whTabs}}" value="{{wh}}" on-change="{{setWh}}"></x-import></div>
+
+<sc-if value="{{whNote}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">{{whNote}}</x-import></sc-if>
+
+<section class="o-kpis sw-kpis" aria-label="Warehouse summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section aria-label="Zones">
+<div class="sw-zones"><sc-for list="{{zones}}" as="z" hint-placeholder-count="5">
+<button class="sw-zone" aria-pressed="{{z.on}}" onClick="{{z.pick}}"><strong>{{z.label}}</strong><span class="{{z.meterCls}}" aria-hidden="true"><span style="width: {{z.pct}}%"></span></span><span class="sw-zone-row"><span>{{z.units}} units</span><span>{{z.capLabel}}</span></span><span class="sw-zone-row"><span>{{z.skus}}</span><span class="{{z.countCls}}">{{z.counted}}</span></span></button>
+</sc-for></div>
+</section>
+
+<div class="sw-duo">
+<section class="sw-card" aria-labelledby="sw-age-h"><h2 id="sw-age-h">Stock age</h2><p>Value at cost by days since the stock arrived · click to filter</p>
+<div class="sw-age" role="img" aria-label="{{ageAria}}"><sc-for list="{{ages}}" as="a" hint-placeholder-count="5"><span class="{{a.cls}}" style="width: {{a.pct}}%"></span></sc-for></div>
+<ul class="sw-legend"><sc-for list="{{ages}}" as="a" hint-placeholder-count="5"><li><button aria-pressed="{{a.on}}" onClick="{{a.pick}}"><span class="sw-sw {{a.cls}}" aria-hidden="true"></span><span>{{a.label}}</span><span class="r">{{a.value}}</span><span class="m">{{a.share}}</span></button></li></sc-for></ul>
+</section>
+<section class="sw-card" aria-labelledby="sw-c-h"><h2 id="sw-c-h">Cycle counts</h2><p>{{countSub}}</p>
+<sc-if value="{{hasTasks}}" hint-placeholder-val="{{true}}"><ul class="sw-tasks"><sc-for list="{{tasks}}" as="t" hint-placeholder-count="3"><li><span class="pr-cell-main"><span class="td-strong">{{t.id}} · {{t.zone}}</span><span class="o-sub">{{t.sub}}</span></span><x-import component-from-global-scope="CommerceOS.Badge" tone="{{t.tone}}">{{t.status}}</x-import><sc-if value="{{t.canComplete}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" on-click="{{t.complete}}">{{t.cta}}</x-import></sc-if></li></sc-for></ul></sc-if>
+<sc-if value="{{noTasks}}" hint-placeholder-val="{{false}}"><p class="o-modal-note">No counts open. Start one from a zone that’s due.</p></sc-if>
+</section>
+</div>
+
+<section class="o-card" aria-label="Bins">
+<div class="o-tools">
+<div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by bin, product or SKU" label="Search bins" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Status" options="{{statusOpts}}" value="{{status}}" on-value-change="{{setStatus}}" width="200px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Sort" options="{{sortOpts}}" value="{{sort}}" on-value-change="{{setSort}}" width="200px"></x-import>
+</div>
+<sc-if value="{{chips}}" hint-placeholder-val="{{false}}"><div class="rv-chiprow" style="display: flex; gap: 8px; flex-wrap: wrap"><sc-for list="{{chips}}" as="c" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="x" on-click="{{c.clear}}">{{c.label}}</x-import></sc-for></div></sc-if>
+</div>
+<div class="o-bulkwrap">
+<sc-if value="{{bulk.show}}" hint-placeholder-val="{{false}}">
+<div class="o-bulk" role="region" aria-label="Bulk actions">
+<span class="o-bulk-count">{{bulk.count}}</span>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="file-text" on-click="{{bulk.labels}}"><span class="o-bulk-label">Print bin labels</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="clipboard-list" on-click="{{bulk.count2}}"><span class="o-bulk-label">Count these bins</span></x-import>
+<div class="o-bulk-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" on-click="{{bulk.clear}}">Clear selection</x-import></div>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table sw-table" aria-label="Bins">
+<thead><tr>
+<th class="c-check" scope="col"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="Select all on this page" checked="{{pageAll}}" indeterminate="{{pageSome}}" on-change="{{togglePage}}"></x-import></th>
+<th class="c-order" scope="col">Product</th>
+<th scope="col">Bin</th>
+<th class="is-right" scope="col">On hand</th>
+<th class="is-right c-avail" scope="col">Available</th>
+<th class="is-right c-value" scope="col">Value</th>
+<th scope="col">Age</th>
+<th scope="col">Status</th>
+<th class="c-act" scope="col"><span class="cx-sr">Actions</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="25">
+<tr class="{{r.trCls}}">
+<td class="c-check"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="Select {{r.sku}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import></td>
+<td class="c-order"><div class="pr-cell"><span class="{{r.thumbCls}}" aria-hidden="true">{{r.initials}}</span><span class="pr-cell-main"><span class="td-strong">{{r.name}}</span><span class="o-sub">{{r.variant}} · <span class="iv-sku">{{r.sku}}</span></span></span></div></td>
+<td><span class="sw-bin">{{r.bin}}</span><span class="o-sub">{{r.binSub}}</span></td>
+<td class="is-right td-strong">{{r.onHand}}</td>
+<td class="is-right c-avail">{{r.available}}</td>
+<td class="is-right c-value">{{r.value}}</td>
+<td><span class="{{r.ageCls}}">{{r.age}}</span><span class="o-sub">{{r.cover}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{r.status}}" label="{{r.statusLabel}}"></x-import></td>
+<td class="c-act"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="truck" aria-label="Move {{r.sku}} to another bin" on-click="{{r.move}}"></x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Bins">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<li class="o-m-card"><div class="o-m-top"><span class="sw-bin">{{r.bin}}</span><span class="pr-cell-main" style="flex: 1"><span class="td-strong">{{r.name}}</span><span class="o-sub">{{r.variant}} · {{r.age}}</span></span><span class="o-m-total">{{r.onHand}}</span></div>
+<div class="o-m-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="truck" on-click="{{r.move}}">Move bin</x-import></div></li>
+</sc-for>
+</ul>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="bins" on-page-change="{{setPage}}"></x-import></div>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="search" title="No bins match" description="Try another search, zone or age filter."></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{mvOpen}}" on-close="{{closeMv}}" size="sm" title="{{mv.title}}" description="{{mv.desc}}">
+<div class="o-modal-stack">
+<div class="sw-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="From bin" value="{{mv.from}}" readonly="{{yes}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="To bin" value="{{mv.to}}" on-change="{{mv.setTo}}" error="{{mv.toError}}" placeholder="e.g. A-04-02" data-autofocus="true" hint="Zone-aisle-level"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Print a new bin label" checked="{{mv.label}}" on-change="{{mv.setLabel}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeMv}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="truck" on-click="{{mv.save}}">Move stock</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{ctOpen}}" on-close="{{closeCt}}" size="sm" title="{{ct.title}}" description="{{ct.desc}}">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Select" label="Assign to" options="{{ct.staffOpts}}" value="{{ct.who}}" on-value-change="{{ct.setWho}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Count type" options="{{countTypes}}" value="{{ct.type}}" on-value-change="{{ct.setType}}" hint="{{ct.typeHint}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeCt}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="clipboard-list" on-click="{{ct.save}}">Create count</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let wh = 'ewr';
+    try { const q = new URLSearchParams(window.location.search).get('wh'); if (q && I.WH[q]) wh = q; } catch (e) { /* no query string */ }
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      wh, zone: '', age: '', status: '', query: '', sort: 'bin', page: 1, sel: [], bins: {}, counts: {}, tasks: TASKS.slice(), mv: null, ct: null, seq: 418
+    };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.mv && !this.state.ct && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  bin(it, wh) { return this.state.bins[it.sku + '@' + wh] || I.binOf(it, wh); }
+  lastCount(wh, z) { return this.state.counts[wh + z] || I.COUNTS[wh + z]; }
+  openCount(wh, zone, skus) { this.setState({ ct: { wh, zone, skus: skus || null, who: I.WH[wh].manager.split(' (')[0], type: 'blind' } }); }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), ch = F.channelOf(s.store), w = I.WH[s.wh];
+    const here = ACTIVE.filter((it) => it.stock[s.wh] > 0 && (!ch || it.p.channels.indexOf(ch.key) >= 0));
+    const zoneOf = (it) => this.bin(it, s.wh).charAt(0);
+    const ageOf = (it) => I.ageOf(it, s.wh), bucket = (d) => (d <= 30 ? 0 : d <= 90 ? 1 : d <= 180 ? 2 : d <= 365 ? 3 : 4);
+    const units = here.reduce((a, it) => a + it.stock[s.wh], 0), value = here.reduce((a, it) => a + it.stock[s.wh] * it.p.cost, 0);
+    const avgAge = value ? here.reduce((a, it) => a + ageOf(it) * it.stock[s.wh] * it.p.cost, 0) / value : 0;
+    const old = here.filter((it) => ageOf(it) > 180), oldValue = old.reduce((a, it) => a + it.stock[s.wh] * it.p.cost, 0);
+    const kpis = [
+      { label: 'Units on hand', dot: 'cx-dot cx-dot-brand', value: F.int(units), cmp: Math.round(units / w.capacity * 100) + '% of ' + F.int(w.capacity) + ' capacity' },
+      { label: 'Value at cost', dot: 'cx-dot cx-dot-success', value: F.money0(value), cmp: F.money0(here.reduce((a, it) => a + it.stock[s.wh] * it.p.price, 0)) + ' at retail' },
+      { label: 'Bins in use', dot: 'cx-dot cx-dot-info', value: F.int(uniq(here.map((it) => this.bin(it, s.wh))).length), cmp: F.plural(here.length, 'SKU') + ' · ' + F.plural(uniq(here.map((it) => it.p.id)).length, 'product') },
+      { label: 'Average stock age', dot: 'cx-dot cx-dot-warning', value: Math.round(avgAge) + ' days', cmp: F.money0(oldValue) + ' older than 6 months' }
+    ];
+    const zones = I.ZONES.map((z) => {
+      const zi = here.filter((it) => zoneOf(it) === z.key), zu = zi.reduce((a, it) => a + it.stock[s.wh], 0), zc = Math.round(w.capacity * z.share), last = this.lastCount(s.wh, z.key), days = Math.round((F.NOW - last) / F.DAY), due = days > 30;
+      return { label: z.label, units: F.int(zu), capLabel: Math.round(zu / zc * 100) + '% full', pct: Math.min(100, zu / zc * 100).toFixed(1), meterCls: 'pr-meter' + (zu / zc > 0.8 ? ' is-warn' : ''),
+        skus: F.plural(zi.length, 'SKU'), counted: due ? 'Count due · ' + days + 'd' : 'Counted ' + days + 'd ago', countCls: due ? 'sw-due' : '', on: s.zone === z.key,
+        pick: () => this.setState({ zone: s.zone === z.key ? '' : z.key, page: 1, sel: [] }), due, key: z.key };
+    });
+    const dueZones = zones.filter((z) => z.due);
+
+    const ageVals = AGE_BUCKETS.map((b, i) => { const its = here.filter((it) => bucket(ageOf(it)) === i), v = its.reduce((a, it) => a + it.stock[s.wh] * it.p.cost, 0); return { b, i, v }; });
+    const ages = ageVals.map((x) => ({ label: x.b, cls: 'ag-' + x.i, value: F.money0(x.v), share: value ? Math.round(x.v / value * 100) + '%' : '0%', pct: value ? (x.v / value * 100).toFixed(2) : 0,
+      on: s.age === String(x.i), pick: () => this.setState({ age: s.age === String(x.i) ? '' : String(x.i), page: 1, sel: [] }) }));
+
+    const q = s.query.trim().toLowerCase();
+    const list = here.filter((it) => (!s.zone || zoneOf(it) === s.zone) && (s.age === '' || bucket(ageOf(it)) === Number(s.age))
+      && (!s.status || (s.status === 'short' ? ['low', 'out'].indexOf(I.locState(it, s.wh)) >= 0 : I.locState(it, s.wh) === s.status))
+      && (!q || this.bin(it, s.wh).toLowerCase().indexOf(q) >= 0 || it.sku.toLowerCase().indexOf(q) >= 0 || it.p.name.toLowerCase().indexOf(q) >= 0));
+    const cmp = { bin: (a, b) => this.bin(a, s.wh).localeCompare(this.bin(b, s.wh)), qty: (a, b) => b.stock[s.wh] - a.stock[s.wh], age: (a, b) => ageOf(b) - ageOf(a), value: (a, b) => b.stock[s.wh] * b.p.cost - a.stock[s.wh] * a.p.cost }[s.sort];
+    list.sort(cmp);
+    const pageSize = 25, total = list.length, page = Math.min(s.page, Math.max(1, Math.ceil(total / pageSize))), pageItems = list.slice((page - 1) * pageSize, page * pageSize);
+    const rows = pageItems.map((it) => {
+      const ls = I.locState(it, s.wh), sv = LOC_V[ls], age = ageOf(it), sel = s.sel.indexOf(it.sku) >= 0, moved = !!s.bins[it.sku + '@' + s.wh];
+      return { sku: it.sku, name: it.p.name, variant: it.v.label, initials: F.initials(it.p.name), thumbCls: F.thumbCls(it.p), bin: this.bin(it, s.wh), binSub: moved ? 'Moved today' : I.ZONES.find((z) => z.key === zoneOf(it)).label.split(' · ')[1],
+        onHand: F.int(it.stock[s.wh]), available: F.int(it.stock[s.wh] - it.committed[s.wh]), value: F.money0(it.stock[s.wh] * it.p.cost),
+        age: age + ' days', ageCls: age > 180 ? 'sw-old' : '', cover: I.coverLabel(I.daysCover(it, s.wh)) + ' of cover', status: sv[0], statusLabel: sv[1], sel, trCls: sel ? 'is-selected' : '',
+        toggle: () => this.setState((x) => ({ sel: sel ? x.sel.filter((k) => k !== it.sku) : x.sel.concat([it.sku]) })),
+        move: () => this.setState({ mv: { sku: it.sku, to: '', label: true, touched: false } }) };
+    });
+    const pageIds = pageItems.map((it) => it.sku), selOn = pageIds.filter((k) => s.sel.indexOf(k) >= 0);
+
+    const tasks = s.tasks.filter((t) => t.wh === s.wh).map((t) => ({ id: t.id, zone: t.zoneLabel, sub: F.plural(t.bins, 'bin') + ' · ' + t.who + ' · ' + (t.status === 'done' ? 'finished ' + F.timeAgo(t.done) + (t.variances ? ' · ' + F.plural(t.variances, 'variance') + ' sent to Stock Adjustments' : ' · no variances') : 'due ' + F.fmtDate(t.due).replace(', 2026', '')),
+      status: t.status === 'done' ? 'Done' : t.status === 'counting' ? 'Counting' : 'Open', tone: t.status === 'done' ? 'success' : t.status === 'counting' ? 'info' : 'warning',
+      canComplete: t.status !== 'done', cta: t.status === 'open' ? 'Start' : 'Finish', complete: () => this.advance(t) }));
+
+    const chips = [];
+    if (s.zone) chips.push({ label: I.ZONES.find((z) => z.key === s.zone).label, clear: () => this.setState({ zone: '', page: 1 }) });
+    if (s.age !== '') chips.push({ label: 'Age: ' + AGE_BUCKETS[Number(s.age)], clear: () => this.setState({ age: '', page: 1 }) });
+
+    let mv = { title: '', desc: '' };
+    if (s.mv) {
+      const it = I.BY_SKU[s.mv.sku], from = this.bin(it, s.wh), to = s.mv.to.trim().toUpperCase();
+      const blocked = BLOCKED[s.wh] && BLOCKED[s.wh].indexOf(to) >= 0;
+      const toError = !/^[A-E]-\d{2}-0[1-5]$/.test(to) ? 'Use the format A-04-02 (zone A–E, aisle, level 1–5)' : to === from ? 'Pick a different bin' : blocked ? to + ' is blocked until Oct 3 (roof repair)' : null;
+      mv = { title: 'Move ' + it.p.name + ' · ' + it.v.label, desc: F.int(it.stock[s.wh]) + ' units at ' + w.name + '. Pickers are sent to the new bin straight away.', from, to: s.mv.to, label: s.mv.label,
+        toError: s.mv.touched || blocked ? toError : null, setTo: (e) => this.setState({ mv: Object.assign({}, s.mv, { to: e.target.value }) }), setLabel: (v) => this.setState({ mv: Object.assign({}, s.mv, { label: v }) }),
+        save: () => { if (toError) return this.setState({ mv: Object.assign({}, s.mv, { touched: true }) }); const prev = s.bins;
+          this.setState({ bins: Object.assign({}, s.bins, { [it.sku + '@' + s.wh]: to }), mv: null });
+          this.showToast(it.sku + ' moved to ' + to, 'From ' + from + (s.mv.label ? '. A bin label is queued on the ' + w.short + ' printer.' : '.'), 'success', { label: 'Undo', onClick: () => this.setState({ bins: prev, toast: null }) }); } };
+    }
+    let ct = { title: '', desc: '', staffOpts: [] };
+    if (s.ct) {
+      const d = s.ct, zl = d.zone ? I.ZONES.find((z) => z.key === d.zone).label : 'Selected bins', binsN = d.skus ? d.skus.length : here.filter((it) => zoneOf(it) === d.zone).length;
+      ct = { title: 'Count ' + zl + ' at ' + I.WH[d.wh].short, desc: F.plural(binsN, 'bin') + '. Picking from these bins pauses while they’re counted.',
+        staffOpts: STAFF[d.wh].map((n) => ({ value: n, label: n })), who: d.who, type: d.type, setWho: (v) => this.setState({ ct: Object.assign({}, d, { who: v }) }), setType: (v) => this.setState({ ct: Object.assign({}, d, { type: v }) }),
+        typeHint: d.type === 'blind' ? 'Counters don’t see the expected quantity, which gives more accurate counts.' : 'Counters confirm or correct the expected quantity. Faster, less accurate.',
+        save: () => { const id = 'CNT-' + s.seq; this.setState({ tasks: [{ id, wh: d.wh, zone: d.zone, zoneLabel: zl, bins: binsN, who: d.who, status: 'open', due: F.NOW + F.DAY }].concat(s.tasks), ct: null, seq: s.seq + 1, sel: [] });
+          this.showToast(id + ' created', F.plural(binsN, 'bin') + ' assigned to ' + d.who + ', due tomorrow. It shows on their handheld now.'); } };
+    }
+
+    const whTabs = I.WAREHOUSES.map((x) => ({ id: x.key, label: x.short, count: F.int(ACTIVE.reduce((a, it) => a + it.stock[x.key], 0)) }));
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k, page: 1 }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaWh: w.name + ' · ' + w.city, metaManager: 'Site manager ' + w.manager,
+      whTabs, wh: s.wh, setWh: (k) => this.setState({ wh: k, zone: '', age: '', page: 1, sel: [] }), whNote: w.note || null,
+      kpis, zones, ages, ageAria: ages.map((a) => a.label + ' ' + a.share).join(', '),
+      tasks, hasTasks: tasks.length > 0, noTasks: !tasks.length, countSub: dueZones.length ? F.plural(dueZones.length, 'zone') + ' not counted in 30 days' : 'Every zone counted in the last 30 days',
+      countDueLabel: dueZones.length ? 'Count ' + dueZones[0].label.split(' · ')[0] : 'Start a count',
+      countDue: () => this.openCount(s.wh, dueZones.length ? dueZones[0].key : 'A'),
+      query: s.query, setQuery: (v) => this.setState({ query: v, page: 1 }), status: s.status, setStatus: (v) => this.setState({ status: v, page: 1 }), statusOpts: STATUS_OPTS,
+      sort: s.sort, setSort: (v) => this.setState({ sort: v, page: 1 }), sortOpts: SORT_OPTS, chips: chips.length ? chips : null,
+      rows, total, page, pageSize, setPage: (p) => this.setState({ page: p }), shown: total > 0, empty: total === 0,
+      pageAll: selOn.length > 0 && selOn.length === pageIds.length, pageSome: selOn.length > 0 && selOn.length < pageIds.length,
+      togglePage: () => this.setState((x) => ({ sel: selOn.length === pageIds.length ? x.sel.filter((k) => pageIds.indexOf(k) < 0) : x.sel.concat(pageIds.filter((k) => x.sel.indexOf(k) < 0)) })),
+      bulk: { show: s.sel.length > 0, count: F.int(s.sel.length) + ' selected', labels: () => { this.showToast(F.plural(s.sel.length, 'bin label') + ' sent to the printer', w.name + ' · 50 × 25 mm labels with bin code and SKU barcode.'); this.setState({ sel: [] }); },
+        count2: () => this.openCount(s.wh, null, s.sel.slice()), clear: () => this.setState({ sel: [] }) },
+      mvOpen: !!s.mv, closeMv: () => this.setState({ mv: null }), mv, ctOpen: !!s.ct, closeCt: () => this.setState({ ct: null }), ct, countTypes: COUNT_TYPES,
+      exportView: () => this.showToast('Exporting ' + w.short + ' bin list', 'CSV with bin, SKU, quantity and age for ' + F.plural(here.length, 'bin') + '.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+  advance(t) {
+    const next = t.status === 'open' ? 'counting' : 'done', variances = next === 'done' ? (t.bins > 20 ? 2 : t.bins > 5 ? 1 : 0) : 0;
+    this.setState((s) => ({ tasks: s.tasks.map((x) => (x.id === t.id ? Object.assign({}, x, { status: next, done: next === 'done' ? F.NOW : null, variances }) : x)),
+      counts: next === 'done' && t.zone ? Object.assign({}, s.counts, { [t.wh + t.zone]: F.NOW }) : s.counts }));
+    this.showToast(next === 'counting' ? t.id + ' started' : t.id + ' finished', next === 'counting' ? t.who + ' is counting. Picking from these bins is paused.' : variances ? F.plural(variances, 'variance') + ' found and sent to Stock Adjustments for approval.' : 'Every bin matched the system.');
+  }
+}
+
+/* ---------- warehouse stock data: Fernhill inventory (inventory.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory;
+var ACTIVE = I.ITEMS.filter(function (it) { return it.p.status === 'active'; });
+var AGE_BUCKETS = ['0–30 days', '31–90 days', '91–180 days', '181–365 days', 'Over a year'];
+var LOC_V = { ok: ['in_stock', 'In stock'], low: ['low_stock', 'Below reorder point'], out: ['out_of_stock', 'Out of stock'], over: ['overstock', 'Over max'], none: ['inactive', 'Not stocked'] };
+var STATUS_OPTS = [{ value: '', label: 'Any status' }, { value: 'short', label: 'Below reorder point' }, { value: 'over', label: 'Over max' }, { value: 'ok', label: 'In stock' }];
+var SORT_OPTS = [{ value: 'bin', label: 'Bin order (pick path)' }, { value: 'qty', label: 'Most units' }, { value: 'age', label: 'Oldest first' }, { value: 'value', label: 'Highest value' }];
+var COUNT_TYPES = [{ value: 'blind', label: 'Blind count' }, { value: 'verify', label: 'Verify quantities' }];
+var BLOCKED = { ewr: ['C-07-01', 'C-07-02', 'C-07-03', 'C-07-04', 'C-07-05'] };
+var STAFF = { dhk: ['Jamal Uddin', 'Rakib Hasan', 'Mitu Akter'], ctg: ['Nusrat Jahan', 'Arif Chowdhury'], rtm: ['Sofie de Vries', 'Daan Bakker', 'Eva Jansen'], ewr: ['Marcus Reed', 'Tasha Green', 'Luis Ortega'], syd: ['Liam Chen', 'Harbour Logistics team'] };
+var TASKS = [
+  { id: 'CNT-417', wh: 'rtm', zone: 'B', zoneLabel: 'Zone B · Outerwear', bins: 34, who: 'Daan Bakker', status: 'counting', due: F.NOW + 8 * 36e5 },
+  { id: 'CNT-416', wh: 'ewr', zone: 'C', zoneLabel: 'Zone C · Bottoms', bins: 61, who: 'Tasha Green', status: 'open', due: F.NOW + 2 * F.DAY },
+  { id: 'CNT-414', wh: 'dhk', zone: 'D', zoneLabel: 'Zone D · Accessories', bins: 48, who: 'Rakib Hasan', status: 'done', due: F.NOW - F.DAY, done: F.NOW - 20 * 36e5, variances: 1 }
+];
+function uniq(l) { return l.filter(function (x, i) { return l.indexOf(x) === i; }); }
+</script>
+</body>
+</html>

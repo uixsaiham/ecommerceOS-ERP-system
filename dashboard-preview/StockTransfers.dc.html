@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stock Transfers · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=4">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=5"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=6"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Stock transfers ---------- */
+.st-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.td-strong{font-weight:500}
+.st-id{border:0;background:none;padding:0;cursor:pointer}
+.st-id:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:2px}
+.st-late{color:var(--danger);font-weight:500}
+.st-items{display:block;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+/* panel */
+.dp-wide{width:520px}
+.st-route{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.st-route div{display:flex;flex-direction:column;min-width:0}
+.st-route .cx-icon{width:18px;height:18px;color:var(--text-muted)}
+.st-route strong{font-size:14px}
+.st-lines{width:100%;border-collapse:collapse;font-size:13px;line-height:20px;font-variant-numeric:tabular-nums}
+.st-lines th{padding:6px 8px;font-size:12px;font-weight:500;color:var(--text-secondary);text-align:left;background:var(--bg-subtle);border-bottom:1px solid var(--border)}
+.st-lines td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.st-lines tr:last-child td{border-bottom:0}
+.st-lines .is-right{text-align:right}
+.st-lines-wrap{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:auto}
+.st-tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.st-tl li{position:relative;display:flex;gap:12px;padding:0 0 14px}
+.st-tl li::before{content:"";position:absolute;left:4px;top:14px;bottom:0;width:1px;background:var(--border)}
+.st-tl li:last-child{padding-bottom:0}
+.st-tl li:last-child::before{display:none}
+.st-dot{flex:none;width:9px;height:9px;margin-top:6px;border-radius:var(--radius-full);background:var(--border-strong)}
+.st-dot.is-done{background:var(--success)}
+.st-dot.is-now{background:var(--brand)}
+.st-dot.is-bad{background:var(--danger)}
+.st-tl .pr-cell-main{font-size:13px;line-height:20px}
+.st-tl .is-todo{color:var(--text-muted)}
+.st-rcv{width:72px;height:28px;box-sizing:border-box;padding:0 6px;border:1px solid var(--border-control);border-radius:var(--radius-xs);background:var(--bg-surface);color:var(--text-primary);font:inherit;font-size:13px;text-align:right}
+.st-rcv:focus{outline:2px solid var(--focus-ring);outline-offset:-1px}
+.st-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.st-add{display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:8px;align-items:end}
+.dp-foot-end{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:1279px){ .c-carrier{display:none} }
+@media (max-width:1023px){ .st-kpis{display:flex} .c-items{display:none} }
+@media (max-width:767px){ .dp-wide{width:100%} .st-grid2,.st-add{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="inventory/transfers" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="inventory/transfers"></x-import>
+<h1>Stock Transfers</h1>
+<p class="ph-sub">Move stock between warehouses, from request to receipt.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Last 60 days</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openNew}}">New transfer</x-import>
+</div>
+</div>
+
+<sc-if value="{{issue}}" hint-placeholder-val="{{true}}">
+<x-import component-from-global-scope="CommerceOS.Alert" tone="danger" title="{{issue.title}}" actions="{{issue.actions}}">{{issue.text}}</x-import>
+</sc-if>
+
+<section class="o-kpis st-kpis" aria-label="Transfer summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section class="o-card" aria-label="Transfers">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Transfer status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools">
+<div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by transfer, SKU, product or tracking number" label="Search transfers" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="From warehouse" options="{{fromOpts}}" value="{{fFrom}}" on-value-change="{{setFrom}}" width="200px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="To warehouse" options="{{toOpts}}" value="{{fTo}}" on-value-change="{{setTo}}" width="200px"></x-import>
+</div>
+</div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Transfers">
+<thead><tr>
+<th scope="col">Transfer</th>
+<th scope="col">Route</th>
+<th class="c-items" scope="col">Items</th>
+<th class="is-right" scope="col">Units</th>
+<th scope="col">Status</th>
+<th scope="col">Arrival</th>
+<th class="c-carrier" scope="col">Carrier</th>
+<th class="c-act" scope="col"><span class="cx-sr">Open</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="20">
+<tr>
+<td><button class="o-id st-id" onClick="{{r.open}}">{{r.id}}</button><span class="o-sub">{{r.created}}</span></td>
+<td><span class="iv-route">{{r.from}}<x-import component-from-global-scope="CommerceOS.Icon" name="arrow-right"></x-import>{{r.to}}</span><span class="o-sub">{{r.by}}</span></td>
+<td class="c-items"><span class="st-items">{{r.items}}</span><span class="o-sub">{{r.itemsSub}}</span></td>
+<td class="is-right td-strong">{{r.units}}</td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import></td>
+<td><span class="{{r.etaCls}}">{{r.eta}}</span><span class="o-sub">{{r.etaSub}}</span></td>
+<td class="c-carrier"><span>{{r.carrier}}</span><span class="o-sub">{{r.ref}}</span></td>
+<td class="c-act"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="chevron-right" aria-label="Open {{r.id}}" on-click="{{r.open}}"></x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Transfers">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<li class="o-m-card">
+<div class="o-m-top"><button class="o-id st-id" onClick="{{r.open}}">{{r.id}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import></div>
+<div class="o-m-mid"><span class="iv-route">{{r.from}}<x-import component-from-global-scope="CommerceOS.Icon" name="arrow-right"></x-import>{{r.to}}</span><span class="o-m-total">{{r.units}}</span></div>
+<span class="o-sub">{{r.itemsSub}} · <span class="{{r.etaCls}}">{{r.eta}}</span></span>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.EmptyState" icon="{{emptyIcon}}" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import>
+</sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close transfer" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="st-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="st-dp-title">{{dp.id}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close transfer" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<div class="dp-status" style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.statusLabel}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<sc-if value="{{dp.delayed}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="danger" title="Delayed">{{dp.delayed}}</x-import></sc-if>
+<div class="st-route"><div><span class="o-sub">From</span><strong>{{dp.from}}</strong><span class="o-sub">{{dp.fromCity}}</span></div><x-import component-from-global-scope="CommerceOS.Icon" name="arrow-right"></x-import><div><span class="o-sub">To</span><strong>{{dp.to}}</strong><span class="o-sub">{{dp.toCity}}</span></div></div>
+<sc-if value="{{dp.note}}" hint-placeholder-val="{{false}}"><p class="o-modal-note">{{dp.note}}</p></sc-if>
+</section>
+<section class="o-panel-sec"><h3>Items · {{dp.unitsLabel}}</h3>
+<div class="st-lines-wrap"><table class="st-lines"><thead><tr><th scope="col">SKU</th><th class="is-right" scope="col">Sent</th><th class="is-right" scope="col">{{dp.thirdCol}}</th></tr></thead>
+<tbody><sc-for list="{{dp.lines}}" as="l" hint-placeholder-count="3"><tr><td><span>{{l.name}}</span><span class="o-sub">{{l.variant}} · <span class="iv-sku">{{l.sku}}</span></span></td><td class="is-right td-strong">{{l.qty}}</td><td class="is-right"><span class="{{l.thirdCls}}">{{l.third}}</span></td></tr></sc-for></tbody></table></div>
+</section>
+<section class="o-panel-sec"><h3>Progress</h3>
+<ol class="st-tl"><sc-for list="{{dp.steps}}" as="t" hint-placeholder-count="4"><li><span class="{{t.dot}}" aria-hidden="true"></span><span class="pr-cell-main"><span class="{{t.cls}}">{{t.label}}</span><span class="o-sub">{{t.when}}</span></span></li></sc-for></ol>
+</section>
+</div>
+<div class="o-panel-foot">
+<sc-if value="{{dp.canCancel}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="x" on-click="{{dp.cancel}}">Cancel transfer</x-import></sc-if>
+<sc-if value="{{dp.noCancel}}" hint-placeholder-val="{{false}}"><span></span></sc-if>
+<div class="dp-foot-end">
+<sc-if value="{{dp.canSubmit}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{dp.submit}}">Request transfer</x-import></sc-if>
+<sc-if value="{{dp.canShip}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="truck" on-click="{{dp.ship}}">Mark as shipped</x-import></sc-if>
+<sc-if value="{{dp.canReceive}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check-circle" on-click="{{dp.receive}}">Receive</x-import></sc-if>
+</div>
+</div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{shipOpen}}" on-close="{{closeShip}}" size="sm" title="{{sh.title}}" description="{{sh.desc}}">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Select" label="Carrier" options="{{carrierOpts}}" value="{{sh.carrier}}" on-value-change="{{sh.setCarrier}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="Tracking or booking number" value="{{sh.ref}}" on-change="{{sh.setRef}}" error="{{sh.refError}}" placeholder="e.g. MAEU 7741 2093"></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="Expected arrival" value="{{sh.eta}}" readonly="{{yes}}" hint="{{sh.etaHint}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeShip}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="truck" on-click="{{sh.save}}">Mark as shipped</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{rcvOpen}}" on-close="{{closeRcv}}" size="md" title="{{rc.title}}" description="Count what arrived. Anything short is logged as a receiving correction and flagged to the sending warehouse.">
+<div class="o-modal-stack">
+<div class="st-lines-wrap"><table class="st-lines"><thead><tr><th scope="col">SKU</th><th class="is-right" scope="col">Sent</th><th class="is-right" scope="col">Received</th></tr></thead>
+<tbody><sc-for list="{{rc.lines}}" as="l" hint-placeholder-count="3"><tr><td><span>{{l.name}}</span><span class="o-sub">{{l.variant}} · <span class="iv-sku">{{l.sku}}</span></span></td><td class="is-right">{{l.qty}}</td><td class="is-right"><input class="st-rcv" inputmode="numeric" aria-label="Received {{l.sku}}" value="{{l.got}}" onChange="{{l.set}}"></td></tr></sc-for></tbody></table></div>
+<sc-if value="{{rc.diff}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{rc.diffTone}}">{{rc.diff}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeRcv}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check-circle" disabled="{{rc.blocked}}" on-click="{{rc.save}}">{{rc.cta}}</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{newOpen}}" on-close="{{closeNew}}" size="lg" title="New transfer" description="Pick the route, then add SKUs. Quantities are limited to what the sending warehouse can spare above its reorder points.">
+<div class="o-modal-stack">
+<div class="st-grid2">
+<x-import component-from-global-scope="CommerceOS.Select" label="From" options="{{nw.whOpts}}" value="{{nw.from}}" on-value-change="{{nw.setFrom}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="To" options="{{nw.whOpts}}" value="{{nw.to}}" on-value-change="{{nw.setTo}}" error="{{nw.routeError}}"></x-import>
+</div>
+<div class="st-add">
+<x-import component-from-global-scope="CommerceOS.Select" label="SKU" options="{{nw.skuOpts}}" value="{{nw.sku}}" on-value-change="{{nw.setSku}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="Quantity" inputmode="numeric" value="{{nw.qty}}" on-change="{{nw.setQty}}" error="{{nw.qtyError}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="plus" on-click="{{nw.add}}">Add</x-import>
+</div>
+<sc-if value="{{nw.hasLines}}" hint-placeholder-val="{{false}}">
+<div class="st-lines-wrap"><table class="st-lines"><thead><tr><th scope="col">SKU</th><th class="is-right" scope="col">Quantity</th><th scope="col"><span class="cx-sr">Remove</span></th></tr></thead>
+<tbody><sc-for list="{{nw.lines}}" as="l" hint-placeholder-count="2"><tr><td><span>{{l.name}}</span><span class="o-sub">{{l.variant}} · <span class="iv-sku">{{l.sku}}</span></span></td><td class="is-right td-strong">{{l.qty}}</td><td class="is-right"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="x" aria-label="Remove {{l.sku}}" on-click="{{l.remove}}"></x-import></td></tr></sc-for></tbody></table></div>
+</sc-if>
+<x-import component-from-global-scope="CommerceOS.Input" label="Note" optional="{{yes}}" value="{{nw.note}}" on-change="{{nw.setNote}}" placeholder="Why is this moving? The receiving team sees it."></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeNew}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" disabled="{{nw.blocked}}" on-click="{{nw.saveDraft}}">Save draft</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="truck" disabled="{{nw.blocked}}" on-click="{{nw.request}}">{{nw.cta}}</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","detail","receive","new"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none';
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      transfers: I.TRANSFERS.map((t) => Object.assign({}, t, { lines: t.lines.map((l) => l.slice()) })), tab: 'open', query: '', fFrom: '', fTo: '',
+      detail: null, ship: null, rcv: null, nw: null, seq: 3117
+    };
+    if (demo === 'detail') this.state.detail = 'TR-3109';
+    if (demo === 'receive') this.state.rcv = this.rcvDraft(this.state.transfers.find((t) => t.id === 'TR-3112'));
+    if (demo === 'new') this.state.nw = newDraft();
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.ship && !this.state.rcv && !this.state.nw) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  update(id, patch) { this.setState((s) => ({ transfers: s.transfers.map((t) => (t.id === id ? Object.assign({}, t, patch) : t)) })); }
+  undoable(prev) { return { label: 'Undo', onClick: () => this.setState({ transfers: prev, toast: null }) }; }
+  rcvDraft(t) { const got = {}; t.lines.forEach((l) => { got[l[0]] = String(l[1]); }); return { id: t.id, got }; }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store);
+    const q = s.query.trim().toLowerCase();
+    const searched = s.transfers.filter((t) => (!s.fFrom || t.from === s.fFrom) && (!s.fTo || t.to === s.fTo) && (!q || t.id.toLowerCase().indexOf(q) >= 0 || (t.ref || '').toLowerCase().indexOf(q) >= 0
+      || t.lines.some((l) => l[0].toLowerCase().indexOf(q) >= 0 || I.BY_SKU[l[0]].p.name.toLowerCase().indexOf(q) >= 0)));
+    const isLate = (t) => t.status === 'in_transit' && t.eta < F.NOW;
+    const inTab = (t, tab) => tab === 'all' || (tab === 'open' ? ['draft', 'requested', 'in_transit'].indexOf(t.status) >= 0 : tab === 'transit' ? t.status === 'in_transit' : tab === 'received' ? t.status === 'received' : t.status === 'cancelled');
+    const list = searched.filter((t) => inTab(t, s.tab)).sort((a, b) => (isLate(b) - isLate(a)) || ORDER[a.status] - ORDER[b.status] || b.created - a.created);
+    const rows = list.map((t) => {
+      const sv = STATUS_V[isLate(t) ? 'late' : t.status], units = t.lines.reduce((a, l) => a + l[1], 0), first = I.BY_SKU[t.lines[0][0]];
+      return {
+        id: t.id, created: 'Created ' + F.fmtWhen(t.created), from: I.WH[t.from].short, to: I.WH[t.to].short, by: t.by,
+        items: first.p.name + ' · ' + first.v.label, itemsSub: t.lines.length > 1 ? '+' + (t.lines.length - 1) + ' more · ' + F.plural(t.lines.length, 'SKU') : '1 SKU', units: F.int(units),
+        tone: sv[0], icon: sv[2], statusLabel: sv[1],
+        eta: t.status === 'received' ? F.fmtDate(t.received).replace(', 2026', '') : t.status === 'cancelled' ? '—' : t.eta ? (isLate(t) ? 'Overdue ' + daysText(F.NOW - t.eta) : 'Due ' + F.fmtDate(t.eta).replace(', 2026', '')) : 'Not shipped',
+        etaSub: t.status === 'received' ? (t.shortBy ? F.int(t.shortBy) + ' short on arrival' : 'Received in full') : t.status === 'in_transit' && !isLate(t) ? 'in ' + daysText(t.eta - F.NOW) : t.status === 'requested' ? 'Waiting for ' + I.WH[t.from].short + ' to ship' : t.status === 'draft' ? 'Not requested yet' : '',
+        etaCls: isLate(t) ? 'st-late' : '', carrier: t.carrier || '—', ref: t.ref || '',
+        open: () => this.setState({ detail: t.id })
+      };
+    });
+
+    const open = s.transfers.filter((t) => inTab(t, 'open')), transit = s.transfers.filter((t) => t.status === 'in_transit'), late = transit.filter(isLate);
+    const unitsTransit = transit.reduce((a, t) => a + t.lines.reduce((b, l) => b + l[1], 0), 0), valueTransit = transit.reduce((a, t) => a + t.lines.reduce((b, l) => b + l[1] * I.BY_SKU[l[0]].p.cost, 0), 0);
+    const done = s.transfers.filter((t) => t.status === 'received'), avgDays = done.length ? done.reduce((a, t) => a + (t.received - t.shipped) / F.DAY, 0) / done.length : 0;
+    const accurate = done.filter((t) => !t.shortBy).length;
+    const kpis = [
+      { label: 'Open transfers', dot: 'cx-dot cx-dot-brand', value: F.int(open.length), cmp: F.int(open.filter((t) => t.status === 'draft').length) + ' draft · ' + F.int(open.filter((t) => t.status === 'requested').length) + ' waiting to ship' },
+      { label: 'Units in transit', dot: 'cx-dot cx-dot-info', value: F.int(unitsTransit), cmp: F.money0(valueTransit) + ' at cost on ' + F.plural(transit.length, 'shipment') },
+      { label: 'Delayed', dot: 'cx-dot cx-dot-danger', value: F.int(late.length), cmp: late.length ? late.map((t) => t.id).join(', ') + ' past due' : 'Everything is on time' },
+      { label: 'Received in full', dot: 'cx-dot cx-dot-success', value: done.length ? Math.round(accurate / done.length * 100) + '%' : '—', cmp: 'Avg. ' + avgDays.toFixed(1) + ' days door to door' }
+    ];
+    const lt = late[0];
+    const issue = lt ? { title: lt.id + ' is ' + daysText(F.NOW - lt.eta) + ' late', text: (lt.delayed || 'Past its expected arrival.') + ' ' + F.int(lt.lines.reduce((a, l) => a + l[1], 0)) + ' units for ' + I.WH[lt.to].short + ' are stuck.',
+      actions: [h(CommerceOS.Button, { key: 'o', variant: 'secondary', size: 'sm', onClick: () => this.setState({ detail: lt.id }) }, 'Open ' + lt.id)] } : null;
+    const tabs = [{ id: 'open', label: 'Open' }, { id: 'transit', label: 'In transit' }, { id: 'received', label: 'Received' }, { id: 'cancelled', label: 'Cancelled' }, { id: 'all', label: 'All' }]
+      .map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((x) => inTab(x, t.id)).length) }));
+
+    // detail
+    let dp = null;
+    if (s.detail) {
+      const t = s.transfers.find((x) => x.id === s.detail), sv = STATUS_V[isLate(t) ? 'late' : t.status], units = t.lines.reduce((a, l) => a + l[1], 0), prev = s.transfers;
+      const step = (label, ts, state) => ({ label, when: ts ? F.fmtWhen(ts) : '', dot: 'st-dot is-' + state, cls: state === 'todo' ? 'is-todo' : '' });
+      const steps = [step('Created by ' + t.by, t.created, 'done')];
+      if (t.status === 'cancelled') steps.push(step('Cancelled', t.cancelledAt || t.eta, 'bad'));
+      else {
+        steps.push(step(t.status === 'draft' ? 'Request the transfer' : 'Requested from ' + I.WH[t.from].short, t.status === 'draft' ? null : t.requestedAt || t.created + 36e5, t.status === 'draft' ? 'todo' : 'done'));
+        steps.push(step(t.shipped ? 'Shipped with ' + t.carrier : I.WH[t.from].short + ' ships it', t.shipped, t.shipped ? 'done' : t.status === 'requested' ? 'now' : 'todo'));
+        steps.push(step(t.received ? 'Received at ' + I.WH[t.to].short + (t.shortBy ? ', ' + t.shortBy + ' short' : '') : isLate(t) ? 'Overdue at ' + I.WH[t.to].short : 'Arrives at ' + I.WH[t.to].short, t.received || t.eta, t.received ? 'done' : isLate(t) ? 'bad' : t.status === 'in_transit' ? 'now' : 'todo'));
+      }
+      dp = {
+        id: t.id, sub: F.plural(t.lines.length, 'SKU') + ' · ' + F.int(units) + ' units · ' + F.money0(t.lines.reduce((a, l) => a + l[1] * I.BY_SKU[l[0]].p.cost, 0)) + ' at cost',
+        tone: sv[0], icon: sv[2], statusLabel: sv[1],
+        statusSub: t.status === 'in_transit' ? (t.carrier + (t.ref ? ' · ' + t.ref : '')) : t.status === 'received' ? 'Received ' + F.fmtWhen(t.received) : t.status === 'requested' ? 'Waiting for ' + I.WH[t.from].short + ' to pick and ship' : t.status === 'draft' ? 'Only you can see drafts' : '',
+        delayed: isLate(t) ? (t.delayed || 'Past its expected arrival on ' + F.fmtDate(t.eta) + '. Check with ' + t.carrier + '.') : null,
+        from: I.WH[t.from].name, fromCity: I.WH[t.from].city, to: I.WH[t.to].name, toCity: I.WH[t.to].city, note: t.note,
+        unitsLabel: F.int(units) + ' units', thirdCol: t.status === 'received' ? 'Received' : 'At ' + I.WH[t.to].short + ' now',
+        lines: t.lines.map((l, i) => { const it = I.BY_SKU[l[0]], got = t.status !== 'received' ? null : t.gotLines ? t.gotLines[l[0]] : l[1] - (i === 0 ? t.shortBy || 0 : 0);
+          return { name: it.p.name, variant: it.v.label, sku: it.sku, qty: F.int(l[1]), third: got != null ? F.int(got) : F.int(it.stock[t.to]), thirdCls: got != null && got < l[1] ? 'iv-neg' : '' }; }),
+        steps,
+        canCancel: t.status === 'draft' || t.status === 'requested', noCancel: !(t.status === 'draft' || t.status === 'requested'),
+        canSubmit: t.status === 'draft', canShip: t.status === 'requested', canReceive: t.status === 'in_transit',
+        cancel: () => { this.update(t.id, { status: 'cancelled', cancelledAt: F.NOW }); this.showToast(t.id + ' cancelled', 'Nothing was shipped, so stock stays at ' + I.WH[t.from].short + '.', 'success', this.undoable(prev)); },
+        submit: () => { this.update(t.id, { status: 'requested', requestedAt: F.NOW }); this.showToast(t.id + ' requested', I.WH[t.from].short + ' gets a pick list for ' + F.int(units) + ' units.', 'success', this.undoable(prev)); },
+        ship: () => this.setState({ ship: { id: t.id, carrier: defaultCarrier(t), ref: '', touched: false } }),
+        receive: () => this.setState({ rcv: this.rcvDraft(t) })
+      };
+    }
+
+    let sh = { title: '', desc: '' };
+    if (s.ship) {
+      const d = s.ship, t = s.transfers.find((x) => x.id === d.id), days = transitDays(t.from, t.to), refError = !d.ref.trim() ? 'Enter the tracking or booking number' : null;
+      sh = { title: 'Ship ' + t.id, desc: I.WH[t.from].short + ' → ' + I.WH[t.to].short + '. Stock leaves ' + I.WH[t.from].short + ' when you mark it shipped.', carrier: d.carrier, ref: d.ref, refError: d.touched ? refError : null,
+        eta: F.fmtDate(F.NOW + days * F.DAY), etaHint: 'Usually ' + days + ' days on this route',
+        setCarrier: (v) => this.setState({ ship: Object.assign({}, d, { carrier: v }) }), setRef: (e) => this.setState({ ship: Object.assign({}, d, { ref: e.target.value }) }),
+        save: () => { if (refError) return this.setState({ ship: Object.assign({}, d, { touched: true }) }); const prev = s.transfers;
+          this.update(t.id, { status: 'in_transit', shipped: F.NOW, eta: F.NOW + days * F.DAY, carrier: d.carrier, ref: d.ref.trim() }); this.setState({ ship: null });
+          this.showToast(t.id + ' is in transit', 'Due at ' + I.WH[t.to].short + ' on ' + F.fmtDate(F.NOW + days * F.DAY) + '. Stock shows as incoming there.', 'success', this.undoable(prev)); } };
+    }
+
+    let rc = { title: '', lines: [] };
+    if (s.rcv) {
+      const d = s.rcv, t = s.transfers.find((x) => x.id === d.id);
+      const nums = t.lines.map((l) => ({ l, n: Number(d.got[l[0]]), ok: /^\d+$/.test(String(d.got[l[0]]).trim()) }));
+      const bad = nums.filter((x) => !x.ok || x.n > x.l[1] * 1.5), short = nums.filter((x) => x.ok && x.n < x.l[1]).reduce((a, x) => a + x.l[1] - x.n, 0), over = nums.filter((x) => x.ok && x.n > x.l[1]).reduce((a, x) => a + x.n - x.l[1], 0);
+      rc = { title: 'Receive ' + t.id + ' at ' + I.WH[t.to].short,
+        lines: t.lines.map((l) => { const it = I.BY_SKU[l[0]]; return { name: it.p.name, variant: it.v.label, sku: it.sku, qty: F.int(l[1]), got: d.got[l[0]],
+          set: (e) => this.setState({ rcv: Object.assign({}, d, { got: Object.assign({}, d.got, { [l[0]]: e.target.value }) }) }) }; }),
+        diff: bad.length ? 'Enter a whole number for every line.' : short ? F.plural(short, 'unit') + ' short. A receiving correction is logged and ' + I.WH[t.from].short + ' is asked to check.' : over ? F.plural(over, 'extra unit') + ' received. They’re added to ' + I.WH[t.to].short + ' stock.' : null,
+        diffTone: bad.length ? 'danger' : 'warning', blocked: bad.length > 0, cta: short ? 'Receive with ' + short + ' short' : 'Receive in full',
+        save: () => { const prev = s.transfers, gotLines = {}; nums.forEach((x) => { gotLines[x.l[0]] = x.n; }); this.update(t.id, { status: 'received', received: F.NOW, shortBy: short, gotLines }); this.setState({ rcv: null });
+          this.showToast(t.id + ' received', F.int(t.lines.reduce((a, l) => a + l[1], 0) - short + over) + ' units added to ' + I.WH[t.to].short + (short ? ', ' + short + ' short logged in Stock Adjustments.' : '.'), 'success', this.undoable(prev)); } };
+    }
+
+    let nw = { whOpts: [], skuOpts: [], lines: [] };
+    if (s.nw) {
+      const d = s.nw, routeError = d.from === d.to ? 'Pick a different warehouse' : null;
+      const spare = (it) => Math.max(0, it.stock[d.from] - it.reorder[d.from] - it.committed[d.from]);
+      const cands = I.ITEMS.filter((it) => it.p.status === 'active' && spare(it) > 0 && d.lines.every((l) => l.sku !== it.sku)).sort((a, b) => spare(b) - spare(a)).slice(0, 60);
+      const cur = cands.find((it) => it.sku === d.sku) || cands[0], n = Number(d.qty);
+      const qtyError = !d.qtyTouched ? null : !(n > 0) || Math.round(n) !== n ? 'Whole number' : cur && n > spare(cur) ? 'Max ' + F.int(spare(cur)) : null;
+      const up = (k) => (v) => { const val = v && v.target ? v.target.value : v; this.setState((x) => ({ nw: Object.assign({}, x.nw, { [k]: val }, k === 'from' ? { lines: [], sku: '' } : {}, k === 'qty' ? { qtyTouched: false } : {}) })); };
+      const create = (status) => {
+        if (routeError || !d.lines.length) return;
+        const id = 'TR-' + s.seq, t = { id, from: d.from, to: d.to, status, created: F.NOW, requestedAt: status === 'requested' ? F.NOW : null, eta: null, by: 'Priya Natarajan', carrier: null, note: d.note.trim(), lines: d.lines.map((l) => [l.sku, l.qty]) };
+        this.setState({ transfers: [t].concat(s.transfers), nw: null, seq: s.seq + 1, tab: 'open', detail: id });
+        this.showToast(id + (status === 'requested' ? ' requested' : ' saved as a draft'), F.int(d.lines.reduce((a, l) => a + l.qty, 0)) + ' units from ' + I.WH[d.from].short + ' to ' + I.WH[d.to].short + '.', 'success');
+      };
+      nw = { whOpts: I.WAREHOUSES.map((w) => ({ value: w.key, label: w.name })), from: d.from, to: d.to, routeError,
+        skuOpts: cands.map((it) => ({ value: it.sku, label: it.p.name + ' · ' + it.v.label + ' — ' + F.int(spare(it)) + ' spare' })), sku: cur ? cur.sku : '', qty: d.qty, qtyError,
+        hasLines: d.lines.length > 0, lines: d.lines.map((l) => { const it = I.BY_SKU[l.sku]; return { name: it.p.name, variant: it.v.label, sku: l.sku, qty: F.int(l.qty), remove: () => this.setState((x) => ({ nw: Object.assign({}, x.nw, { lines: x.nw.lines.filter((y) => y.sku !== l.sku) }) })) }; }),
+        note: d.note, setFrom: up('from'), setTo: up('to'), setSku: up('sku'), setQty: up('qty'), setNote: up('note'),
+        add: () => { if (!cur) return; const bad = !(n > 0) || Math.round(n) !== n || n > spare(cur); if (bad) return this.setState({ nw: Object.assign({}, d, { qtyTouched: true }) });
+          this.setState({ nw: Object.assign({}, d, { lines: d.lines.concat([{ sku: cur.sku, qty: n }]), sku: '', qty: '', qtyTouched: false }) }); },
+        blocked: !!routeError || !d.lines.length, cta: d.lines.length ? 'Request ' + F.int(d.lines.reduce((a, l) => a + l.qty, 0)) + ' units' : 'Request transfer',
+        saveDraft: () => create('draft'), request: () => create('requested') };
+    }
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(s.transfers.length, 'transfer') + ' between ' + I.WAREHOUSES.length + ' warehouses',
+      issue, kpis, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      fromOpts: [{ value: '', label: 'From any warehouse' }].concat(I.WAREHOUSES.map((w) => ({ value: w.key, label: 'From ' + w.short }))), fFrom: s.fFrom, setFrom: (v) => this.setState({ fFrom: v }),
+      toOpts: [{ value: '', label: 'To any warehouse' }].concat(I.WAREHOUSES.map((w) => ({ value: w.key, label: 'To ' + w.short }))), fTo: s.fTo, setTo: (v) => this.setState({ fTo: v }),
+      rows, shown: rows.length > 0, empty: rows.length === 0,
+      emptyIcon: q || s.fFrom || s.fTo ? 'search' : 'truck', emptyTitle: q || s.fFrom || s.fTo ? 'No transfers match' : 'No transfers here', emptyDesc: q || s.fFrom || s.fTo ? 'Try another search or route.' : 'Transfers show up here as warehouses request them.',
+      dp, closeDetail: () => this.setState({ detail: null }),
+      shipOpen: !!s.ship, closeShip: () => this.setState({ ship: null }), sh, carrierOpts: CARRIERS.map((c) => ({ value: c, label: c })),
+      rcvOpen: !!s.rcv, closeRcv: () => this.setState({ rcv: null }), rc,
+      newOpen: !!s.nw, closeNew: () => this.setState({ nw: null }), nw, openNew: () => this.setState({ nw: newDraft() }),
+      exportView: () => this.showToast('Exporting ' + F.plural(rows.length, 'transfer'), 'CSV with routes, lines, carriers and dates.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- transfer data: Fernhill inventory (inventory.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, h = window.React.createElement, CommerceOS = window.CommerceOS;
+var STATUS_V = { draft: ['neutral', 'Draft', 'file-text'], requested: ['warning', 'Requested', 'clock'], in_transit: ['info', 'In transit', 'truck'], late: ['danger', 'Delayed', 'alert-triangle'], received: ['success', 'Received', 'check-circle'], cancelled: ['neutral', 'Cancelled', 'x'] };
+var ORDER = { draft: 1, requested: 0, in_transit: 2, received: 3, cancelled: 4 };
+var CARRIERS = ['Maersk LCL', 'Maersk LCL + PostNL', 'DHL Global Forwarding', 'DHL Express', 'Pathao Freight', 'PostNL', 'Australia Post'];
+function newDraft() { return { from: 'dhk', to: 'rtm', sku: '', qty: '', qtyTouched: false, lines: [], note: '' }; }
+function daysText(ms) { var d = Math.max(1, Math.round(ms / F.DAY)); return d + (d === 1 ? ' day' : ' days'); }
+function transitDays(from, to) { var bd = function (k) { return k === 'dhk' || k === 'ctg'; }; return bd(from) && bd(to) ? 2 : bd(from) || bd(to) ? 14 : (from === 'syd' || to === 'syd') ? 6 : 8; }
+function defaultCarrier(t) { var bd = function (k) { return k === 'dhk' || k === 'ctg'; }; return bd(t.from) && bd(t.to) ? 'Pathao Freight' : bd(t.from) ? 'Maersk LCL' : t.to === 'syd' || t.from === 'syd' ? 'DHL Express' : 'DHL Global Forwarding'; }
+</script>
+</body>
+</html>

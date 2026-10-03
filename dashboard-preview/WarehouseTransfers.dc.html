@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Warehouse Transfers · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=4">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=5"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=6"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Warehouse transfers: dispatch board ---------- */
+.wt-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.td-strong{font-weight:500}
+.wt-board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
+.wt-col{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:var(--radius-md);background:var(--bg-subtle);border:1px solid var(--border);min-width:0;min-height:120px}
+.wt-col-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 4px}
+.wt-col-head strong{font-size:13px}
+.wt-col-head .o-sub{display:block}
+.wt-count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 6px;border-radius:var(--radius-full);background:var(--bg-muted);font-size:12px;font-weight:600}
+.wt-cardx{display:flex;flex-direction:column;gap:6px;padding:10px 12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;line-height:18px}
+.wt-cardx.is-late{border-color:var(--danger)}
+.wt-cardx.is-new{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.wt-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wt-late{color:var(--danger);font-weight:500}
+.wt-empty{padding:12px 4px;font-size:12px;color:var(--text-muted);text-align:center}
+.wt-card-act{display:flex;gap:6px;flex-wrap:wrap}
+.wt-card-act .cx-btn{flex:1}
+.wt-duo{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:start}
+.wt-box{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+.wt-box-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 20px 12px}
+.wt-box-head h2{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.wt-box-head p{margin:2px 0 0;font-size:12px;line-height:16px;color:var(--text-muted)}
+.wt-lanes{width:100%;border-collapse:collapse;font-size:13px;line-height:20px;font-variant-numeric:tabular-nums}
+.wt-lanes th{padding:8px 12px;font-size:12px;font-weight:500;color:var(--text-secondary);text-align:right;background:var(--bg-subtle);border-top:1px solid var(--border);border-bottom:1px solid var(--border);white-space:nowrap}
+.wt-lanes th:first-child,.wt-lanes td:first-child{text-align:left;padding-left:20px}
+.wt-lanes td{padding:9px 12px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+.wt-lanes tr:last-child td{border-bottom:0}
+.wt-lanes tr.is-on td{background:var(--brand-subtle)}
+.wt-lane-btn{border:0;background:none;padding:0;font:inherit;color:var(--text-primary);cursor:pointer;text-align:left}
+.wt-lane-btn:hover{color:var(--link);text-decoration:underline}
+.wt-lane-btn:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:2px}
+.wt-bad{color:var(--danger);font-weight:500}
+.wt-sugs{list-style:none;margin:0;padding:0 20px 12px;display:flex;flex-direction:column}
+.wt-sugs li{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-top:1px solid var(--border)}
+.wt-sug-ico{flex:none;width:32px;height:32px;border-radius:var(--radius-full);display:inline-flex;align-items:center;justify-content:center}
+.wt-sug-ico.is-short{background:var(--warning-subtle);color:var(--warning)}
+.wt-sug-ico.is-over{background:var(--info-subtle);color:var(--info)}
+.wt-sug-ico .cx-icon{width:16px;height:16px}
+.wt-sug-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:13px;line-height:19px}
+.wt-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:1599px){ .c-cost{display:none} }
+@media (max-width:1279px){ .wt-board{grid-template-columns:repeat(3,minmax(0,1fr))} .wt-duo{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:1023px){ .wt-kpis{display:flex} .wt-board{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:767px){ .wt-board{grid-template-columns:minmax(0,1fr)} .wt-grid2{grid-template-columns:1fr} .c-ontime{display:none} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="warehouses/transfers" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="warehouses/transfers"></x-import>
+<h1>Transfers</h1>
+<p class="ph-sub">The dispatch side of moving stock: pick, pack and ship outbound transfers, track what’s inbound, and rebalance stock between sites.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Full transfer records are in <a href="StockTransfers.dc.html">Inventory › Stock Transfers</a></span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="View as warehouse" options="{{viewOpts}}" value="{{view}}" on-value-change="{{setView}}" width="230px"></x-import>
+</div>
+</div>
+
+<section class="o-kpis wt-kpis" aria-label="Transfer operations">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section aria-labelledby="wt-b-h">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap"><h2 id="wt-b-h" style="margin: 0; font-size: 15px; font-weight: 600">Dispatch board</h2><span class="o-sub">{{boardSub}}</span>
+<sc-if value="{{laneChip}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="x" on-click="{{clearLane}}">{{laneChip}}</x-import></sc-if></div>
+<div class="wt-board">
+<sc-for list="{{cols}}" as="c" hint-placeholder-count="5">
+<div class="wt-col" role="group" aria-label="{{c.label}}">
+<div class="wt-col-head"><span><strong>{{c.label}}</strong><span class="o-sub">{{c.sub}}</span></span><span class="wt-count">{{c.count}}</span></div>
+<sc-for list="{{c.cards}}" as="t" hint-placeholder-count="2">
+<div class="{{t.cls}}">
+<div class="wt-card-top"><span class="o-id">{{t.id}}</span><span class="o-sub">{{t.units}}</span></div>
+<span class="iv-route">{{t.from}}<x-import component-from-global-scope="CommerceOS.Icon" name="arrow-right"></x-import>{{t.to}}</span>
+<span class="o-sub">{{t.items}}</span>
+<span class="{{t.metaCls}}">{{t.meta}}</span>
+<sc-if value="{{t.hasAct}}" hint-placeholder-val="{{true}}"><div class="wt-card-act"><x-import component-from-global-scope="CommerceOS.Button" variant="{{t.actVariant}}" size="sm" href="{{t.href}}" on-click="{{t.act}}">{{t.actLabel}}</x-import></div></sc-if>
+</div>
+</sc-for>
+<sc-if value="{{c.empty}}" hint-placeholder-val="{{false}}"><div class="wt-empty">{{c.emptyText}}</div></sc-if>
+</div>
+</sc-for>
+</div>
+</section>
+
+<div class="wt-duo">
+<section class="wt-box" aria-labelledby="wt-l-h">
+<div class="wt-box-head"><div><h2 id="wt-l-h">Routes</h2><p>Last 60 days · click a route to filter the board</p></div></div>
+<div class="o-scroll"><table class="wt-lanes"><thead><tr><th scope="col">Route</th><th scope="col">Transfers</th><th scope="col">Units moved</th><th scope="col">Avg. transit</th><th class="c-ontime" scope="col">On time</th><th class="c-cost" scope="col">Cost / unit</th><th scope="col">Open now</th></tr></thead>
+<tbody><sc-for list="{{lanes}}" as="l" hint-placeholder-count="7"><tr class="{{l.cls}}"><td><button class="wt-lane-btn" onClick="{{l.pick}}"><span class="iv-route">{{l.from}}<x-import component-from-global-scope="CommerceOS.Icon" name="arrow-right"></x-import>{{l.to}}</span></button></td><td>{{l.count}}</td><td>{{l.units}}</td><td>{{l.transit}}</td><td class="c-ontime"><span class="{{l.onTimeCls}}">{{l.onTime}}</span></td><td class="c-cost">{{l.cost}}</td><td>{{l.open}}</td></tr></sc-for></tbody></table></div>
+</section>
+<section class="wt-box" aria-labelledby="wt-s-h">
+<div class="wt-box-head"><div><h2 id="wt-s-h">Rebalancing suggestions</h2><p>{{sugSub}}</p></div></div>
+<sc-if value="{{hasSugs}}" hint-placeholder-val="{{true}}">
+<ul class="wt-sugs"><sc-for list="{{sugs}}" as="g" hint-placeholder-count="4"><li><span class="{{g.icoCls}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{g.icon}}"></x-import></span><span class="wt-sug-main"><span class="iv-route td-strong">{{g.from}}<x-import component-from-global-scope="CommerceOS.Icon" name="arrow-right"></x-import>{{g.to}}</span><span>{{g.text}}</span><span class="o-sub">{{g.why}}</span></span><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="plus" on-click="{{g.create}}">Draft transfer</x-import></li></sc-for></ul>
+</sc-if>
+<sc-if value="{{noSugs}}" hint-placeholder-val="{{false}}"><p class="o-modal-note" style="padding: 0 20px 16px">Stock is balanced. Suggestions show up when a site runs short while another has spare.</p></sc-if>
+</section>
+</div>
+
+</main>
+</div>
+</div>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{packOpen}}" on-close="{{closePack}}" size="sm" title="{{pk.title}}" description="{{pk.desc}}">
+<div class="o-modal-stack">
+<div class="wt-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Cartons" inputmode="numeric" value="{{pk.cartons}}" on-change="{{pk.setCartons}}" error="{{pk.cartonError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Total weight" inputmode="decimal" suffix="kg" value="{{pk.weight}}" on-change="{{pk.setWeight}}" error="{{pk.weightError}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Print carton labels and the packing list" checked="{{pk.labels}}" on-change="{{pk.setLabels}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closePack}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="package" on-click="{{pk.save}}">Mark as packed</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{shipOpen}}" on-close="{{closeShip}}" size="sm" title="{{sh.title}}" description="{{sh.desc}}">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Select" label="Carrier" options="{{carrierOpts}}" value="{{sh.carrier}}" on-value-change="{{sh.setCarrier}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="Tracking or booking number" value="{{sh.ref}}" on-change="{{sh.setRef}}" error="{{sh.refError}}" placeholder="e.g. DHL 4410 8823 19"></x-import>
+<p class="o-modal-note">{{sh.etaNote}}</p>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeShip}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="truck" on-click="{{sh.save}}">Hand to carrier</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      trs: I.TRANSFERS.map((t) => Object.assign({}, t, { lines: t.lines.map((l) => l.slice()) })), view: '', lane: null, pack: null, ship: null, used: [], seq: 3117, fresh: null
+    };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.pack && !this.state.ship && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  update(id, patch) { const prev = this.state.trs; this.setState({ trs: prev.map((t) => (t.id === id ? Object.assign({}, t, patch) : t)) }); return prev; }
+  undo(prev) { return { label: 'Undo', onClick: () => this.setState({ trs: prev, toast: null }) }; }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), W = (k) => I.WH[k].short;
+    const inView = (t) => (!s.view || t.from === s.view || t.to === s.view) && (!s.lane || (t.from === s.lane[0] && t.to === s.lane[1]));
+    const late = (t) => t.status === 'in_transit' && t.eta < F.NOW;
+    const units = (t) => t.lines.reduce((a, l) => a + l[1], 0);
+    const card = (t, act) => { const first = I.BY_SKU[t.lines[0][0]];
+      return Object.assign({ id: t.id, from: W(t.from), to: W(t.to), units: F.int(units(t)) + ' units', items: first.p.name + ' · ' + first.v.label + (t.lines.length > 1 ? ' +' + (t.lines.length - 1) + ' more' : ''),
+        cls: 'wt-cardx' + (late(t) ? ' is-late' : '') + (s.fresh === t.id ? ' is-new' : ''), hasAct: !!act, href: null, actVariant: 'secondary' }, act || {}); };
+    const COLS = [
+      { key: 'draft', label: 'Draft', sub: 'Not requested yet', empty: 'No drafts', pick: (t) => t.status === 'draft',
+        act: (t) => ({ meta: 'Created by ' + t.by + ' · ' + F.timeAgo(t.created), metaCls: 'o-sub', actLabel: 'Request', act: () => { const prev = this.update(t.id, { status: 'requested', requestedAt: F.NOW }); this.showToast(t.id + ' requested', W(t.from) + ' gets a pick list.', 'success', this.undo(prev)); } }) },
+      { key: 'requested', label: 'To pick', sub: 'Waiting at the sending site', empty: 'Nothing to pick', pick: (t) => t.status === 'requested',
+        act: (t) => ({ meta: 'Requested ' + F.timeAgo(t.requestedAt || t.created) + ' · ' + F.plural(t.lines.length, 'bin'), metaCls: 'o-sub', actLabel: 'Mark as packed', act: () => this.setState({ pack: { id: t.id, cartons: String(Math.ceil(units(t) / 30)), weight: (units(t) * 0.42).toFixed(1), labels: true, touched: false } }) }) },
+      { key: 'packed', label: 'Packed', sub: 'Waiting for the carrier', empty: 'Nothing waiting', pick: (t) => t.status === 'packed',
+        act: (t) => ({ meta: t.cartons + ' cartons · ' + t.weight + ' kg · packed ' + F.timeAgo(t.packedAt), metaCls: 'o-sub', actLabel: 'Hand to carrier', actVariant: 'primary', act: () => this.setState({ ship: { id: t.id, carrier: defaultCarrier(t), ref: '', touched: false } }) }) },
+      { key: 'transit', label: 'In transit', sub: 'On the way', empty: 'Nothing in transit', pick: (t) => t.status === 'in_transit',
+        act: (t) => ({ meta: late(t) ? 'Overdue since ' + F.fmtDate(t.eta).replace(', 2026', '') + (t.delayed ? ' · held at customs' : '') : 'Due ' + F.fmtDate(t.eta).replace(', 2026', '') + ' · ' + t.carrier, metaCls: late(t) ? 'wt-late' : 'o-sub',
+          actLabel: 'Receive in Receiving', href: 'Receiving.dc.html', act: null }) },
+      { key: 'received', label: 'Received', sub: 'Last 7 days', empty: 'Nothing this week', pick: (t) => t.status === 'received' && F.NOW - t.received <= 7 * F.DAY,
+        act: () => null, meta: (t) => 'Received ' + F.timeAgo(t.received) + (t.shortBy ? ' · ' + t.shortBy + ' short' : ' · in full') }
+    ];
+    const cols = COLS.map((c) => { const list = s.trs.filter((t) => inView(t) && c.pick(t)).sort((a, b) => (late(b) - late(a)) || b.created - a.created);
+      const cards = list.map((t) => { const a = c.act(t); return card(t, a || { meta: c.meta(t), metaCls: t.shortBy ? 'wt-late' : 'o-sub' }); });
+      cards.forEach((x, i) => { if (!c.act(list[i])) { x.hasAct = false; x.meta = c.meta(list[i]); x.metaCls = list[i].shortBy ? 'wt-late' : 'o-sub'; } });
+      return { label: c.label, sub: c.sub, count: F.int(list.length), cards, empty: !list.length, emptyText: c.empty }; });
+
+    // KPIs
+    const open = s.trs.filter((t) => ['draft', 'requested', 'packed', 'in_transit'].indexOf(t.status) >= 0 && inView(t));
+    const toPick = open.filter((t) => t.status === 'requested'), transit = open.filter((t) => t.status === 'in_transit');
+    const done = s.trs.filter((t) => t.status === 'received' && inView(t));
+    const kpis = [
+      { label: 'To pick or pack', dot: 'cx-dot cx-dot-warning', value: F.int(toPick.length + open.filter((t) => t.status === 'packed').length), cmp: F.int(toPick.reduce((a, t) => a + units(t), 0)) + ' units waiting at the sending sites' },
+      { label: 'In transit', dot: 'cx-dot cx-dot-info', value: F.int(transit.reduce((a, t) => a + units(t), 0)), cmp: 'units on ' + F.plural(transit.length, 'shipment') + ' · ' + transit.filter(late).length + ' overdue' },
+      { label: 'Moved in 60 days', dot: 'cx-dot cx-dot-brand', value: F.int(done.reduce((a, t) => a + units(t), 0)), cmp: 'units on ' + F.plural(done.length, 'transfer') },
+      { label: 'Transfer cost, 60 days', dot: 'cx-dot cx-dot-success', value: F.money0(done.reduce((a, t) => a + units(t) * laneCost(t.from, t.to), 0)), cmp: 'Freight and handling, estimated per route' }
+    ];
+
+    // lanes
+    const keys = {}; s.trs.forEach((t) => { keys[t.from + '>' + t.to] = 1; });
+    const lanes = Object.keys(keys).map((k) => { const [a, b] = k.split('>'), all = s.trs.filter((t) => t.from === a && t.to === b), rec = all.filter((t) => t.status === 'received');
+      const tr = rec.length ? rec.reduce((x, t) => x + (t.received - t.shipped) / F.DAY, 0) / rec.length : transitDays(a, b), ot = rec.length ? rec.filter((t) => (t.received - t.shipped) / F.DAY <= transitDays(a, b) + 1).length / rec.length : null;
+      const op = all.filter((t) => ['draft', 'requested', 'packed', 'in_transit'].indexOf(t.status) >= 0).length;
+      return { a, b, n: all.length, from: W(a), to: W(b), count: F.int(rec.length), units: F.int(rec.reduce((x, t) => x + units(t), 0)), transit: tr.toFixed(1) + ' days', onTime: ot == null ? '—' : Math.round(ot * 100) + '%', onTimeCls: ot != null && ot < 0.85 ? 'wt-bad' : '',
+        cost: F.money2(laneCost(a, b)), open: op ? F.int(op) : '—', cls: s.lane && s.lane[0] === a && s.lane[1] === b ? 'is-on' : '', pick: () => this.setState({ lane: s.lane && s.lane[0] === a && s.lane[1] === b ? null : [a, b] }) }; })
+      .filter((l) => !s.view || l.a === s.view || l.b === s.view).sort((x, y) => y.n - x.n);
+
+    // rebalancing suggestions
+    const busy = {}; s.trs.forEach((t) => { if (['draft', 'requested', 'packed', 'in_transit'].indexOf(t.status) >= 0) t.lines.forEach((l) => { busy[l[0] + '@' + t.to] = 1; busy[l[0] + '@' + t.from] = 1; }); });
+    const raw = [];
+    I.ITEMS.forEach((it) => { if (it.p.status !== 'active') return; I.WAREHOUSES.forEach((w) => {
+      const ls = I.locState(it, w.key);
+      if ((ls === 'low' || ls === 'out') && !busy[it.sku + '@' + w.key] && it.v.stock >= it.v.reorder) {
+        const d = I.WAREHOUSES.filter((x) => x.key !== w.key).map((x) => ({ k: x.key, spare: Math.max(0, it.stock[x.key] - it.reorder[x.key] - it.committed[x.key]) })).sort((p, q) => q.spare - p.spare)[0];
+        const need = Math.max(1, it.reorder[w.key] * 2 - it.stock[w.key]);
+        if (d && d.spare >= 10) raw.push({ kind: 'short', from: d.k, to: w.key, sku: it.sku, qty: Math.min(need, d.spare) });
+      }
+      if (ls === 'over' && !busy[it.sku + '@' + w.key]) {
+        const extra = it.stock[w.key] - it.max[w.key], to = it.p.channels.indexOf('us') >= 0 && w.key !== 'ewr' ? 'ewr' : 'rtm';
+        raw.push({ kind: 'over', from: w.key, to, sku: it.sku, qty: Math.round(extra / 10) * 10 });
+      } }); });
+    const groups = {}; raw.forEach((r) => { const k = r.kind + r.from + '>' + r.to; (groups[k] = groups[k] || { kind: r.kind, from: r.from, to: r.to, lines: [] }).lines.push([r.sku, r.qty]); });
+    const sugs = Object.keys(groups).filter((k) => s.used.indexOf(k) < 0).map((k) => { const g = groups[k], u = g.lines.reduce((a, l) => a + l[1], 0), first = I.BY_SKU[g.lines[0][0]];
+      return { from: W(g.from), to: W(g.to), icon: g.kind === 'short' ? 'alert-triangle' : 'package', icoCls: 'wt-sug-ico is-' + g.kind,
+        text: F.plural(g.lines.length, 'SKU') + ', ' + F.int(u) + ' units · ' + first.p.name + ' · ' + first.v.label + (g.lines.length > 1 ? ' and more' : ''),
+        why: g.kind === 'short' ? W(g.to) + ' is below its reorder point while ' + W(g.from) + ' has spare · about ' + transitDays(g.from, g.to) + ' days, ' + F.money0(u * laneCost(g.from, g.to)) + ' to move'
+          : W(g.from) + ' holds ' + F.int(u) + ' units above max · frees ' + F.money0(u * first.p.cost) + ' of slow stock for faster-selling ' + W(g.to),
+        create: () => { const id = 'TR-' + s.seq; this.setState({ trs: [{ id, from: g.from, to: g.to, status: 'draft', created: F.NOW, eta: null, by: 'Priya Natarajan', carrier: null, note: 'Rebalancing suggestion', lines: g.lines.map((l) => l.slice()) }].concat(s.trs), used: s.used.concat([k]), seq: s.seq + 1, fresh: id });
+          this.showToast(id + ' drafted', F.int(u) + ' units ' + W(g.from) + ' → ' + W(g.to) + '. Request it from the Draft column when ready.'); } }; })
+      .filter((g) => !s.view || g.from === W(s.view) || g.to === W(s.view));
+
+    let pk = { title: '', desc: '' };
+    if (s.pack) {
+      const d = s.pack, t = s.trs.find((x) => x.id === d.id), up = (k) => (v) => { const val = v && v.target ? v.target.value : v; this.setState((x) => ({ pack: Object.assign({}, x.pack, { [k]: val }) })); };
+      const cartonError = !/^\d+$/.test(d.cartons) || Number(d.cartons) < 1 ? 'Enter at least 1' : null, weightError = !(Number(d.weight) > 0) ? 'Enter the weight' : null;
+      pk = { title: 'Pack ' + t.id + ' at ' + W(t.from), desc: F.int(units(t)) + ' units from ' + F.plural(t.lines.length, 'bin') + ', going to ' + I.WH[t.to].name + '.', cartons: d.cartons, weight: d.weight, labels: d.labels,
+        cartonError: d.touched ? cartonError : null, weightError: d.touched ? weightError : null, setCartons: up('cartons'), setWeight: up('weight'), setLabels: up('labels'),
+        save: () => { if (cartonError || weightError) return this.setState({ pack: Object.assign({}, d, { touched: true }) });
+          const prev = this.update(t.id, { status: 'packed', packedAt: F.NOW, cartons: Number(d.cartons), weight: Number(d.weight).toFixed(1) }); this.setState({ pack: null });
+          this.showToast(t.id + ' packed', d.cartons + ' cartons, ' + Number(d.weight).toFixed(1) + ' kg' + (d.labels ? '. Labels and packing list are printing at ' + W(t.from) + '.' : '.'), 'success', this.undo(prev)); } };
+    }
+    let sh = { title: '', desc: '' };
+    if (s.ship) {
+      const d = s.ship, t = s.trs.find((x) => x.id === d.id), days = transitDays(t.from, t.to), refError = !d.ref.trim() ? 'Enter the tracking or booking number' : null;
+      sh = { title: 'Ship ' + t.id, desc: t.cartons + ' cartons, ' + t.weight + ' kg · ' + W(t.from) + ' → ' + W(t.to), carrier: d.carrier, ref: d.ref, refError: d.touched ? refError : null,
+        etaNote: 'Expected at ' + I.WH[t.to].name + ' on ' + F.fmtDate(F.NOW + days * F.DAY) + '. It shows in their Receiving schedule straight away.',
+        setCarrier: (v) => this.setState({ ship: Object.assign({}, d, { carrier: v }) }), setRef: (e) => this.setState({ ship: Object.assign({}, d, { ref: e.target.value }) }),
+        save: () => { if (refError) return this.setState({ ship: Object.assign({}, d, { touched: true }) });
+          const prev = this.update(t.id, { status: 'in_transit', shipped: F.NOW, eta: F.NOW + days * F.DAY, carrier: d.carrier, ref: d.ref.trim() }); this.setState({ ship: null });
+          this.showToast(t.id + ' handed to ' + d.carrier, 'Stock left ' + W(t.from) + '. Due at ' + W(t.to) + ' on ' + F.fmtDate(F.NOW + days * F.DAY) + '.', 'success', this.undo(prev)); } };
+    }
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(open.length, 'open transfer') + (s.view ? ' in or out of ' + I.WH[s.view].name : ' across ' + I.WAREHOUSES.length + ' warehouses'),
+      viewOpts: [{ value: '', label: 'All warehouses' }].concat(I.WAREHOUSES.map((w) => ({ value: w.key, label: 'View as ' + w.name }))), view: s.view, setView: (v) => this.setState({ view: v, lane: null }),
+      kpis, cols, boardSub: s.view ? 'Transfers going in or out of ' + I.WH[s.view].short : 'Every open transfer, by stage',
+      laneChip: s.lane ? W(s.lane[0]) + ' → ' + W(s.lane[1]) : null, clearLane: () => this.setState({ lane: null }),
+      lanes, sugs, hasSugs: sugs.length > 0, noSugs: !sugs.length, sugSub: sugs.length ? F.plural(sugs.length, 'move') + ' that would fix shortages or free up space' : 'Nothing to move right now',
+      packOpen: !!s.pack, closePack: () => this.setState({ pack: null }), pk, shipOpen: !!s.ship, closeShip: () => this.setState({ ship: null }), sh, carrierOpts: CARRIERS.map((c) => ({ value: c, label: c })),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- transfer operations data: Fernhill inventory (inventory.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory;
+var CARRIERS = ['Maersk LCL', 'Maersk LCL + PostNL', 'DHL Global Forwarding', 'DHL Express', 'Pathao Freight', 'PostNL', 'Australia Post'];
+function bd(k) { return k === 'dhk' || k === 'ctg'; }
+function transitDays(a, b) { return bd(a) && bd(b) ? 2 : bd(a) || bd(b) ? 14 : (a === 'syd' || b === 'syd') ? 6 : 8; }
+/* freight and handling per unit, by route */
+function laneCost(a, b) { return bd(a) && bd(b) ? 0.12 : bd(a) || bd(b) ? 0.68 : (a === 'syd' || b === 'syd') ? 2.4 : 1.15; }
+function defaultCarrier(t) { return bd(t.from) && bd(t.to) ? 'Pathao Freight' : bd(t.from) ? 'Maersk LCL' : t.to === 'syd' || t.from === 'syd' ? 'DHL Express' : 'DHL Global Forwarding'; }
+</script>
+</body>
+</html>

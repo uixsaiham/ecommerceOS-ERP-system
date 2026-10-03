@@ -6,6 +6,7 @@ Every CommerceOS page uses this shell for global navigation. Don't copy sidebar 
 - `shell.css` holds the page grid, the sidebar in all its states, and the breadcrumb styles.
 - `list.css` holds the shared look of operational list pages: KPI cards, tabs, filter bar, data table, bulk bar, side panels, mobile cards. Abandoned Carts, Returns & Refunds, Sales Channels and the Products pages use it.
 - `catalog.js` (in the page folder) is the Fernhill product catalog shared by the Products pages: products, variants, categories, collections and attributes, consistent with the dashboard and Sales Channels data.
+- `inventory.js` (in the page folder, load after `catalog.js`) is the stock per SKU per warehouse, reorder points, open POs, transfers and adjustments shared by the Inventory pages, plus the site details, order routing, zones and bins, and receipts used by the Warehouses pages. Its 18 low-stock locations match the sidebar badge.
 - `TopBar.dc.html` (in the page folder) is the shared top bar: search, store selector, help, notifications, profile. New pages import it with `<dc-import name="TopBar" store=… stores=… on-store-change=… on-open-drawer=… dark=… on-toggle-theme=…>`. The dashboard and Orders still have their own copy of the same design.
 - `NAV` in `shell.js` is the only definition of the module → submenu tree. To add a module or page, edit it there. When a page gets built, give its entry an `href`.
 

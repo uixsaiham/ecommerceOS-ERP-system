@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Receiving · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=4">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=5"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=6"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Receiving ---------- */
+.rc-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.td-strong{font-weight:500}
+.rc-days{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
+.rc-day{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;min-width:0}
+.rc-day:hover{border-color:var(--border-strong)}
+.rc-day[aria-pressed="true"]{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.rc-day:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.rc-day strong{font-size:18px;line-height:24px}
+.rc-day .o-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-day.is-late strong{color:var(--danger)}
+.rc-id{border:0;background:none;padding:0;cursor:pointer}
+.rc-id:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:2px}
+.rc-late{color:var(--danger);font-weight:500}
+.rc-table td.c-from{white-space:normal;min-width:180px}
+/* panel */
+.dp-wide{width:560px}
+.dp-kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:6px 12px;margin:0;font-size:13px;line-height:20px}
+.dp-kv dt{color:var(--text-muted)}
+.dp-kv dd{margin:0}
+.rc-lines{width:100%;border-collapse:collapse;font-size:13px;line-height:20px;font-variant-numeric:tabular-nums}
+.rc-lines th{padding:6px 8px;font-size:12px;font-weight:500;color:var(--text-secondary);text-align:right;background:var(--bg-subtle);border-bottom:1px solid var(--border);white-space:nowrap}
+.rc-lines th:first-child,.rc-lines td:first-child{text-align:left}
+.rc-lines td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle}
+.rc-lines tr:last-child td{border-bottom:0}
+.rc-lines-wrap{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:auto}
+.rc-in{width:64px;height:28px;box-sizing:border-box;padding:0 6px;border:1px solid var(--border-control);border-radius:var(--radius-xs);background:var(--bg-surface);color:var(--text-primary);font:inherit;font-size:13px;text-align:right}
+.rc-in.is-bin{width:84px;text-align:left;font-family:var(--font-mono);font-size:12px}
+.rc-in:focus{outline:2px solid var(--focus-ring);outline-offset:-1px}
+.rc-in.is-bad{border-color:var(--danger)}
+.rc-tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.rc-tl li{position:relative;display:flex;gap:12px;padding:0 0 12px}
+.rc-tl li::before{content:"";position:absolute;left:4px;top:14px;bottom:0;width:1px;background:var(--border)}
+.rc-tl li:last-child{padding-bottom:0}
+.rc-tl li:last-child::before{display:none}
+.rc-dot{flex:none;width:9px;height:9px;margin-top:6px;border-radius:var(--radius-full);background:var(--border-strong)}
+.rc-dot.is-done{background:var(--success)}
+.rc-dot.is-now{background:var(--brand)}
+.rc-dot.is-bad{background:var(--danger)}
+.rc-tl .pr-cell-main{font-size:13px;line-height:20px}
+.rc-tl .is-todo{color:var(--text-muted)}
+.rc-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dp-foot-end{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:1279px){ .rc-days{grid-template-columns:repeat(4,minmax(0,1fr))} .c-carrier{display:none} }
+@media (max-width:1023px){ .rc-kpis{display:flex} .c-dock{display:none} }
+@media (max-width:767px){ .rc-days{grid-template-columns:repeat(2,minmax(0,1fr))} .dp-wide{width:100%} .rc-grid2{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="warehouses/receiving" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="warehouses/receiving"></x-import>
+<h1>Receiving</h1>
+<p class="ph-sub">Deliveries from suppliers and other warehouses: check them in at the dock, count them, and put them away.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Today, Oct 1 · 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Warehouse" options="{{whOpts}}" value="{{wh}}" on-value-change="{{setWh}}" width="210px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<section class="o-kpis rc-kpis" aria-label="Receiving summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section aria-label="Arrival schedule">
+<div class="rc-days"><sc-for list="{{days}}" as="d" hint-placeholder-count="8"><button class="{{d.cls}}" aria-pressed="{{d.on}}" onClick="{{d.pick}}"><span class="o-sub">{{d.label}}</span><strong>{{d.count}}</strong><span class="o-sub">{{d.sub}}</span></button></sc-for></div>
+</section>
+
+<section class="o-card" aria-label="Deliveries">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Receipt status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by receipt, PO, transfer, supplier or SKU" label="Search receipts" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<sc-if value="{{dayChip}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="x" on-click="{{clearDay}}">{{dayChip}}</x-import></sc-if>
+</div></div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table rc-table" aria-label="Deliveries">
+<thead><tr>
+<th scope="col">Receipt</th>
+<th scope="col">From</th>
+<th scope="col">To</th>
+<th class="is-right" scope="col">Units</th>
+<th scope="col">Arrival</th>
+<th class="c-dock" scope="col">Dock</th>
+<th scope="col">Status</th>
+<th class="c-act" scope="col" style="width: auto"><span class="cx-sr">Action</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="15">
+<tr>
+<td><button class="o-id rc-id" onClick="{{r.open}}">{{r.id}}</button><span class="o-sub">{{r.ref}}</span></td>
+<td class="c-from"><span>{{r.from}}</span><span class="o-sub">{{r.carrier}}</span></td>
+<td>{{r.wh}}</td>
+<td class="is-right"><span class="td-strong">{{r.units}}</span><span class="o-sub">{{r.linesLabel}}</span></td>
+<td><span class="{{r.etaCls}}">{{r.eta}}</span><span class="o-sub">{{r.etaSub}}</span></td>
+<td class="c-dock">{{r.dock}}</td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import></td>
+<td class="c-act" style="width: auto; padding-right: 12px"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Deliveries">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<li class="o-m-card"><div class="o-m-top"><button class="o-id rc-id" onClick="{{r.open}}">{{r.id}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import></div>
+<div class="o-m-mid"><div><span class="td-strong">{{r.from}}</span><span class="o-sub">{{r.ref}} · to {{r.wh}} · <span class="{{r.etaCls}}">{{r.eta}}</span></span></div><span class="o-m-total">{{r.units}}</span></div>
+<div class="o-m-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></div></li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="{{emptyIcon}}" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close receipt" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="rc-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="rc-dp-title">{{dp.id}} · {{dp.ref}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close receipt" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec"><div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.statusLabel}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}" title="{{dp.alertTitle}}" actions="{{dp.alertActions}}">{{dp.alert}}</x-import></sc-if>
+<dl class="dp-kv"><dt>From</dt><dd>{{dp.from}}</dd><dt>To</dt><dd>{{dp.wh}}</dd><dt>Carrier</dt><dd>{{dp.carrier}}</dd><dt>Cartons</dt><dd>{{dp.cartons}}</dd><dt>Dock</dt><dd>{{dp.dock}}</dd></dl>
+</section>
+<section class="o-panel-sec"><h3>Lines · {{dp.unitsLabel}}</h3>
+<div class="rc-lines-wrap"><table class="rc-lines"><thead><tr><th scope="col">SKU</th><th scope="col">Expected</th><th scope="col">Received</th><th scope="col">Damaged</th><th scope="col">Bin</th></tr></thead>
+<tbody><sc-for list="{{dp.lines}}" as="l" hint-placeholder-count="4"><tr><td><span>{{l.name}}</span><span class="o-sub">{{l.variant}} · <span class="iv-sku">{{l.sku}}</span></span></td><td>{{l.expected}}</td><td><span class="{{l.recCls}}">{{l.received}}</span></td><td><span class="{{l.dmgCls}}">{{l.damaged}}</span></td><td><span class="iv-sku">{{l.bin}}</span></td></tr></sc-for></tbody></table></div>
+</section>
+<section class="o-panel-sec"><h3>Progress</h3>
+<ol class="rc-tl"><sc-for list="{{dp.steps}}" as="t" hint-placeholder-count="4"><li><span class="{{t.dot}}" aria-hidden="true"></span><span class="pr-cell-main"><span class="{{t.cls}}">{{t.label}}</span><span class="o-sub">{{t.when}}</span></span></li></sc-for></ol>
+</section>
+</div>
+<sc-if value="{{dp.hasAction}}" hint-placeholder-val="{{false}}"><div class="o-panel-foot"><span></span><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="{{dp.actIcon}}" on-click="{{dp.act}}">{{dp.actLabel}}</x-import></div></div></sc-if>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{ciOpen}}" on-close="{{closeCi}}" size="sm" title="{{ci.title}}" description="{{ci.desc}}">
+<div class="o-modal-stack">
+<div class="rc-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Dock" options="{{ci.dockOpts}}" value="{{ci.dock}}" on-value-change="{{ci.setDock}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Cartons on the truck" inputmode="numeric" value="{{ci.cartons}}" on-change="{{ci.setCartons}}" error="{{ci.cartonError}}" hint="{{ci.cartonHint}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Seal intact and no visible damage to the pallets" checked="{{ci.seal}}" on-change="{{ci.setSeal}}"></x-import>
+<sc-if value="{{ci.sealNote}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">Photograph the damage before unloading. It’s attached to the receipt for the carrier claim.</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeCi}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="truck" on-click="{{ci.save}}">Check in</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{rvOpen}}" on-close="{{closeRv}}" size="lg" title="{{rv.title}}" description="Count each line as you unpack it. Damaged units go to quality hold, not into sellable stock.">
+<div class="o-modal-stack">
+<div class="rc-lines-wrap"><table class="rc-lines"><thead><tr><th scope="col">SKU</th><th scope="col">Expected</th><th scope="col">Received</th><th scope="col">Damaged</th><th scope="col">Put away to</th></tr></thead>
+<tbody><sc-for list="{{rv.lines}}" as="l" hint-placeholder-count="4"><tr><td><span>{{l.name}}</span><span class="o-sub">{{l.variant}} · <span class="iv-sku">{{l.sku}}</span></span></td><td>{{l.expected}}</td>
+<td><input class="{{l.recCls}}" inputmode="numeric" aria-label="Received {{l.sku}}" value="{{l.rec}}" onChange="{{l.setRec}}"></td>
+<td><input class="{{l.dmgCls}}" inputmode="numeric" aria-label="Damaged {{l.sku}}" value="{{l.dmg}}" onChange="{{l.setDmg}}"></td>
+<td><input class="rc-in is-bin" aria-label="Bin for {{l.sku}}" value="{{l.bin}}" onChange="{{l.setBin}}"></td></tr></sc-for></tbody></table></div>
+<div class="o-modal-actions" style="justify-content: space-between"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="check" on-click="{{rv.fillAll}}">Everything arrived as expected</x-import><span class="o-sub">{{rv.progress}}</span></div>
+<sc-if value="{{rv.summary}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{rv.summaryTone}}">{{rv.summary}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeRv}}">Save and close</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check-circle" disabled="{{rv.blocked}}" on-click="{{rv.complete}}">{{rv.cta}}</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","detail","receive"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none';
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      rcs: I.RECEIPTS.map((r) => Object.assign({}, r, { lines: r.lines.map((l) => l.slice()) })), wh: '', tab: 'dock', day: null, query: '', detail: null, ci: null, rv: null
+    };
+    if (demo === 'detail') this.state.detail = 'RCV-8839';
+    if (demo === 'receive') this.state.rv = this.rvDraft(this.state.rcs.find((r) => r.ref === 'PO-20424'));
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.ci && !this.state.rv) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  update(id, patch) { this.setState((s) => ({ rcs: s.rcs.map((r) => (r.id === id ? Object.assign({}, r, patch) : r)) })); }
+  rvDraft(r) { return { id: r.id, lines: r.lines.map((l) => ({ sku: l[0], rec: l[2] != null ? String(l[2]) : '', dmg: l[3] != null ? String(l[3]) : '', bin: I.binOf(I.BY_SKU[l[0]], r.wh) })) }; }
+  act(r) {
+    if (r.status === 'expected') this.setState({ ci: { id: r.id, dock: 'Dock 1', cartons: String(r.cartons), seal: true, touched: false } });
+    else if (r.status === 'arrived' || r.status === 'receiving') this.setState({ rv: this.rvDraft(r) });
+    else this.setState({ detail: r.id });
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store);
+    const scoped = s.rcs.filter((r) => !s.wh || r.wh === s.wh);
+    const dayOf = (r) => Math.floor(((r.status === 'completed' ? r.completed : r.arrived || r.eta) - F.DAY0) / F.DAY);
+    const q = s.query.trim().toLowerCase();
+    const searched = scoped.filter((r) => (s.day == null || (s.day === 'late' ? isLate(r) : dayOf(r) === s.day && !isLate(r))) && (!q || r.id.toLowerCase().indexOf(q) >= 0 || r.ref.toLowerCase().indexOf(q) >= 0 || r.from.toLowerCase().indexOf(q) >= 0 || r.lines.some((l) => l[0].toLowerCase().indexOf(q) >= 0)));
+    const inTab = (r, t) => t === 'all' || (t === 'dock' ? r.status === 'arrived' || r.status === 'receiving' : r.status === t);
+    const order = { receiving: 0, arrived: 1, expected: 2, completed: 3 };
+    const list = searched.filter((r) => inTab(r, s.tab)).sort((a, b) => order[a.status] - order[b.status] || (a.status === 'completed' ? b.completed - a.completed : (a.arrived || a.eta) - (b.arrived || b.eta)));
+    const rows = list.map((r) => {
+      const sv = STATUS_V[isLate(r) ? 'late' : r.status], units = r.lines.reduce((a, l) => a + l[1], 0), late = isLate(r);
+      return { id: r.id, ref: r.ref + (r.kind === 'transfer' ? ' · transfer' : r.poStatus ? ' · ' + r.poStatus.toLowerCase() : ''), from: r.from, carrier: r.carrier, wh: I.WH[r.wh].short,
+        units: F.int(units), linesLabel: F.plural(r.lines.length, 'line'),
+        eta: r.status === 'completed' ? 'Received ' + F.fmtWhen(r.completed) : r.arrived ? 'Arrived ' + F.fmtWhen(r.arrived) : late ? 'Overdue since ' + F.fmtDate(r.eta).replace(', 2026', '') : 'Due ' + F.fmtDate(r.eta).replace(', 2026', ''),
+        etaSub: r.status === 'completed' ? discText(r) : r.arrived ? 'Waiting ' + F.timeAgo(r.arrived).replace(' ago', '') : late ? (r.delayed ? 'Held at customs' : 'Check with the carrier') : 'in ' + Math.max(1, Math.round((r.eta - F.NOW) / F.DAY)) + ' days',
+        etaCls: late ? 'rc-late' : '', dock: r.dock || '—', tone: sv[0], icon: sv[2], statusLabel: sv[1],
+        btnLabel: r.status === 'expected' ? 'Check in' : r.status === 'arrived' ? 'Start receiving' : r.status === 'receiving' ? 'Continue' : 'View', btnVariant: r.status === 'completed' ? 'ghost' : r.status === 'expected' ? 'secondary' : 'primary',
+        act: () => this.act(r), open: () => this.setState({ detail: r.id }) };
+    });
+
+    // KPIs
+    const today = scoped.filter((r) => r.status !== 'completed' && dayOf(r) <= 0), atDock = scoped.filter((r) => r.status === 'arrived' || r.status === 'receiving');
+    const week = scoped.filter((r) => r.status === 'completed' && F.NOW - r.completed <= 7 * F.DAY), weekUnits = week.reduce((a, r) => a + r.lines.reduce((b, l) => b + (l[2] || 0), 0), 0);
+    const month = scoped.filter((r) => r.status === 'completed' && F.NOW - r.completed <= 30 * F.DAY), lines = month.reduce((a, r) => a + r.lines.length, 0), bad = month.reduce((a, r) => a + r.lines.filter((l) => l[2] < l[1] || l[3] > 0).length, 0);
+    const dockHours = atDock.length ? atDock.reduce((a, r) => a + (F.NOW - r.arrived) / 36e5, 0) / atDock.length : 0;
+    const kpis = [
+      { label: 'Due today or overdue', dot: 'cx-dot cx-dot-brand', value: F.int(today.length), cmp: F.int(today.reduce((a, r) => a + r.lines.reduce((b, l) => b + l[1], 0), 0)) + ' units · ' + F.int(scoped.filter(isLate).length) + ' overdue' },
+      { label: 'At the dock now', dot: 'cx-dot cx-dot-warning', value: F.int(atDock.length), cmp: atDock.length ? 'Waiting ' + dockHours.toFixed(1) + ' h on average · target 4 h' : 'Dock is clear' },
+      { label: 'Received this week', dot: 'cx-dot cx-dot-success', value: F.int(weekUnits), cmp: 'units on ' + F.plural(week.length, 'delivery', 'deliveries') },
+      { label: 'Lines with a problem, 30 days', dot: 'cx-dot cx-dot-danger', value: lines ? (bad / lines * 100).toFixed(1) + '%' : '—', cmp: F.int(bad) + ' of ' + F.int(lines) + ' lines short or damaged' }
+    ];
+
+    const days = [{ key: 'late', label: 'Overdue', n: scoped.filter(isLate).length }].concat([0, 1, 2, 3, 4, 5, 6].map((d) => ({ key: d, label: d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : F.fmtDate(F.DAY0 + d * F.DAY).replace(', 2026', ''),
+      n: scoped.filter((r) => r.status !== 'completed' && !isLate(r) && Math.max(0, dayOf(r)) === d).length + (d === 0 ? scoped.filter((r) => r.status === 'completed' && dayOf(r) === 0).length : 0),
+      units: scoped.filter((r) => r.status !== 'completed' && !isLate(r) && Math.max(0, dayOf(r)) === d).reduce((a, r) => a + r.lines.reduce((b, l) => b + l[1], 0), 0) })))
+      .map((d) => ({ label: d.label, count: F.int(d.n), sub: d.key === 'late' ? (d.n ? 'needs a follow-up' : 'nothing late') : d.n ? F.int(d.units || 0) + ' units' : 'no deliveries', on: s.day === d.key, cls: 'rc-day' + (d.key === 'late' && d.n ? ' is-late' : ''),
+        pick: () => this.setState({ day: s.day === d.key ? null : d.key, tab: 'all' }) }));
+    const tabs = [{ id: 'dock', label: 'At the dock' }, { id: 'expected', label: 'Expected' }, { id: 'completed', label: 'Received' }, { id: 'all', label: 'All' }].map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((r) => inTab(r, t.id)).length) }));
+
+    let dp = null;
+    if (s.detail) {
+      const r = s.rcs.find((x) => x.id === s.detail), sv = STATUS_V[isLate(r) ? 'late' : r.status], units = r.lines.reduce((a, l) => a + l[1], 0);
+      const short = r.lines.reduce((a, l) => a + (l[2] != null ? Math.max(0, l[1] - l[2]) : 0), 0), dmg = r.lines.reduce((a, l) => a + (l[3] || 0), 0), w = I.WH[r.wh];
+      const step = (label, ts, st) => ({ label, when: ts ? F.fmtWhen(ts) : '', dot: 'rc-dot is-' + st, cls: st === 'todo' ? 'is-todo' : '' });
+      const steps = [step(r.kind === 'po' ? 'Shipped by ' + r.from : 'Shipped from ' + r.from, r.kind === 'po' && r.poStatus && r.poStatus !== 'Shipped' && r.status === 'expected' ? null : r.eta - 9 * F.DAY, r.kind === 'po' && r.poStatus && r.poStatus !== 'Shipped' && r.status === 'expected' ? 'todo' : 'done'),
+        step(r.arrived ? 'Checked in at ' + r.dock : isLate(r) ? 'Overdue at ' + w.short : 'Arrives at ' + w.short, r.arrived || r.eta, r.arrived ? 'done' : isLate(r) ? 'bad' : 'todo'),
+        step(r.status === 'completed' ? 'Counted' + (short || dmg ? ': ' + [short ? short + ' short' : '', dmg ? dmg + ' damaged' : ''].filter(Boolean).join(', ') : ' in full') : 'Count and inspect', r.completed, r.status === 'completed' ? (short || dmg ? 'bad' : 'done') : r.status === 'receiving' ? 'now' : 'todo'),
+        step(r.status === 'completed' ? 'Put away by ' + (r.by || w.manager) : 'Put away to bins', r.completed, r.status === 'completed' ? 'done' : 'todo')];
+      const claim = r.status === 'completed' && (short || dmg) && r.kind === 'po';
+      dp = { id: r.id, ref: r.ref, sub: F.plural(r.lines.length, 'line') + ' · ' + F.int(units) + ' units · ' + F.money0(r.lines.reduce((a, l) => a + l[1] * I.BY_SKU[l[0]].p.cost, 0)) + ' at cost',
+        tone: sv[0], icon: sv[2], statusLabel: sv[1], statusSub: r.status === 'completed' ? 'Received ' + F.fmtWhen(r.completed) : r.arrived ? 'At ' + r.dock + ' since ' + F.fmtWhen(r.arrived) : 'Due ' + F.fmtDate(r.eta),
+        alert: r.delayed ? r.delayed : claim ? (short ? F.plural(short, 'unit') + ' short' : '') + (short && dmg ? ' and ' : '') + (dmg ? F.plural(dmg, 'unit') + ' damaged' : '') + ', worth ' + F.money0(r.lines.reduce((a, l) => a + ((l[1] - (l[2] || 0)) + (l[3] || 0)) * I.BY_SKU[l[0]].p.cost, 0)) + ' at cost.' : null,
+        alertTone: r.delayed ? 'danger' : 'warning', alertTitle: r.delayed ? 'Delayed' : 'Discrepancy on this delivery',
+        alertActions: claim ? [h(CommerceOS.Button, { key: 'c', variant: 'secondary', size: 'sm', onClick: () => this.showToast('Claim sent to ' + r.from, 'They have 5 business days to credit or ship the missing units. You’ll see the reply in Procurement.') }, 'Claim from supplier')] : null,
+        from: r.from, wh: w.name, carrier: r.carrier, cartons: F.int(r.cartons), dock: r.dock || 'Assigned at check-in', unitsLabel: F.int(units) + ' units',
+        lines: r.lines.map((l) => { const it = I.BY_SKU[l[0]]; return { name: it.p.name, variant: it.v.label, sku: it.sku, expected: F.int(l[1]), received: l[2] != null ? F.int(l[2]) : '—', damaged: l[3] != null ? F.int(l[3]) : '—',
+          recCls: l[2] != null && l[2] < l[1] ? 'iv-neg' : '', dmgCls: l[3] ? 'iv-neg' : '', bin: I.binOf(it, r.wh) }; }),
+        steps, hasAction: r.status !== 'completed', actLabel: r.status === 'expected' ? 'Check in' : r.status === 'arrived' ? 'Start receiving' : 'Continue receiving', actIcon: r.status === 'expected' ? 'truck' : 'check-circle', act: () => this.act(r) };
+    }
+
+    let ci = { title: '', desc: '', dockOpts: [] };
+    if (s.ci) {
+      const d = s.ci, r = s.rcs.find((x) => x.id === d.id), w = I.WH[r.wh], n = Number(d.cartons);
+      const busy = s.rcs.filter((x) => x.wh === r.wh && (x.status === 'arrived' || x.status === 'receiving')).map((x) => x.dock);
+      const cartonError = !/^\d+$/.test(d.cartons) || n < 1 ? 'Enter the number of cartons' : null;
+      ci = { title: 'Check in ' + r.ref + ' at ' + w.short, desc: r.from + ' · ' + r.carrier, dock: d.dock, cartons: d.cartons, seal: d.seal, sealNote: !d.seal,
+        dockOpts: Array.from({ length: w.docks }, (_, i) => 'Dock ' + (i + 1)).map((k) => ({ value: k, label: k + (busy.indexOf(k) >= 0 ? ' · in use' : ''), disabled: busy.indexOf(k) >= 0 })),
+        cartonError: d.touched ? cartonError : null, cartonHint: n && n !== r.cartons ? 'Packing list says ' + r.cartons + '. The difference is noted on the receipt.' : 'Packing list says ' + r.cartons,
+        setDock: (v) => this.setState({ ci: Object.assign({}, d, { dock: v }) }), setCartons: (e) => this.setState({ ci: Object.assign({}, d, { cartons: e.target.value }) }), setSeal: (v) => this.setState({ ci: Object.assign({}, d, { seal: v }) }),
+        save: () => { if (cartonError) return this.setState({ ci: Object.assign({}, d, { touched: true }) }); if (busy.indexOf(d.dock) >= 0) return this.showToast(d.dock + ' is in use', 'Pick a free dock.', 'info');
+          this.update(r.id, { status: 'arrived', arrived: F.NOW, dock: d.dock, cartons: n, sealBroken: !d.seal }); this.setState({ ci: null, tab: 'dock', day: null });
+          this.showToast(r.ref + ' checked in at ' + d.dock, (n !== r.cartons ? n + ' cartons, ' + r.cartons + ' expected. ' : '') + 'Start receiving when the team is ready.'); } };
+    }
+
+    let rv = { title: '', lines: [] };
+    if (s.rv) {
+      const d = s.rv, r = s.rcs.find((x) => x.id === d.id);
+      const parsed = d.lines.map((l, i) => { const exp = r.lines[i][1], rec = l.rec === '' ? null : Number(l.rec), dmg = l.dmg === '' ? 0 : Number(l.dmg);
+        const okRec = rec == null || (/^\d+$/.test(l.rec) && rec <= exp * 1.5), okDmg = /^\d*$/.test(l.dmg) && (rec == null || dmg <= rec), okBin = /^[A-E]-\d{2}-0[1-5]$/.test(l.bin.trim().toUpperCase());
+        return { l, i, exp, rec, dmg, okRec, okDmg, okBin }; });
+      const counted = parsed.filter((x) => x.rec != null).length, invalid = parsed.filter((x) => !x.okRec || !x.okDmg || !x.okBin);
+      const short = parsed.reduce((a, x) => a + (x.rec != null ? Math.max(0, x.exp - x.rec) : 0), 0), over = parsed.reduce((a, x) => a + (x.rec != null ? Math.max(0, x.rec - x.exp) : 0), 0), dmg = parsed.reduce((a, x) => a + (x.rec != null ? x.dmg : 0), 0);
+      const setLine = (i, k) => (e) => this.setState((st) => ({ rv: Object.assign({}, st.rv, { lines: st.rv.lines.map((x, j) => (j === i ? Object.assign({}, x, { [k]: e.target.value }) : x)) }) }));
+      rv = { title: 'Receive ' + r.ref + ' at ' + I.WH[r.wh].short + (r.dock ? ' · ' + r.dock : ''),
+        lines: parsed.map((x) => { const it = I.BY_SKU[x.l.sku]; return { name: it.p.name, variant: it.v.label, sku: it.sku, expected: F.int(x.exp), rec: x.l.rec, dmg: x.l.dmg, bin: x.l.bin,
+          recCls: 'rc-in' + (!x.okRec ? ' is-bad' : ''), dmgCls: 'rc-in' + (!x.okDmg ? ' is-bad' : ''), setRec: setLine(x.i, 'rec'), setDmg: setLine(x.i, 'dmg'), setBin: setLine(x.i, 'bin') }; }),
+        progress: counted + ' of ' + F.plural(parsed.length, 'line') + ' counted',
+        fillAll: () => this.setState((st) => ({ rv: Object.assign({}, st.rv, { lines: st.rv.lines.map((x, j) => Object.assign({}, x, { rec: x.rec === '' ? String(r.lines[j][1]) : x.rec, dmg: x.dmg === '' ? '0' : x.dmg })) }) })),
+        summary: invalid.length ? 'Check the highlighted fields: quantities must be whole numbers, damaged can’t exceed received, and bins look like A-04-02.' : counted < parsed.length ? null : short || over || dmg ? [short ? F.plural(short, 'unit') + ' short' : '', over ? F.plural(over, 'extra unit') : '', dmg ? F.plural(dmg, 'unit') + ' damaged (to quality hold)' : ''].filter(Boolean).join(', ') + '. Logged in Stock Adjustments and flagged to ' + r.from.replace(/\.$/, '') + '.' : 'Everything matches the packing list.',
+        summaryTone: invalid.length ? 'danger' : short || over || dmg ? 'warning' : 'success', blocked: invalid.length > 0 || counted < parsed.length,
+        cta: counted < parsed.length ? 'Count every line to finish' : 'Complete and put away',
+        complete: () => { const lines = r.lines.map((l, i) => [l[0], l[1], parsed[i].rec, parsed[i].dmg]);
+          this.update(r.id, { status: 'completed', completed: F.NOW, lines, by: 'Priya Natarajan' }); this.setState({ rv: null, tab: 'completed', detail: r.id });
+          const good = parsed.reduce((a, x) => a + x.rec - x.dmg, 0);
+          this.showToast(r.ref + ' received', F.int(good) + ' units put away at ' + I.WH[r.wh].short + (short || dmg ? '. ' + [short ? short + ' short' : '', dmg ? dmg + ' damaged' : ''].filter(Boolean).join(', ') + ' logged.' : '.')); } };
+    }
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(scoped.filter((r) => r.status !== 'completed').length, 'delivery', 'deliveries') + ' open' + (s.wh ? ' at ' + I.WH[s.wh].name : ' across ' + I.WAREHOUSES.length + ' warehouses'),
+      whOpts: [{ value: '', label: 'All warehouses' }].concat(I.WAREHOUSES.map((w) => ({ value: w.key, label: w.name }))), wh: s.wh, setWh: (v) => this.setState({ wh: v }),
+      kpis, days, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      dayChip: s.day == null ? null : s.day === 'late' ? 'Overdue only' : 'Arriving ' + (s.day === 0 ? 'today' : s.day === 1 ? 'tomorrow' : F.fmtDate(F.DAY0 + s.day * F.DAY).replace(', 2026', '')), clearDay: () => this.setState({ day: null }),
+      rows, shown: rows.length > 0, empty: rows.length === 0,
+      emptyIcon: s.tab === 'dock' && !q ? 'check-circle' : 'search', emptyTitle: s.tab === 'dock' && !q ? 'The dock is clear' : 'No deliveries match', emptyDesc: s.tab === 'dock' && !q ? 'Deliveries show up here when they’re checked in.' : 'Try another day, warehouse or search.',
+      dp, closeDetail: () => this.setState({ detail: null }),
+      ciOpen: !!s.ci, closeCi: () => this.setState({ ci: null }), ci,
+      rvOpen: !!s.rv, closeRv: () => { const d = s.rv; if (d) { const r = s.rcs.find((x) => x.id === d.id); if (r.status === 'arrived') this.update(r.id, { status: 'receiving' }); this.update(r.id, { lines: r.lines.map((l, i) => [l[0], l[1], d.lines[i].rec === '' ? null : Number(d.lines[i].rec), d.lines[i].dmg === '' ? null : Number(d.lines[i].dmg)]) }); } this.setState({ rv: null }); }, rv,
+      exportView: () => this.showToast('Exporting ' + F.plural(rows.length, 'receipt'), 'CSV with expected, received and damaged quantities per line.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- receiving data: Fernhill inventory (inventory.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, h = window.React.createElement, CommerceOS = window.CommerceOS;
+var STATUS_V = { expected: ['neutral', 'Expected', 'clock'], late: ['danger', 'Overdue', 'alert-triangle'], arrived: ['warning', 'At the dock', 'truck'], receiving: ['info', 'Receiving', 'clipboard-list'], completed: ['success', 'Received', 'check-circle'] };
+function isLate(r) { return r.status === 'expected' && r.eta < F.NOW - 36e5; }
+function discText(r) { var s = r.lines.reduce(function (a, l) { return a + Math.max(0, l[1] - (l[2] || 0)); }, 0), d = r.lines.reduce(function (a, l) { return a + (l[3] || 0); }, 0); return s || d ? [s ? s + ' short' : '', d ? d + ' damaged' : ''].filter(Boolean).join(', ') : 'In full'; }
+</script>
+</body>
+</html>

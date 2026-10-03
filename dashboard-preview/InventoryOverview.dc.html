@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inventory Overview · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=4">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=5"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=6"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Inventory overview ---------- */
+.io-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.td-strong{font-weight:500}
+.io-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:start}
+.io-row.is-even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.io-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px;min-width:0}
+.io-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.io-head h2{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.io-head p{margin:2px 0 0;font-size:12px;line-height:16px;color:var(--text-muted)}
+.io-head a{font-size:13px;white-space:nowrap}
+/* value chart (same pattern as the dashboard revenue chart) */
+.io-big{font-size:22px;line-height:28px;font-weight:600;letter-spacing:-0.015em}
+.chart{display:grid;grid-template-columns:56px minmax(0,1fr);grid-template-rows:220px 28px;column-gap:8px}
+.chart-y{position:relative}
+.chart-y span{position:absolute;right:0;transform:translateY(50%);font-size:12px;line-height:16px;color:var(--text-muted);white-space:nowrap}
+.chart-plot{position:relative;border-bottom:1px solid var(--border-strong);user-select:none}
+.gl{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--border)}
+.chart-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.c-area{fill:var(--brand-subtle);opacity:.75}
+.c-line{fill:none;stroke:var(--brand);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.hits{position:absolute;inset:0;display:flex}
+.hit{flex:1;height:100%;cursor:crosshair}
+.hv-line{position:absolute;top:0;bottom:0;width:0;border-left:1px solid var(--border-control);pointer-events:none}
+.hv-dot{position:absolute;width:10px;height:10px;margin:0 0 -5px -5px;border-radius:var(--radius-full);background:var(--brand);box-shadow:0 0 0 2px var(--bg-surface);pointer-events:none}
+.c-tip{position:absolute;top:8px;min-width:170px;padding:8px 12px;border-radius:var(--radius-md);background:var(--bg-surface);border:1px solid var(--border);box-shadow:var(--shadow-md);font-size:12px;line-height:16px;pointer-events:none;transform:translateX(12px);z-index:2}
+.c-tip.is-left{transform:translateX(calc(-100% - 12px))}
+.c-tip-date{font-weight:600;margin-bottom:6px;color:var(--text-primary)}
+.c-tip-row{display:flex;align-items:center;gap:8px;justify-content:space-between;color:var(--text-secondary)}
+.c-tip-row strong{color:var(--text-primary);font-weight:500}
+.chart-x{position:relative;grid-column:2}
+.chart-x span{position:absolute;top:8px;transform:translateX(-50%);font-size:12px;line-height:16px;color:var(--text-muted);white-space:nowrap}
+/* attention */
+.io-tasks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.io-tasks li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.io-tasks li:last-child{border-bottom:0}
+.io-ico{flex:none;width:32px;height:32px;border-radius:var(--radius-full);display:inline-flex;align-items:center;justify-content:center}
+.io-ico .cx-icon{width:16px;height:16px}
+.t-danger{background:var(--danger-subtle);color:var(--danger)}
+.t-warning{background:var(--warning-subtle);color:var(--warning)}
+.t-info{background:var(--info-subtle);color:var(--info)}
+.t-brand{background:var(--brand-subtle);color:var(--brand)}
+.t-success{background:var(--success-subtle);color:var(--success)}
+.io-task-main{flex:1;min-width:0;display:flex;flex-direction:column;font-size:13px;line-height:20px}
+.io-task-main strong{font-weight:600}
+/* warehouses */
+.io-whs{width:100%;border-collapse:collapse;font-size:13px;line-height:20px;font-variant-numeric:tabular-nums}
+.io-whs th{padding:6px 8px;font-size:12px;font-weight:500;color:var(--text-secondary);text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+.io-whs th:first-child,.io-whs td:first-child{text-align:left;padding-left:0}
+.io-whs td{padding:9px 8px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+.io-whs tr:last-child td{border-bottom:0}
+.io-cap{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.io-cap .pr-meter{width:80px}
+.io-cap .pr-meter > span{background:var(--brand)}
+.io-cap .pr-meter.is-warn > span{background:var(--warning)}
+/* health */
+.io-stack{display:flex;height:14px;border-radius:var(--radius-full);overflow:hidden;gap:2px;background:var(--bg-muted);margin-bottom:12px}
+.io-stack span{display:block;height:100%}
+.h-ok{background:var(--success)}
+.h-local{background:var(--info)}
+.h-low{background:var(--warning)}
+.h-out{background:var(--danger)}
+.h-over{background:var(--text-muted)}
+.io-health{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.io-health li a,.io-health li > span{display:flex;align-items:center;gap:10px;padding:7px 4px;border-radius:var(--radius-xs);font-size:13px;color:var(--text-primary);text-decoration:none}
+.io-health li a:hover{background:var(--bg-subtle)}
+.io-health .sw{flex:none;width:10px;height:10px;border-radius:3px}
+.io-health .lbl{flex:1}
+.io-health .n{font-weight:600;font-variant-numeric:tabular-nums}
+.io-health .pc{width:48px;text-align:right;color:var(--text-muted);font-variant-numeric:tabular-nums}
+/* lists */
+.io-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.io-list li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.io-list li:last-child{border-bottom:0}
+.io-list .pr-cell-main{flex:1}
+.io-list .pr-thumb{width:30px;height:30px;font-size:11px}
+.io-right{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}
+.io-trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+@media (max-width:1599px){ .c-value{display:none} }
+@media (max-width:1279px){ .io-row,.io-row.is-even{grid-template-columns:minmax(0,1fr)} .io-trio{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
+@media (max-width:1023px){ .io-kpis{display:flex} .io-trio{grid-template-columns:minmax(0,1fr)} .c-value{display:none} }
+@media (max-width:767px){ .chart{grid-template-columns:44px minmax(0,1fr);grid-template-rows:180px 28px} .chart-x .xl-alt{display:none} .c-cap{display:none} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="inventory/overview" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="inventory/overview"></x-import>
+<h1>Inventory Overview</h1>
+<p class="ph-sub">What you hold, where it sits, and what needs a decision today.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Stock is shared across all stores · as of Oct 1, 09:42</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export valuation</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="alert-triangle" href="LowStock.dc.html">Review low stock</x-import>
+</div>
+</div>
+
+<section class="o-kpis io-kpis" aria-label="Inventory summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><sc-if value="{{k.delta}}" hint-placeholder-val="{{false}}"><span class="{{k.deltaCls}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{k.deltaIcon}}"></x-import>{{k.delta}}</span></sc-if><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<div class="io-row">
+<section class="io-card" aria-labelledby="io-v-h">
+<div class="io-head"><div><h2 id="io-v-h">Inventory value at cost</h2><p>Weekly, last 12 weeks · active products, all warehouses</p></div><div style="text-align: right"><div class="io-big">{{chart.now}}</div><span class="{{chart.deltaCls}}">{{chart.delta}}</span></div></div>
+<div class="chart">
+<div class="chart-y" aria-hidden="true"><sc-for list="{{chart.ticks}}" as="t" hint-placeholder-count="4"><span style="bottom: {{t.pos}}">{{t.label}}</span></sc-for></div>
+<div class="chart-plot" onMouseLeave="{{endHover}}" role="img" aria-label="{{chart.aria}}">
+<sc-for list="{{chart.ticks}}" as="t" hint-placeholder-count="4"><div class="gl" style="bottom: {{t.pos}}"></div></sc-for>
+<svg class="chart-svg" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true"><path class="c-area" d="{{chart.area}}"></path><path class="c-line" d="{{chart.line}}"></path></svg>
+<sc-if value="{{hv}}" hint-placeholder-val="{{false}}">
+<div class="hv-line" style="left: {{hv.left}}"></div>
+<div class="hv-dot" style="left: {{hv.left}}; bottom: {{hv.bottom}}"></div>
+<div class="c-tip {{hv.side}}" style="left: {{hv.left}}"><div class="c-tip-date">{{hv.date}}</div><div class="c-tip-row"><span>Value at cost</span><strong>{{hv.value}}</strong></div><div class="c-tip-row"><span>vs previous week</span><strong>{{hv.change}}</strong></div></div>
+</sc-if>
+<div class="hits"><sc-for list="{{chart.points}}" as="p" hint-placeholder-count="12"><div class="hit" onMouseEnter="{{p.enter}}"></div></sc-for></div>
+</div>
+<div class="chart-x" aria-hidden="true"><sc-for list="{{chart.xlabels}}" as="x" hint-placeholder-count="6"><span class="{{x.cls}}" style="left: {{x.pos}}">{{x.label}}</span></sc-for></div>
+</div>
+<table class="cx-sr"><caption>Inventory value at cost by week</caption><thead><tr><th scope="col">Week of</th><th scope="col">Value</th></tr></thead><tbody><sc-for list="{{chart.points}}" as="p" hint-placeholder-count="0"><tr><td>{{p.date}}</td><td>{{p.value}}</td></tr></sc-for></tbody></table>
+</section>
+
+<section class="io-card" aria-labelledby="io-t-h">
+<div class="io-head"><div><h2 id="io-t-h">Needs a decision</h2><p>{{taskSub}}</p></div></div>
+<ul class="io-tasks"><sc-for list="{{tasks}}" as="t" hint-placeholder-count="5"><li><span class="io-ico {{t.tone}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{t.icon}}"></x-import></span><span class="io-task-main"><span><strong>{{t.count}}</strong> {{t.title}}</span><span class="o-sub">{{t.meta}}</span></span><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" href="{{t.href}}">{{t.action}}</x-import></li></sc-for></ul>
+</section>
+</div>
+
+<div class="io-row is-even">
+<section class="io-card" aria-labelledby="io-w-h">
+<div class="io-head"><div><h2 id="io-w-h">Stock by warehouse</h2><p>Active products · capacity in units</p></div><a href="StockLevels.dc.html">Stock levels</a></div>
+<div class="o-scroll"><table class="io-whs"><thead><tr><th scope="col">Warehouse</th><th scope="col">Units</th><th class="c-value" scope="col">Value</th><th scope="col">Cover</th><th class="c-cap" scope="col">Capacity used</th></tr></thead>
+<tbody><sc-for list="{{whs}}" as="w" hint-placeholder-count="5"><tr><td><span class="td-strong">{{w.name}}</span><span class="o-sub">{{w.serves}}</span></td><td>{{w.units}}</td><td class="c-value">{{w.value}}</td><td>{{w.cover}}</td><td class="c-cap"><span class="io-cap"><span class="{{w.meterCls}}" aria-hidden="true"><span style="width: {{w.pct}}%"></span></span>{{w.capLabel}}</span></td></tr></sc-for></tbody></table></div>
+</section>
+<section class="io-card" aria-labelledby="io-h-h">
+<div class="io-head"><div><h2 id="io-h-h">Stock health</h2><p>{{healthSub}}</p></div></div>
+<div class="io-stack" role="img" aria-label="{{healthAria}}"><sc-for list="{{health}}" as="x" hint-placeholder-count="5"><span class="{{x.cls}}" style="width: {{x.pct}}%"></span></sc-for></div>
+<ul class="io-health"><sc-for list="{{health}}" as="x" hint-placeholder-count="5"><li><a href="{{x.href}}"><span class="sw {{x.cls}}" aria-hidden="true"></span><span class="lbl">{{x.label}}</span><span class="n">{{x.count}}</span><span class="pc">{{x.share}}</span></a></li></sc-for></ul>
+</section>
+</div>
+
+<div class="io-trio">
+<section class="io-card" aria-labelledby="io-i-h">
+<div class="io-head"><div><h2 id="io-i-h">Arriving in the next 30 days</h2><p>{{inSub}}</p></div><a href="StockTransfers.dc.html">Transfers</a></div>
+<ul class="io-list"><sc-for list="{{incoming}}" as="x" hint-placeholder-count="6"><li><span class="io-ico {{x.tone}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{x.icon}}"></x-import></span><span class="pr-cell-main"><span class="td-strong">{{x.ref}}</span><span class="o-sub">{{x.sub}}</span></span><span class="io-right"><span class="td-strong">{{x.units}}</span><span class="{{x.etaCls}}">{{x.eta}}</span></span></li></sc-for></ul>
+</section>
+<section class="io-card" aria-labelledby="io-s-h">
+<div class="io-head"><div><h2 id="io-s-h">Slow movers</h2><p>{{slowSub}}</p></div><a href="StockLevels.dc.html">See all</a></div>
+<ul class="io-list"><sc-for list="{{slow}}" as="x" hint-placeholder-count="6"><li><span class="{{x.thumbCls}}" aria-hidden="true">{{x.initials}}</span><span class="pr-cell-main"><span>{{x.name}}</span><span class="o-sub">{{x.sub}}</span></span><span class="io-right"><span class="td-strong">{{x.value}}</span><span class="o-sub">{{x.cover}}</span></span></li></sc-for></ul>
+</section>
+<section class="io-card" aria-labelledby="io-m-h">
+<div class="io-head"><div><h2 id="io-m-h">Recent stock movements</h2><p>Transfers and adjustments, latest first</p></div><a href="StockAdjustments.dc.html">Adjustments</a></div>
+<ul class="io-list"><sc-for list="{{moves}}" as="x" hint-placeholder-count="6"><li><span class="io-ico {{x.tone}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{x.icon}}"></x-import></span><span class="pr-cell-main"><span>{{x.label}}</span><span class="o-sub">{{x.sub}}</span></span><span class="{{x.qtyCls}}">{{x.qty}}</span></li></sc-for></ul>
+</section>
+</div>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, hover: null };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success' } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), ch = F.channelOf(s.store);
+    const items = ACTIVE.filter((it) => !ch || it.p.channels.indexOf(ch.key) >= 0);
+    const units = items.reduce((a, it) => a + I.onHand(it), 0), value = items.reduce((a, it) => a + I.onHand(it) * it.p.cost, 0), retail = items.reduce((a, it) => a + I.onHand(it) * it.p.price, 0);
+    const committed = items.reduce((a, it) => a + I.committed(it), 0), daily = items.reduce((a, it) => a + it.v30 / 30, 0), sold30 = items.reduce((a, it) => a + it.v30, 0);
+    const trend = I.VALUE_TREND.map((p) => ({ ts: p.ts, value: p.value * (ch ? value / TOTAL_VALUE : 1) }));
+    const first = trend[0].value, last = trend[trend.length - 1].value, d12 = (last - first) / first;
+    const kpis = [
+      { label: 'Inventory value at cost', dot: 'cx-dot cx-dot-brand', value: F.money0(value), delta: F.signedPct(d12), deltaIcon: d12 >= 0 ? 'trending-up' : 'trending-down', deltaCls: 'o-delta is-flat', cmp: 'vs 12 weeks ago' },
+      { label: 'Units on hand', dot: 'cx-dot cx-dot-success', value: F.int(units), cmp: F.int(units - committed) + ' available · ' + F.int(committed) + ' committed' },
+      { label: 'Days of cover', dot: 'cx-dot cx-dot-info', value: daily ? F.int(units / daily) : '—', cmp: 'Target 120 · at ' + F.int(daily * 7) + ' units sold a week' },
+      { label: 'Sell-through, 30 days', dot: 'cx-dot cx-dot-warning', value: (sold30 / (sold30 + units) * 100).toFixed(1) + '%', cmp: F.int(sold30) + ' sold of ' + F.int(sold30 + units) + ' available' }
+    ];
+
+    // chart
+    const min = Math.min.apply(null, trend.map((p) => p.value)), max = Math.max.apply(null, trend.map((p) => p.value));
+    const step = niceStep((max - min) / 3), lo = Math.floor(min * 0.98 / step) * step, hi = lo + step * Math.ceil((max * 1.02 - lo) / step);
+    const X = (i) => (i / (trend.length - 1)) * 1000, Y = (v) => 300 - ((v - lo) / (hi - lo)) * 300;
+    const line = trend.map((p, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p.value).toFixed(1)).join(' ');
+    const ticks = []; for (let v = lo; v <= hi + 1; v += step) ticks.push({ pos: ((v - lo) / (hi - lo) * 100).toFixed(2) + '%', label: v === lo ? '' : '$' + Math.round(v / 1000) + 'k' });
+    const chart = { now: F.money0(last), delta: F.signedPct(d12) + ' in 12 weeks', deltaCls: 'o-sub', line, area: line + ' L1000 300 L0 300 Z', ticks,
+      aria: 'Inventory value at cost over 12 weeks, from ' + F.money0(first) + ' to ' + F.money0(last) + ', peaking at ' + F.money0(max) + '.',
+      xlabels: trend.map((p, i) => ({ i, p })).filter((x) => x.i % 2 === 1).map((x) => ({ label: wk(x.p.ts), pos: (X(x.i) / 10) + '%', cls: x.i % 4 === 1 ? '' : 'xl-alt' })),
+      points: trend.map((p, i) => ({ date: 'Week of ' + wk(p.ts), value: F.money0(p.value), enter: () => this.setState({ hover: i }) })) };
+    let hv = null;
+    if (s.hover != null) { const i = s.hover, p = trend[i], prev = trend[i - 1];
+      hv = { left: (X(i) / 10) + '%', bottom: ((p.value - lo) / (hi - lo) * 100) + '%', side: i > trend.length * 0.6 ? 'is-left' : '', date: 'Week of ' + wk(p.ts), value: F.money0(p.value), change: prev ? F.signedPct((p.value - prev.value) / prev.value) : '—' }; }
+
+    // decisions
+    const lowLocs = items.reduce((a, it) => a + I.WAREHOUSES.filter((w) => ['low', 'out'].indexOf(I.locState(it, w.key)) >= 0).length, 0);
+    const outLocs = items.reduce((a, it) => a + I.WAREHOUSES.filter((w) => I.locState(it, w.key) === 'out').length, 0);
+    const over = []; items.forEach((it) => I.WAREHOUSES.forEach((w) => { if (I.locState(it, w.key) === 'over') over.push({ it, w, extra: it.stock[w.key] - it.max[w.key] }); }));
+    const overValue = over.reduce((a, x) => a + x.extra * x.it.p.cost, 0);
+    const pend = I.ADJUSTMENTS.filter((a) => a.status === 'pending'), late = I.TRANSFERS.filter((t) => t.status === 'in_transit' && t.eta < F.NOW), waiting = I.TRANSFERS.filter((t) => t.status === 'requested' || t.status === 'draft');
+    const tasks = [
+      { icon: 'alert-triangle', tone: 't-danger', count: F.int(lowLocs), title: 'locations below reorder point', meta: outLocs + ' out of stock · fix with a transfer or PO', action: 'Fix', href: 'LowStock.dc.html' },
+      { icon: 'package', tone: 't-info', count: F.int(over.length), title: 'locations overstocked', meta: F.money0(overValue) + ' above max · ' + over.map((x) => x.it.p.name).slice(0, 2).join(', '), action: 'Rebalance', href: 'StockLevels.dc.html' },
+      { icon: 'sliders', tone: 't-warning', count: F.int(pend.length), title: pend.length === 1 ? 'adjustment to approve' : 'adjustments to approve', meta: F.money0(pend.reduce((a, x) => a + Math.abs(x.qty) * I.BY_SKU[x.sku].p.cost, 0)) + ' at cost', action: 'Review', href: 'StockAdjustments.dc.html' },
+      { icon: 'truck', tone: 't-danger', count: F.int(late.length), title: late.length === 1 ? 'transfer delayed' : 'transfers delayed', meta: late.length ? late[0].id + ' held at ' + I.WH[late[0].to].short + ' customs' : 'All on time', action: 'Open', href: 'StockTransfers.dc.html' },
+      { icon: 'clock', tone: 't-brand', count: F.int(waiting.length), title: 'transfers waiting to ship', meta: waiting.map((t) => t.id + ' ' + I.WH[t.from].short + ' → ' + I.WH[t.to].short).join(' · '), action: 'Open', href: 'StockTransfers.dc.html' }
+    ].filter((t) => t.count !== '0');
+
+    // warehouses
+    const whs = I.WAREHOUSES.map((w) => {
+      const u = items.reduce((a, it) => a + it.stock[w.key], 0), v = items.reduce((a, it) => a + it.stock[w.key] * it.p.cost, 0), dd = items.reduce((a, it) => a + I.velocity(it, w.key), 0), cap = u / w.capacity;
+      return { name: w.name, serves: w.serves, units: F.int(u), value: F.money0(v), cover: dd ? F.int(u / dd) + ' days' : '—', pct: Math.min(100, cap * 100).toFixed(0), capLabel: Math.round(cap * 100) + '%', meterCls: 'pr-meter' + (cap > 0.65 ? ' is-warn' : '') };
+    });
+
+    // health
+    const states = items.map((it) => I.skuState(it)), n = states.length;
+    const H = [['ok', 'In stock everywhere', 'h-ok', 'StockLevels.dc.html'], ['local', 'Short at one warehouse', 'h-local', 'LowStock.dc.html'], ['low', 'Low across the network', 'h-low', 'LowStock.dc.html'], ['out', 'Out of stock', 'h-out', 'LowStock.dc.html'], ['over', 'Overstocked somewhere', 'h-over', 'StockLevels.dc.html']];
+    const health = H.map((x) => { const c = states.filter((st) => st === x[0]).length; return { label: x[1], cls: x[2], href: x[3], count: F.int(c), share: (c / n * 100).toFixed(1) + '%', pct: Math.max(c ? 0.6 : 0, c / n * 100).toFixed(2) }; });
+
+    // incoming next 30 days
+    const inc = I.POS.map((po) => ({ ref: po.id, kind: 'po', sub: po.supplier + ' → ' + I.WH[po.wh].short + ' · ' + po.status, units: po.lines.reduce((a, l) => a + l[1], 0), eta: po.eta }))
+      .concat(I.TRANSFERS.filter((t) => t.status === 'in_transit').map((t) => ({ ref: t.id, kind: 'tr', sub: I.WH[t.from].short + ' → ' + I.WH[t.to].short + ' · ' + t.carrier, units: t.lines.reduce((a, l) => a + l[1], 0), eta: t.eta })))
+      .filter((x) => x.eta <= F.NOW + 30 * F.DAY).sort((a, b) => a.eta - b.eta);
+    const incoming = inc.map((x) => { const d = Math.round((x.eta - F.NOW) / F.DAY);
+      return { ref: x.ref, sub: x.sub, units: F.int(x.units) + ' units', icon: x.kind === 'po' ? 'clipboard-list' : 'truck', tone: x.kind === 'po' ? 't-brand' : 't-info', eta: d < 0 ? 'Overdue ' + -d + 'd' : d === 0 ? 'Today' : 'In ' + d + (d === 1 ? ' day' : ' days'), etaCls: d < 0 ? 'iv-neg' : 'o-sub' }; });
+
+    // slow movers: most value tied up in stock that sells slowest
+    const slowAll = items.filter((it) => I.onHand(it) > 0 && I.daysCover(it) > 365);
+    const slowValue = slowAll.reduce((a, it) => a + I.onHand(it) * it.p.cost, 0);
+    const slow = slowAll.slice().sort((a, b) => I.onHand(b) * b.p.cost - I.onHand(a) * a.p.cost).slice(0, 6).map((it) => ({ name: it.p.name + ' · ' + it.v.label, initials: F.initials(it.p.name), thumbCls: F.thumbCls(it.p),
+      sub: F.int(I.onHand(it)) + ' on hand · ' + (it.v30 ? (it.v30 / 30 * 7).toFixed(1) + ' sold a week' : 'no sales in 30 days'), value: F.money0(I.onHand(it) * it.p.cost), cover: it.v30 ? Math.round(I.daysCover(it) / 30) + ' months of cover' : 'No sales in 30 days' }));
+
+    // movements
+    const mv = [];
+    I.TRANSFERS.forEach((t) => { const u = t.lines.reduce((a, l) => a + l[1], 0);
+      if (t.received) mv.push({ ts: t.received, icon: 'truck', tone: 't-success', label: t.id + ' received at ' + I.WH[t.to].short, sub: 'From ' + I.WH[t.from].short + (t.shortBy ? ' · ' + t.shortBy + ' short' : '') + ' · ' + F.timeAgo(t.received), qty: '+' + F.int(u - (t.shortBy || 0)), qtyCls: 'iv-pos' });
+      if (t.shipped && t.status === 'in_transit') mv.push({ ts: t.shipped, icon: 'truck', tone: 't-info', label: t.id + ' shipped from ' + I.WH[t.from].short, sub: 'To ' + I.WH[t.to].short + ' · ' + F.timeAgo(t.shipped), qty: '−' + F.int(u), qtyCls: 'iv-neg' }); });
+    I.ADJUSTMENTS.filter((a) => a.status === 'applied').forEach((a) => mv.push({ ts: a.ts, icon: 'sliders', tone: a.qty > 0 ? 't-success' : 't-warning', label: a.id + ' · ' + I.REASON[a.reason].label, sub: I.BY_SKU[a.sku].p.name + ' · ' + I.WH[a.wh].short + ' · ' + F.timeAgo(a.ts), qty: (a.qty > 0 ? '+' : '−') + F.int(Math.abs(a.qty)), qtyCls: a.qty > 0 ? 'iv-pos' : 'iv-neg' }));
+    const moves = mv.sort((a, b) => b.ts - a.ts).slice(0, 7);
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(items.length, 'active SKU') + ' in ' + I.WAREHOUSES.length + ' warehouses' + (ch ? ' · sold on ' + ch.label : ''),
+      kpis, chart, hv, endHover: () => this.setState({ hover: null }),
+      tasks, taskSub: F.plural(tasks.length, 'item') + ' across Low Stock, Transfers and Adjustments',
+      whs, health, healthSub: F.plural(n, 'active SKU') + ' by where stock stands', healthAria: health.map((x) => x.label + ' ' + x.count).join(', '),
+      incoming, inSub: F.int(inc.reduce((a, x) => a + x.units, 0)) + ' units on ' + F.plural(inc.length, 'shipment'),
+      slow, slowSub: F.money0(slowValue) + ' tied up in ' + F.plural(slowAll.length, 'SKU') + ' with over a year of cover', moves,
+      exportView: () => this.showToast('Exporting the inventory valuation', 'CSV with units and value at cost per SKU and warehouse, as of Oct 1, 09:42.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- overview data: Fernhill inventory (inventory.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory;
+var ACTIVE = I.ITEMS.filter(function (it) { return it.p.status === 'active'; });
+var TOTAL_VALUE = ACTIVE.reduce(function (a, it) { return a + I.onHand(it) * it.p.cost; }, 0);
+var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function wk(ts) { var d = new Date(ts); return MON[d.getUTCMonth()] + ' ' + d.getUTCDate(); }
+function niceStep(raw) { var p = Math.pow(10, Math.floor(Math.log10(raw))), n = raw / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p; }
+</script>
+</body>
+</html>

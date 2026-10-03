@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Low Stock · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=4">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=5"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=6"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Low stock ---------- */
+.ls-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.td-strong{font-weight:500}
+.ls-table td{white-space:normal}
+.ls-table td.c-order{min-width:230px}
+.ls-table td.c-wh{min-width:150px}
+.ls-level{display:flex;flex-direction:column;gap:4px;min-width:120px}
+.ls-level .pr-meter{width:110px}
+.ls-fix{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:230px;max-width:300px;white-space:normal}
+.ls-fix-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ls-fix-t{display:inline-flex;align-items:center;gap:6px;font-weight:500}
+.ls-fix-t .cx-icon{width:14px;height:14px}
+.ls-fix-t.is-transfer .cx-icon{color:var(--info)}
+.ls-fix-t.is-po .cx-icon{color:var(--brand)}
+.ls-fix-t.is-covered .cx-icon{color:var(--success)}
+.ls-in{display:flex;flex-direction:column;white-space:normal;min-width:130px;max-width:170px}
+.ls-in.is-none{color:var(--text-muted)}
+.ls-act{display:inline-flex;gap:4px;align-items:center}
+.ls-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ls-src{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.ls-src li{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.ls-src li:last-child{border-bottom:0}
+.ls-src li.is-best{background:var(--info-subtle)}
+.ls-src span:first-child{flex:1}
+.ls-calc{margin:0;padding:10px 12px;border-radius:var(--radius-sm);background:var(--bg-subtle);font-size:13px;line-height:20px;color:var(--text-secondary)}
+@media (max-width:1023px){ .ls-kpis{display:flex} .c-in{display:none} }
+@media (max-width:767px){ .ls-grid2{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="inventory/low-stock" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" badges="{{navBadges}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="inventory/low-stock"></x-import>
+<h1>Low Stock</h1>
+<p class="ph-sub">Stock locations below their reorder point, with the fastest way to fix each one.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Stock is shared across all stores</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="clipboard-list" disabled="{{noPoRows}}" on-click="{{bulkPo}}">{{bulkPoLabel}}</x-import>
+</div>
+</div>
+
+<section class="o-kpis ls-kpis" aria-label="Low stock summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section class="o-card" aria-label="Low stock locations">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Fix" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools">
+<div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by product, SKU or supplier" label="Search low stock" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Warehouse" options="{{whOpts}}" value="{{wh}}" on-value-change="{{setWh}}" width="220px"></x-import>
+</div>
+</div>
+
+<div class="o-bulkwrap">
+<sc-if value="{{bulk.show}}" hint-placeholder-val="{{false}}">
+<div class="o-bulk" role="region" aria-label="Bulk actions">
+<span class="o-bulk-count">{{bulk.count}}</span>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="clipboard-list" on-click="{{bulk.po}}"><span class="o-bulk-label">{{bulk.poLabel}}</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="truck" on-click="{{bulk.transfer}}"><span class="o-bulk-label">{{bulk.trLabel}}</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="clock" on-click="{{bulk.snooze}}"><span class="o-bulk-label">Snooze 7 days</span></x-import>
+<div class="o-bulk-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" on-click="{{bulk.clear}}">Clear selection</x-import></div>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table ls-table" aria-label="Low stock locations">
+<thead><tr>
+<th class="c-check" scope="col"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="Select all" checked="{{allSel}}" indeterminate="{{someSel}}" on-change="{{toggleAll}}"></x-import></th>
+<th class="c-order" scope="col">Product</th>
+<th scope="col">Warehouse</th>
+<th scope="col">On hand</th>
+<th class="c-in" scope="col">Incoming</th>
+<th scope="col">Suggested fix</th>
+<th class="c-act" scope="col"><span class="cx-sr">Actions</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="18">
+<tr class="{{r.trCls}}">
+<td class="c-check"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="Select {{r.name}} at {{r.whName}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import></td>
+<td class="c-order"><div class="pr-cell"><span class="{{r.thumbCls}}" aria-hidden="true">{{r.initials}}</span><span class="pr-cell-main"><span class="td-strong">{{r.name}}</span><span class="o-sub">{{r.variant}} · <span class="iv-sku">{{r.sku}}</span></span></span></div></td>
+<td class="c-wh"><span>{{r.whName}}</span><span class="o-sub">{{r.whOther}}</span></td>
+<td><div class="ls-level"><span><span class="{{r.qtyCls}}">{{r.onHand}}</span> <span class="o-sub" style="display: inline">of {{r.reorder}} reorder point</span></span><span class="{{r.meterCls}}" aria-hidden="true"><span style="width: {{r.pct}}%"></span></span><span class="o-sub">{{r.cover}} · {{r.velocity}}</span></div></td>
+<td class="c-in"><span class="{{r.inCls}}"><span>{{r.incoming}}</span><span class="o-sub">{{r.incomingSub}}</span></span></td>
+<td><div class="ls-fix-row"><div class="ls-fix"><span class="{{r.fixCls}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{r.fixIcon}}"></x-import>{{r.fixTitle}}</span><span class="o-sub">{{r.fixSub}}</span></div><sc-if value="{{r.hasBtn}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></sc-if></div></td>
+<td class="c-act"><span class="ls-act"><span class="o-row-act" data-pop="row"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="more-horizontal" aria-label="More actions for {{r.name}}" aria-haspopup="menu" aria-expanded="{{r.menuOpen}}" on-click="{{r.openMenu}}"></x-import></span></span></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Low stock locations">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<li class="o-m-card {{r.trCls}}">
+<div class="o-m-top"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="Select {{r.name}} at {{r.whName}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import><span class="{{r.thumbCls}}" aria-hidden="true">{{r.initials}}</span><span class="pr-cell-main" style="flex: 1"><span class="td-strong">{{r.name}}</span><span class="o-sub">{{r.variant}} · {{r.whName}}</span></span></div>
+<div class="o-m-mid"><div class="ls-fix"><span class="{{r.fixCls}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{r.fixIcon}}"></x-import>{{r.fixTitle}}</span><span class="o-sub">{{r.cover}}</span></div><span class="o-m-total"><span class="{{r.qtyCls}}">{{r.onHand}}</span> / {{r.reorder}}</span></div>
+<sc-if value="{{r.hasBtn}}" hint-placeholder-val="{{true}}"><div class="o-m-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></div></sc-if>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.EmptyState" icon="{{emptyIcon}}" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import>
+</sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{rowMenu}}" hint-placeholder-val="{{false}}">
+<div class="o-rowmenu" data-pop="row" role="menu" aria-label="Actions for {{rowMenu.name}}" style="top: {{rowMenu.top}}px; left: {{rowMenu.left}}px">
+<sc-for list="{{rowMenu.items}}" as="i" hint-placeholder-count="4">
+<sc-if value="{{i.sep}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div></sc-if>
+<sc-if value="{{i.item}}" hint-placeholder-val="{{true}}"><button class="{{i.cls}}" role="menuitem" disabled="{{i.disabled}}" onClick="{{i.run}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{i.icon}}"></x-import><span class="o-mi-text"><span>{{i.label}}</span><sc-if value="{{i.note}}" hint-placeholder-val="{{false}}"><span class="o-mi-note">{{i.note}}</span></sc-if></span></button></sc-if>
+</sc-for>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{trOpen}}" on-close="{{closeTr}}" size="md" title="{{tr.title}}" description="{{tr.desc}}">
+<div class="o-modal-stack">
+<span class="o-sub">Spare stock after keeping each warehouse above its own reorder point</span>
+<ul class="ls-src"><sc-for list="{{tr.sources}}" as="w" hint-placeholder-count="4"><li class="{{w.cls}}"><span>{{w.name}}</span><span class="o-sub">{{w.detail}}</span><span class="td-strong">{{w.spare}}</span></li></sc-for></ul>
+<div class="ls-grid2">
+<x-import component-from-global-scope="CommerceOS.Select" label="Send from" options="{{tr.fromOpts}}" value="{{tr.from}}" on-value-change="{{tr.setFrom}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="Quantity" inputmode="numeric" suffix="units" value="{{tr.qty}}" on-change="{{tr.setQty}}" error="{{tr.qtyError}}" hint="{{tr.qtyHint}}"></x-import>
+</div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Submit to the sending warehouse now (otherwise save as a draft)" checked="{{tr.submit}}" on-change="{{tr.setSubmit}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeTr}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="truck" on-click="{{tr.save}}">{{tr.cta}}</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{poOpen}}" on-close="{{closePo}}" size="md" title="{{po.title}}" description="{{po.desc}}">
+<div class="o-modal-stack">
+<p class="ls-calc">{{po.calc}}</p>
+<div class="ls-grid2">
+<x-import component-from-global-scope="CommerceOS.Input" label="Supplier" value="{{po.supplier}}" readonly="{{yes}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Deliver to" options="{{po.whOpts}}" value="{{po.wh}}" on-value-change="{{po.setWh}}"></x-import>
+</div>
+<div class="ls-grid2">
+<x-import component-from-global-scope="CommerceOS.Input" label="Quantity" inputmode="numeric" suffix="units" value="{{po.qty}}" on-change="{{po.setQty}}" error="{{po.qtyError}}" hint="{{po.cost}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="Expected by" value="{{po.eta}}" readonly="{{yes}}" hint="{{po.lead}}"></x-import>
+</div>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closePo}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="clipboard-list" on-click="{{po.save}}">Create draft PO</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{rpOpen}}" on-close="{{closeRp}}" size="sm" title="{{rp.title}}" description="{{rp.desc}}">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Input" label="Reorder point" inputmode="numeric" suffix="units" value="{{rp.value}}" on-change="{{rp.setValue}}" error="{{rp.error}}" hint="{{rp.hint}}" data-autofocus="true"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeRp}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{rp.save}}">Save reorder point</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","transfer","po"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none';
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      reorder: {}, planned: {}, snoozed: [], tab: 'all', query: '', wh: '', sel: [], rowMenu: null, tr: null, po: null, rp: null, seqTr: 3117, seqPo: 20441
+    };
+    if (demo === 'transfer') this.state.tr = this.trDraft(LOCS.find((l) => l.it.sku === 'SKU-TEE-BLK-L'));
+    if (demo === 'po') this.state.po = this.poDraft(LOCS.find((l) => l.it.sku === 'SKU-TSH-NAVY-M'));
+  }
+  componentDidMount() {
+    this._onDoc = (e) => { if (this.state.rowMenu && !(e.target.closest && e.target.closest('[data-pop]'))) this.setState({ rowMenu: null }); };
+    this._onScroll = () => { if (this.state.rowMenu) this.setState({ rowMenu: null }); };
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.tr && !this.state.po && !this.state.rp) { if (this.state.rowMenu) this.setState({ rowMenu: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('mousedown', this._onDoc); window.addEventListener('scroll', this._onScroll, true); document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('mousedown', this._onDoc); window.removeEventListener('scroll', this._onScroll, true); document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null }, rowMenu: null });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  reorderOf(l) { return this.state.reorder[l.key] != null ? this.state.reorder[l.key] : l.it.reorder[l.wh]; }
+  trDraft(l) { const f = fixFor(l, this.state.planned); return { key: l.key, from: f.donor || donorsFor(l)[0].wh, qty: String(f.transferQty || Math.max(1, needFor(l))), submit: true, touched: false }; }
+  poDraft(l) { const f = fixFor(l, this.state.planned); return { key: l.key, wh: l.wh, qty: String(f.poQty || roundUp(needFor(l) * 3)), touched: false }; }
+  plan(keys, entry) { this.setState((s) => { const planned = Object.assign({}, s.planned); keys.forEach((k) => { planned[k] = entry; }); return { planned, sel: [] }; }); }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), ch = F.channelOf(s.store);
+    const q = s.query.trim().toLowerCase();
+    const scoped = LOCS.filter((l) => s.snoozed.indexOf(l.key) < 0 && (!ch || l.it.p.channels.indexOf(ch.key) >= 0) && (!s.wh || l.wh === s.wh));
+    const searched = scoped.filter((l) => !q || l.it.p.name.toLowerCase().indexOf(q) >= 0 || l.it.sku.toLowerCase().indexOf(q) >= 0 || l.it.supplier.toLowerCase().indexOf(q) >= 0);
+    const fixes = {}; LOCS.forEach((l) => { fixes[l.key] = fixFor(l, s.planned); });
+    const inTab = (l, t) => t === 'all' || (t === 'po' ? fixes[l.key].kind === 'po' : t === 'transfer' ? fixes[l.key].kind === 'transfer' : t === 'covered' ? fixes[l.key].kind === 'covered' : l.it.stock[l.wh] === 0);
+    const list = searched.filter((l) => inTab(l, s.tab)).sort((a, b) => a.cover - b.cover || a.it.p.name.localeCompare(b.it.p.name));
+
+    const rows = list.map((l) => {
+      const it = l.it, f = fixes[l.key], sel = s.sel.indexOf(l.key) >= 0, reorder = this.reorderOf(l), stock = it.stock[l.wh], inb = incomingFor(l, s.planned);
+      const others = I.WAREHOUSES.filter((w) => w.key !== l.wh && it.stock[w.key] > 0).map((w) => w.short + ' ' + F.int(it.stock[w.key]));
+      return {
+        key: l.key, sel, trCls: sel ? 'is-selected' : '', name: it.p.name, variant: it.v.label, sku: it.sku, initials: F.initials(it.p.name), thumbCls: F.thumbCls(it.p),
+        whName: I.WH[l.wh].name, whOther: others.length ? 'Also ' + others.slice(0, 2).join(', ') + (others.length > 2 ? ' +' + (others.length - 2) : '') : 'Only stocked here',
+        onHand: F.int(stock), reorder: F.int(reorder), qtyCls: stock === 0 ? 'iv-neg' : 'td-strong', pct: Math.max(stock ? 4 : 0, Math.min(100, stock / Math.max(1, reorder) * 100)).toFixed(0),
+        meterCls: 'pr-meter ' + (stock === 0 ? 'is-bad' : 'is-warn'),
+        velocity: l.daily >= 1 ? F.int(Math.round(l.daily)) + ' a day' : (l.daily * 7).toFixed(1).replace('.0', '') + ' a week',
+        cover: stock === 0 ? 'Missing sales now' : l.cover < 1 ? 'Sells out in under a day' : 'Sells out in ' + Math.round(l.cover) + (Math.round(l.cover) === 1 ? ' day' : ' days'),
+        incoming: inb.length ? F.int(inb.reduce((a, x) => a + x.qty, 0)) + ' on the way' : 'Nothing on order', inCls: 'ls-in' + (inb.length ? '' : ' is-none'),
+        incomingSub: inb.length ? inb.map((x) => x.ref + (x.eta ? ' · ' + etaText(x.eta) : '')).join(', ') : '',
+        fixCls: 'ls-fix-t is-' + f.kind, fixIcon: f.kind === 'transfer' ? 'truck' : f.kind === 'po' ? 'clipboard-list' : 'check-circle', fixTitle: f.title, fixSub: f.sub,
+        btnLabel: f.kind === 'transfer' ? 'Transfer' : f.kind === 'po' ? 'Create PO' : 'Planned', btnVariant: f.kind === 'covered' ? 'ghost' : 'secondary', btnOff: f.kind === 'covered', hasBtn: f.kind !== 'covered',
+        act: () => (f.kind === 'transfer' ? this.setState({ tr: this.trDraft(l) }) : f.kind === 'po' ? this.setState({ po: this.poDraft(l) }) : null),
+        menuOpen: !!(s.rowMenu && s.rowMenu.key === l.key),
+        openMenu: (e) => { const r = e.currentTarget.getBoundingClientRect(), W = 264, H = 200, left = Math.max(8, Math.min(r.right - W, window.innerWidth - W - 8)), top = r.bottom + 4 + H > window.innerHeight && r.top - H - 4 > 0 ? r.top - H - 4 : r.bottom + 4;
+          this.setState({ rowMenu: s.rowMenu && s.rowMenu.key === l.key ? null : { key: l.key, top, left } }); },
+        toggle: () => this.setState((x) => ({ sel: sel ? x.sel.filter((k) => k !== l.key) : x.sel.concat([l.key]) }))
+      };
+    });
+
+    // KPIs over the scoped list
+    const out = scoped.filter((l) => l.it.stock[l.wh] === 0), poN = scoped.filter((l) => fixes[l.key].kind === 'po'), trN = scoped.filter((l) => fixes[l.key].kind === 'transfer'), cov = scoped.filter((l) => fixes[l.key].kind === 'covered');
+    const risk = scoped.reduce((a, l) => a + riskFor(l, s.planned) * l.it.p.price, 0), skus = uniq(scoped.map((l) => l.it.sku)).length;
+    const kpis = [
+      { label: 'Below reorder point', dot: 'cx-dot cx-dot-warning', value: F.int(scoped.length), cmp: F.plural(out.length, 'location') + ' out of stock · ' + F.plural(skus, 'SKU') },
+      { label: 'Sales at risk, next 14 days', dot: 'cx-dot cx-dot-danger', value: F.money0(risk), cmp: 'Demand these locations can’t cover in time' },
+      { label: 'Fix with a transfer', dot: 'cx-dot cx-dot-info', value: F.int(trN.length), cmp: 'Another warehouse has spare stock' },
+      { label: 'Need a purchase order', dot: 'cx-dot cx-dot-brand', value: F.int(poN.length), cmp: F.int(cov.length) + ' already covered by a PO or transfer' }
+    ];
+    const tabs = [{ id: 'all', label: 'All' }, { id: 'transfer', label: 'Transfer' }, { id: 'po', label: 'Needs a PO' }, { id: 'covered', label: 'On the way' }, { id: 'out', label: 'Out of stock' }]
+      .map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((l) => inTab(l, t.id)).length) }));
+
+    let rowMenu = null;
+    if (s.rowMenu) {
+      const l = LOCS.find((x) => x.key === s.rowMenu.key);
+      const it = (label, icon, run) => ({ item: true, label, icon, run, disabled: false, note: '', cls: 'cx-menu-item o-mi' });
+      rowMenu = { name: l.it.p.name, top: s.rowMenu.top, left: s.rowMenu.left, items: [
+        it('Transfer from another warehouse', 'truck', () => this.setState({ tr: this.trDraft(l), rowMenu: null })),
+        it('Create purchase order', 'clipboard-list', () => this.setState({ po: this.poDraft(l), rowMenu: null })),
+        it('Change reorder point', 'sliders', () => this.setState({ rp: { key: l.key, value: String(this.reorderOf(l)), touched: false }, rowMenu: null })),
+        { sep: true },
+        it('Snooze for 7 days', 'clock', () => this.snooze([l.key]))
+      ] };
+    }
+
+    // transfer modal
+    let tr = { title: '', desc: '', sources: [], fromOpts: [] };
+    if (s.tr) {
+      const d = s.tr, l = LOCS.find((x) => x.key === d.key), donors = donorsFor(l), src = donors.find((x) => x.wh === d.from) || donors[0], n = Number(d.qty);
+      const qtyError = !(n > 0) || Math.round(n) !== n ? 'Enter a whole number' : n > src.spare ? 'Only ' + F.int(src.spare) + ' spare at ' + I.WH[d.from].short : null;
+      const up = (k) => (v) => { const val = v && v.target ? v.target.value : v; this.setState((x) => ({ tr: Object.assign({}, x.tr, { [k]: val }) })); };
+      tr = { title: 'Transfer ' + l.it.p.name + ' · ' + l.it.v.label, desc: 'To ' + I.WH[l.wh].name + ', which has ' + F.int(l.it.stock[l.wh]) + ' left and sells about ' + (l.daily >= 1 ? Math.round(l.daily) + ' a day.' : (l.daily * 7).toFixed(1) + ' a week.'),
+        sources: donors.map((x) => ({ name: I.WH[x.wh].name, detail: F.int(l.it.stock[x.wh]) + ' on hand, keeps ' + F.int(l.it.reorder[x.wh] + l.it.committed[x.wh]), spare: F.int(x.spare) + ' spare', cls: x.wh === d.from ? 'is-best' : '' })),
+        fromOpts: donors.filter((x) => x.spare > 0).map((x) => ({ value: x.wh, label: I.WH[x.wh].name + ' · ' + F.int(x.spare) + ' spare' })), from: d.from, qty: d.qty, submit: d.submit,
+        qtyError: d.touched || n > src.spare ? qtyError : null, qtyHint: 'Brings ' + I.WH[l.wh].short + ' to ' + F.int(l.it.stock[l.wh] + (n > 0 ? n : 0)) + ', about ' + Math.round((l.it.stock[l.wh] + (n > 0 ? n : 0)) / Math.max(0.01, l.daily)) + ' days of sales.',
+        setFrom: up('from'), setQty: up('qty'), setSubmit: up('submit'), cta: d.submit ? 'Request transfer' : 'Save draft',
+        save: () => {
+          if (qtyError) return this.setState({ tr: Object.assign({}, d, { touched: true }) });
+          const id = 'TR-' + s.seqTr, eta = F.NOW + transitDays(d.from, l.wh) * F.DAY;
+          this.plan([l.key], { kind: 'transfer', ref: id, qty: n, eta, from: d.from, status: d.submit ? 'Requested' : 'Draft' });
+          this.setState({ tr: null, seqTr: s.seqTr + 1 });
+          this.showToast(id + (d.submit ? ' requested' : ' saved as a draft'), F.int(n) + ' × ' + l.it.sku + ' from ' + I.WH[d.from].short + ' to ' + I.WH[l.wh].short + ', about ' + transitDays(d.from, l.wh) + ' days in transit. Track it in Stock Transfers.', 'success');
+        } };
+    }
+
+    // purchase order modal
+    let po = { title: '', desc: '', whOpts: [] };
+    if (s.po) {
+      const d = s.po, l = LOCS.find((x) => x.key === d.key), it = l.it, n = Number(d.qty), eta = F.NOW + it.lead * F.DAY;
+      const up = (k) => (v) => { const val = v && v.target ? v.target.value : v; this.setState((x) => ({ po: Object.assign({}, x.po, { [k]: val }) })); };
+      const qtyError = !(n > 0) || Math.round(n) !== n ? 'Enter a whole number' : n < 10 ? it.supplier + ' has a 10-unit minimum' : null;
+      const totalDaily = it.v30 / 30, need = totalDaily * (it.lead + 45);
+      po = { title: 'Reorder ' + it.p.name + ' · ' + it.v.label, desc: it.sku + ' is low across the network, so moving stock won’t fix it.',
+        calc: 'Sells about ' + totalDaily.toFixed(1) + ' a day across all warehouses. Covering the ' + it.lead + '-day lead time plus 45 days needs ' + F.int(need) + ' units; ' + F.int(I.onHand(it)) + ' are on hand and ' + F.int(I.inboundQty(it)) + ' already on order.',
+        supplier: it.supplier, wh: d.wh, whOpts: I.WAREHOUSES.map((w) => ({ value: w.key, label: w.name })), qty: d.qty, qtyError: d.touched ? qtyError : null,
+        cost: n > 0 ? F.money2(n * it.p.cost) + ' at ' + F.money2(it.p.cost) + ' per unit' : 'Cost ' + F.money2(it.p.cost) + ' per unit', eta: F.fmtDate(eta), lead: it.supplier + ' ships in about ' + it.lead + ' days',
+        setWh: up('wh'), setQty: up('qty'),
+        save: () => {
+          if (qtyError) return this.setState({ po: Object.assign({}, d, { touched: true }) });
+          const id = 'PO-' + s.seqPo, keys = LOCS.filter((x) => x.it.sku === it.sku && fixes[x.key].kind === 'po').map((x) => x.key);
+          this.plan(keys.length ? keys : [l.key], { kind: 'po', ref: id, qty: n, eta, status: 'Draft' });
+          this.setState({ po: null, seqPo: s.seqPo + 1 });
+          this.showToast('Draft ' + id + ' created', F.int(n) + ' × ' + it.sku + ' from ' + it.supplier + ' to ' + I.WH[d.wh].short + ', expected ' + F.fmtDate(eta) + '. Send it from Procurement.', 'success');
+        } };
+    }
+
+    let rp = { title: '', desc: '' };
+    if (s.rp) {
+      const d = s.rp, l = LOCS.find((x) => x.key === d.key), n = Number(d.value), sug = Math.ceil(l.daily * (l.it.lead + 7));
+      const error = d.value === '' || !(n >= 0) || Math.round(n) !== n ? 'Enter a whole number' : null;
+      rp = { title: 'Reorder point at ' + I.WH[l.wh].short, desc: l.it.p.name + ' · ' + l.it.v.label + ' · ' + l.it.sku, value: d.value, error: d.touched ? error : null,
+        hint: 'Suggested ' + F.int(sug) + ': ' + (l.daily * 7).toFixed(1) + ' sold a week here, ' + l.it.lead + '-day lead time plus a week of safety stock.',
+        setValue: (e) => this.setState({ rp: Object.assign({}, d, { value: e.target.value }) }),
+        save: () => {
+          if (error) return this.setState({ rp: Object.assign({}, d, { touched: true }) });
+          this.setState((x) => ({ reorder: Object.assign({}, x.reorder, { [l.key]: n }), rp: null }));
+          const still = l.it.stock[l.wh] < n || l.it.stock[l.wh] === 0;
+          if (!still) this.snooze([l.key], true);
+          this.showToast('Reorder point set to ' + F.int(n), still ? 'Still below it, so it stays on this list.' : 'Stock is above it now, so it’s off this list.', 'success');
+        } };
+    }
+
+    const selRows = LOCS.filter((l) => s.sel.indexOf(l.key) >= 0), selPo = selRows.filter((l) => fixes[l.key].kind === 'po'), selTr = selRows.filter((l) => fixes[l.key].kind === 'transfer');
+    const allPo = scoped.filter((l) => fixes[l.key].kind === 'po');
+    const listKeys = list.map((l) => l.key), selInList = listKeys.filter((k) => s.sel.indexOf(k) >= 0);
+    const visibleCount = LOCS.filter((l) => s.snoozed.indexOf(l.key) < 0).length;
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k, sel: [] }),
+      navBadges: { 'sales/orders': { count: 24, label: 'pending' }, 'sales/returns': { count: 5, label: 'pending' }, 'products/reviews': { count: 12, label: 'to moderate' }, 'inventory/low-stock': visibleCount ? { count: visibleCount, label: 'low stock', tone: 'warning' } : undefined },
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(scoped.length, 'location') + ' · ' + F.plural(uniq(scoped.map((l) => l.it.sku)).length, 'SKU') + (ch ? ' sold on ' + ch.label : ''),
+      kpis, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id, sel: [] }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      whOpts: [{ value: '', label: 'All warehouses' }].concat(I.WAREHOUSES.map((w) => ({ value: w.key, label: w.name }))), wh: s.wh, setWh: (v) => this.setState({ wh: v, sel: [] }),
+      rows, shown: rows.length > 0, empty: rows.length === 0,
+      emptyIcon: q ? 'search' : 'check-circle', emptyTitle: q ? 'Nothing matches “' + s.query + '”' : s.tab === 'all' ? 'Every location is above its reorder point' : 'Nothing in this view',
+      emptyDesc: q ? 'Search covers product names, SKUs and suppliers.' : 'Locations show up here when stock drops below the reorder point.',
+      allSel: selInList.length > 0 && selInList.length === listKeys.length, someSel: selInList.length > 0 && selInList.length < listKeys.length,
+      toggleAll: () => this.setState({ sel: selInList.length === listKeys.length ? [] : listKeys }),
+      noPoRows: allPo.length === 0, bulkPoLabel: allPo.length ? 'Create ' + F.plural(uniq(allPo.map((l) => l.it.supplier)).length, 'draft PO') : 'No POs needed',
+      bulkPo: () => this.bulkPo(allPo, fixes),
+      bulk: { show: s.sel.length > 0, count: F.int(s.sel.length) + ' selected', poLabel: selPo.length ? 'Create POs (' + selPo.length + ')' : 'Create POs', trLabel: selTr.length ? 'Request transfers (' + selTr.length + ')' : 'Request transfers',
+        po: () => (selPo.length ? this.bulkPo(selPo, fixes) : this.showToast('None of these need a PO', 'They can be fixed with a transfer or are already on the way.', 'info')),
+        transfer: () => this.bulkTransfer(selTr, fixes), snooze: () => this.snooze(s.sel.slice()), clear: () => this.setState({ sel: [] }) },
+      exportView: () => this.showToast('Exporting ' + F.plural(rows.length, 'location'), 'CSV with on-hand, reorder points, cover and suggested fixes.'),
+      rowMenu, trOpen: !!s.tr, closeTr: () => this.setState({ tr: null }), tr, poOpen: !!s.po, closePo: () => this.setState({ po: null }), po, rpOpen: !!s.rp, closeRp: () => this.setState({ rp: null }), rp,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+  bulkPo(locs, fixes) {
+    const bySup = {};
+    locs.forEach((l) => { (bySup[l.it.supplier] = bySup[l.it.supplier] || []).push(l); });
+    let seq = this.state.seqPo; const planned = Object.assign({}, this.state.planned), ids = [];
+    Object.keys(bySup).forEach((sup) => { const id = 'PO-' + seq++; ids.push(id); bySup[sup].forEach((l) => { planned[l.key] = { kind: 'po', ref: id, qty: fixes[l.key].poQty, eta: F.NOW + l.it.lead * F.DAY, status: 'Draft' }; }); });
+    const units = locs.reduce((a, l) => a + fixes[l.key].poQty, 0), cost = locs.reduce((a, l) => a + fixes[l.key].poQty * l.it.p.cost, 0);
+    this.setState({ planned, seqPo: seq, sel: [] });
+    this.showToast(F.plural(ids.length, 'draft PO') + ' created', ids.join(', ') + ': ' + F.int(units) + ' units, ' + F.money0(cost) + ' at cost, grouped by supplier. Send them from Procurement.', 'success');
+  }
+  bulkTransfer(locs, fixes) {
+    if (!locs.length) return this.showToast('None of these can be fixed with a transfer', 'No other warehouse has spare stock for them.', 'info');
+    let seq = this.state.seqTr; const planned = Object.assign({}, this.state.planned), ids = [];
+    const byRoute = {};
+    locs.forEach((l) => { const k = fixes[l.key].donor + '>' + l.wh; (byRoute[k] = byRoute[k] || []).push(l); });
+    Object.keys(byRoute).forEach((k) => { const id = 'TR-' + seq++; ids.push(id); byRoute[k].forEach((l) => { const f = fixes[l.key]; planned[l.key] = { kind: 'transfer', ref: id, qty: f.transferQty, eta: F.NOW + transitDays(f.donor, l.wh) * F.DAY, from: f.donor, status: 'Requested' }; }); });
+    this.setState({ planned, seqTr: seq, sel: [] });
+    this.showToast(F.plural(ids.length, 'transfer') + ' requested', ids.join(', ') + ', one per route. Track them in Stock Transfers.', 'success');
+  }
+  snooze(keys, quiet) {
+    const prev = this.state.snoozed;
+    this.setState({ snoozed: prev.concat(keys.filter((k) => prev.indexOf(k) < 0)), sel: [], rowMenu: null });
+    if (!quiet) this.showToast(keys.length === 1 ? 'Snoozed for 7 days' : F.plural(keys.length, 'location') + ' snoozed for 7 days', 'They come back on Oct 8 if still below the reorder point.', 'success', { label: 'Undo', onClick: () => this.setState({ snoozed: prev, toast: null }) });
+  }
+}
+
+/* ---------- low stock data: Fernhill inventory (inventory.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory;
+function uniq(l) { return l.filter(function (x, i) { return l.indexOf(x) === i; }); }
+function roundUp(n) { return Math.max(10, Math.ceil(n / 10) * 10); }
+/* daily sales at a location: share of the SKU's demand by reorder point (works when stock is zero) */
+function dailyAt(it, wh) { var tot = I.WAREHOUSES.reduce(function (a, w) { return a + it.reorder[w.key]; }, 0); return tot ? it.v30 / 30 * it.reorder[wh] / tot : 0; }
+var LOCS = [];
+I.ITEMS.forEach(function (it) {
+  I.WAREHOUSES.forEach(function (w) {
+    var st = I.locState(it, w.key);
+    if (st !== 'low' && st !== 'out') return;
+    var daily = Math.max(0.05, dailyAt(it, w.key));
+    LOCS.push({ key: it.sku + '@' + w.key, it: it, wh: w.key, daily: daily, cover: it.stock[w.key] / daily });
+  });
+});
+/* bring the location back above its reorder point with two weeks of sales on top */
+function needFor(l) { return Math.max(1, l.it.reorder[l.wh] - l.it.stock[l.wh] + Math.ceil(l.daily * 14)); }
+function donorsFor(l) {
+  return I.WAREHOUSES.filter(function (w) { return w.key !== l.wh; }).map(function (w) {
+    return { wh: w.key, spare: Math.max(0, l.it.stock[w.key] - l.it.reorder[w.key] - l.it.committed[w.key]) };
+  }).sort(function (a, b) { return b.spare - a.spare; });
+}
+function incomingFor(l, planned) {
+  var list = I.inbound(l.it, l.wh).map(function (x) { return { ref: x.ref, qty: x.qty, eta: x.eta }; });
+  if (planned[l.key]) list.push({ ref: planned[l.key].ref + ' (' + planned[l.key].status.toLowerCase() + ')', qty: planned[l.key].qty, eta: planned[l.key].eta });
+  return list;
+}
+function transitDays(from, to) { var bd = function (k) { return k === 'dhk' || k === 'ctg'; }; return from === to ? 0 : bd(from) && bd(to) ? 2 : bd(from) || bd(to) ? 14 : (from === 'syd' || to === 'syd') ? 6 : 8; }
+function etaText(ts) { var d = Math.round((ts - F.NOW) / F.DAY); return d < 0 ? 'overdue by ' + -d + (d === -1 ? ' day' : ' days') : d === 0 ? 'arrives today' : 'in ' + d + (d === 1 ? ' day' : ' days'); }
+function fixFor(l, planned) {
+  var it = l.it, inb = incomingFor(l, planned), inbQty = inb.reduce(function (a, x) { return a + x.qty; }, 0), need = needFor(l);
+  if (inbQty >= need * 0.6) {
+    var first = inb.slice().sort(function (a, b) { return a.eta - b.eta; })[0];
+    return { kind: 'covered', title: 'On the way', sub: F.int(inbQty) + ' arriving with ' + first.ref.replace(/ \(.*\)$/, '') + ', ' + etaText(first.eta) };
+  }
+  var d = donorsFor(l)[0], skuShort = it.v.stock < it.v.reorder;
+  if (!skuShort && d && d.spare >= Math.min(need, 10)) {
+    var q = Math.min(need, d.spare);
+    return { kind: 'transfer', donor: d.wh, transferQty: q, title: 'Transfer ' + F.int(q) + ' from ' + I.WH[d.wh].short, sub: I.WH[d.wh].short + ' has ' + F.int(d.spare) + ' spare · about ' + transitDays(d.wh, l.wh) + ' days in transit' };
+  }
+  var poQty = roundUp(it.v30 / 30 * (it.lead + 45) - I.onHand(it) - I.inboundQty(it) - inbQty);
+  return { kind: 'po', poQty: poQty, title: 'Order ' + F.int(poQty) + ' from ' + it.supplier, sub: it.lead + '-day lead time · ' + F.money0(poQty * it.p.cost) + ' at cost' };
+}
+/* units this location can't sell over the next 14 days (stock plus anything arriving in time) */
+function riskFor(l, planned) {
+  var arriving = incomingFor(l, planned).filter(function (x) { return x.eta && x.eta <= F.NOW + 14 * F.DAY; }).reduce(function (a, x) { return a + x.qty; }, 0);
+  return Math.max(0, l.daily * 14 - l.it.stock[l.wh] - arriving);
+}
+</script>
+</body>
+</html>
