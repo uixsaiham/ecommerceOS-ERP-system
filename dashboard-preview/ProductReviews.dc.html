@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Product Reviews · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=3">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=3"></script>
+<script src="./catalog.js?v=3"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Product reviews ---------- */
+.rv-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.rv-duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.rv-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px;min-width:0}
+.rv-panel h2{margin:0 0 4px;font-size:15px;line-height:22px;font-weight:600}
+.rv-panel-sub{margin:0 0 12px;font-size:12px;line-height:16px;color:var(--text-muted)}
+.rv-dist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.rv-dist button{display:grid;grid-template-columns:28px minmax(0,1fr) 72px;align-items:center;gap:10px;width:100%;padding:3px 6px;border:0;border-radius:var(--radius-xs);background:transparent;font:inherit;font-size:13px;color:var(--text-primary);cursor:pointer;text-align:left}
+.rv-dist button:hover{background:var(--bg-muted)}
+.rv-dist button[aria-pressed="true"]{background:var(--brand-subtle)}
+.rv-dist button:focus-visible{outline:2px solid var(--focus-ring);outline-offset:1px}
+.rv-dist .pr-meter{height:8px}
+.rv-dist .pr-meter > span{background:var(--warning)}
+.rv-dist .rv-n{text-align:right;color:var(--text-secondary);font-variant-numeric:tabular-nums}
+.rv-themes{display:flex;flex-wrap:wrap;gap:8px}
+.rv-theme{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-full);background:var(--bg-surface);font:inherit;font-size:13px;color:var(--text-primary);cursor:pointer}
+.rv-theme:hover{border-color:var(--border-strong);background:var(--bg-subtle)}
+.rv-theme[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-subtle);color:var(--brand)}
+.rv-theme:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.rv-theme strong{font-weight:600}
+.rv-theme-note{margin:12px 0 0;font-size:13px;line-height:20px;color:var(--text-secondary)}
+/* list */
+.rv-list{list-style:none;margin:0;padding:0}
+.rv-item{display:grid;grid-template-columns:20px minmax(0,1fr) 240px;gap:12px 16px;padding:16px;border-bottom:1px solid var(--border)}
+.rv-item > .cx-check{align-self:start;margin-top:2px}
+.rv-item.is-selected{background:var(--bg-selected)}
+.rv-item.is-pending{box-shadow:inset 3px 0 0 var(--warning)}
+.rv-main{display:flex;flex-direction:column;gap:6px;min-width:0}
+.rv-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rv-title{font-weight:600;font-size:14px}
+.rv-body{margin:0;font-size:14px;line-height:21px;color:var(--text-primary)}
+.rv-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:12px;line-height:16px;color:var(--text-muted)}
+.rv-ver{display:inline-flex;align-items:center;gap:4px;color:var(--success);font-weight:500}
+.rv-ver .cx-icon{width:12px;height:12px}
+.rv-unver{color:var(--text-muted)}
+.rv-flags{display:flex;flex-wrap:wrap;gap:6px}
+.rv-reply{margin-top:4px;padding:10px 12px;border-left:3px solid var(--brand);border-radius:0 var(--radius-sm) var(--radius-sm) 0;background:var(--bg-subtle);font-size:13px;line-height:20px}
+.rv-reply strong{display:block;font-size:12px;line-height:16px;margin-bottom:2px}
+.rv-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px}
+.rv-actions .o-pop{margin-left:auto}
+.rv-prod{display:flex;gap:10px;align-items:flex-start;min-width:0}
+.rv-prod .pr-cell-main{gap:2px}
+.rv-prod a{font-size:13px;line-height:18px;font-weight:500;text-decoration:none;color:var(--text-primary)}
+.rv-prod a:hover{color:var(--link);text-decoration:underline}
+.rv-compose{display:flex;flex-direction:column;gap:10px;margin-top:6px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface)}
+.rv-textarea{width:100%;box-sizing:border-box;min-height:84px;padding:8px 12px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-surface);color:var(--text-primary);font:inherit;font-size:14px;line-height:20px;resize:vertical}
+.rv-textarea:focus{outline:2px solid var(--focus-ring);outline-offset:-1px;border-color:transparent}
+.rv-compose-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.rv-compose-end{display:flex;gap:8px}
+.rv-photos{display:inline-flex;gap:4px}
+.rv-photo{width:44px;height:44px;border-radius:var(--radius-sm);background:var(--bg-muted);display:inline-flex;align-items:center;justify-content:center;color:var(--text-muted)}
+.rv-photo .cx-icon{width:16px;height:16px}
+.rv-chiprow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rv-active-chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 6px 0 10px;border-radius:var(--radius-full);background:var(--brand-subtle);color:var(--brand);font-size:13px;font-weight:500}
+.rv-active-chip button{display:inline-flex;border:0;background:transparent;color:inherit;cursor:pointer;padding:2px;border-radius:var(--radius-full)}
+.rv-active-chip button:focus-visible{outline:2px solid var(--focus-ring)}
+.rv-active-chip .cx-icon{width:14px;height:14px}
+.rv-set-row{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@media (max-width:1279px){ .rv-item{grid-template-columns:20px minmax(0,1fr) 200px} }
+@media (max-width:1023px){ .rv-kpis{display:flex} .rv-duo{grid-template-columns:minmax(0,1fr)} .rv-item{grid-template-columns:20px minmax(0,1fr)} .rv-prod{grid-column:2;order:-1} }
+@media (max-width:767px){ .rv-item{padding:14px 12px;gap:8px 10px} .rv-actions .o-pop{margin-left:0} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="products/reviews" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" badges="{{navBadges}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="products/reviews"></x-import>
+<h1>Product Reviews</h1>
+<p class="ph-sub">Moderate what customers say before it goes live, and reply where it matters.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>{{autoMeta}}</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="settings" on-click="{{openSettings}}">Review settings</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<sc-if value="{{scopeNote}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.Alert" tone="info" title="{{scopeNote.title}}" actions="{{scopeNote.actions}}">{{scopeNote.text}}</x-import>
+</sc-if>
+
+<section class="o-kpis rv-kpis" aria-label="Review summary, last 90 days">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><sc-if value="{{k.delta}}" hint-placeholder-val="{{false}}"><span class="{{k.deltaCls}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{k.deltaIcon}}"></x-import>{{k.delta}}</span></sc-if><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<div class="rv-duo">
+<section class="rv-panel" aria-labelledby="rv-dist-h">
+<h2 id="rv-dist-h">Rating breakdown</h2>
+<p class="rv-panel-sub">{{distSub}} · click a row to filter</p>
+<ul class="rv-dist"><sc-for list="{{dist}}" as="d" hint-placeholder-count="5"><li><button aria-pressed="{{d.on}}" onClick="{{d.pick}}" aria-label="{{d.aria}}"><span>{{d.stars}} ★</span><span class="pr-meter" aria-hidden="true"><span style="width: {{d.pct}}%"></span></span><span class="rv-n">{{d.count}} · {{d.share}}</span></button></li></sc-for></ul>
+</section>
+<section class="rv-panel" aria-labelledby="rv-theme-h">
+<h2 id="rv-theme-h">What 1–3★ reviews mention</h2>
+<p class="rv-panel-sub">{{themeSub}}</p>
+<div class="rv-themes"><sc-for list="{{themes}}" as="t" hint-placeholder-count="5"><button class="rv-theme" aria-pressed="{{t.on}}" onClick="{{t.pick}}"><span>{{t.label}}</span><strong>{{t.count}}</strong></button></sc-for></div>
+<p class="rv-theme-note">{{themeNote}}</p>
+</section>
+</div>
+
+<section class="o-card" aria-label="Reviews">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Review status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools">
+<div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search reviews, customers or products" label="Search reviews" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<div class="o-pop" data-pop="sort">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="chevrons-up-down" icon-right="chevron-down" on-click="{{toggleSort}}" aria-haspopup="menu" aria-expanded="{{openSort}}" aria-label="Sort: {{sortLabel}}"><span class="o-sort-label">{{sortLabel}}</span></x-import>
+<sc-if value="{{openSort}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Sort reviews"><div class="cx-menu-group">Sort by</div>
+<sc-for list="{{sortItems}}" as="o" hint-placeholder-count="5"><button class="cx-menu-item" role="menuitemradio" aria-checked="{{o.selected}}" onClick="{{o.pick}}"><span>{{o.label}}</span><sc-if value="{{o.selected}}" hint-placeholder-val="{{false}}"><span class="menu-check"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button></sc-for>
+</div>
+</sc-if>
+</div>
+</div>
+<div class="rv-chiprow" role="group" aria-label="Filters">
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Verified buyers only" checked="{{fVerified}}" on-change="{{setVerified}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="With photos" checked="{{fPhotos}}" on-change="{{setPhotos}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Needs a reply" checked="{{fNoReply}}" on-change="{{setNoReply}}"></x-import>
+<sc-for list="{{activeChips}}" as="c" hint-placeholder-count="1"><span class="rv-active-chip">{{c.label}}<button aria-label="Remove filter: {{c.label}}" onClick="{{c.clear}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></span></sc-for>
+<sc-if value="{{showClear}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="link" on-click="{{clearAll}}">Clear all</x-import></sc-if>
+</div>
+</div>
+
+<div class="o-bulkwrap">
+<sc-if value="{{bulk.show}}" hint-placeholder-val="{{false}}">
+<div class="o-bulk" role="region" aria-label="Bulk actions">
+<span class="o-bulk-count">{{bulk.count}}</span>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="check-circle" on-click="{{bulk.publish}}"><span class="o-bulk-label">Publish</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="eye" on-click="{{bulk.hide}}"><span class="o-bulk-label">Hide</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="download" on-click="{{bulk.exportSel}}"><span class="o-bulk-label">Export</span></x-import>
+<div class="o-bulk-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" on-click="{{bulk.clear}}">Clear selection</x-import></div>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-summary"><span><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{pageSelLabel}}" checked="{{pageAll}}" indeterminate="{{pageSome}}" on-change="{{togglePage}}"></x-import></span><span>{{summary}}</span></div>
+<ul class="rv-list" aria-label="Reviews">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<li class="{{r.cls}}">
+<x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="Select review by {{r.author}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import>
+<div class="rv-main">
+<div class="rv-top"><span class="pr-stars" role="img" aria-label="{{r.rating}} out of 5 stars"><span class="pr-stars-fill" style="width: {{r.pct}}%"></span></span><span class="rv-title">{{r.title}}</span><sc-if value="{{r.statusBadge}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.statusTone}}" icon="{{r.statusIcon}}">{{r.statusLabel}}</x-import></sc-if></div>
+<p class="rv-body">{{r.body}}</p>
+<sc-if value="{{r.hasPhotos}}" hint-placeholder-val="{{false}}"><span class="rv-photos" aria-label="{{r.photosLabel}}"><sc-for list="{{r.photos}}" as="ph" hint-placeholder-count="2"><span class="rv-photo"><x-import component-from-global-scope="CommerceOS.Icon" name="eye"></x-import></span></sc-for></span></sc-if>
+<div class="rv-meta"><span class="o-cust">{{r.author}}</span><sc-if value="{{r.verified}}" hint-placeholder-val="{{true}}"><span class="rv-ver"><x-import component-from-global-scope="CommerceOS.Icon" name="check-circle"></x-import>Verified buyer · {{r.order}}</span></sc-if><sc-if value="{{r.unverified}}" hint-placeholder-val="{{false}}"><span class="rv-unver">Not a verified buyer</span></sc-if><span>{{r.when}}</span><span>{{r.channel}}</span><sc-if value="{{r.helpful}}" hint-placeholder-val="{{false}}"><span>{{r.helpful}}</span></sc-if></div>
+<sc-if value="{{r.hasFlags}}" hint-placeholder-val="{{false}}"><div class="rv-flags"><sc-for list="{{r.flags}}" as="f" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{f.tone}}" icon="alert-triangle">{{f.label}}</x-import></sc-for></div></sc-if>
+<sc-if value="{{r.reply}}" hint-placeholder-val="{{false}}"><div class="rv-reply"><strong>{{r.replyBy}}</strong>{{r.reply}}</div></sc-if>
+<sc-if value="{{r.composing}}" hint-placeholder-val="{{false}}">
+<div class="rv-compose">
+<x-import component-from-global-scope="CommerceOS.Select" size="sm" label="Start from a template" options="{{replyTemplates}}" value="{{draft.tpl}}" on-value-change="{{draft.setTpl}}" width="280px"></x-import>
+<textarea class="rv-textarea" aria-label="Public reply to {{r.author}}" value="{{draft.text}}" onChange="{{draft.setText}}" placeholder="Write a public reply. It shows under the review on the product page."></textarea>
+<div class="rv-compose-row"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{draft.emailLabel}}" checked="{{draft.email}}" on-change="{{draft.setEmail}}" disabled="{{r.unverified}}"></x-import><div class="rv-compose-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" on-click="{{draft.cancel}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" size="sm" disabled="{{draft.empty}}" on-click="{{draft.post}}">{{draft.cta}}</x-import></div></div>
+</div>
+</sc-if>
+<div class="rv-actions">
+<sc-if value="{{r.canPublish}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.publishVariant}}" size="sm" icon="check-circle" on-click="{{r.publish}}">Publish</x-import></sc-if>
+<sc-if value="{{r.canHide}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.hideVariant}}" size="sm" icon="eye" on-click="{{r.hide}}">{{r.hideLabel}}</x-import></sc-if>
+<sc-if value="{{r.canReply}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="edit" on-click="{{r.startReply}}">{{r.replyCta}}</x-import></sc-if>
+<div class="o-pop" data-pop="rv">
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="more-horizontal" aria-label="More actions for the review by {{r.author}}" aria-haspopup="menu" aria-expanded="{{r.menuOpen}}" on-click="{{r.toggleMenu}}"></x-import>
+<sc-if value="{{r.menuOpen}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Actions for the review by {{r.author}}">
+<sc-if value="{{r.verified}}" hint-placeholder-val="{{true}}"><a class="cx-menu-item" role="menuitem" href="Orders.dc.html"><x-import component-from-global-scope="CommerceOS.Icon" name="shopping-bag"></x-import><span>View order {{r.order}}</span></a></sc-if>
+<button class="cx-menu-item" role="menuitem" onClick="{{r.copyLink}}"><x-import component-from-global-scope="CommerceOS.Icon" name="copy"></x-import><span>Copy review link</span></button>
+<sc-if value="{{r.canFeature}}" hint-placeholder-val="{{false}}"><button class="cx-menu-item" role="menuitem" onClick="{{r.feature}}"><x-import component-from-global-scope="CommerceOS.Icon" name="megaphone"></x-import><span>{{r.featureLabel}}</span></button></sc-if>
+<div class="cx-menu-sep"></div>
+<button class="cx-menu-item is-danger" role="menuitem" onClick="{{r.spam}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import><span>Mark as spam</span></button>
+</div>
+</sc-if>
+</div>
+</div>
+</div>
+<div class="rv-prod"><span class="{{r.thumbCls}}" aria-hidden="true">{{r.initials}}</span><span class="pr-cell-main"><a href="Products.dc.html">{{r.product}}</a><span class="o-sub">{{r.variant}}</span><span class="o-sub">{{r.productRating}}</span></span></div>
+</li>
+</sc-for>
+</ul>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="reviews" page-size-options="{{pageSizes}}" on-page-change="{{setPage}}" on-page-size-change="{{setPageSize}}"></x-import></div>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.EmptyState" icon="{{emptyIcon}}" title="{{emptyTitle}}" description="{{emptyDesc}}"><sc-if value="{{showClear}}" hint-placeholder-val="{{false}}"><div class="o-modal-actions" style="justify-content: center"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="x" on-click="{{clearAll}}">Clear filters</x-import></div></sc-if></x-import>
+</sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{hideOpen}}" on-close="{{closeHide}}" size="sm" title="{{hd.title}}" description="Hidden reviews stay in CommerceOS but don’t show on product pages or in the average rating.">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Select" label="Reason" options="{{hideReasons}}" value="{{hd.reason}}" on-value-change="{{hd.setReason}}"></x-import>
+<sc-if value="{{hd.lowNote}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="info">{{hd.lowNote}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeHide}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{hd.confirm}}">{{hd.cta}}</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{setOpen}}" on-close="{{closeSettings}}" size="md" title="Review settings" description="How reviews are collected and which ones go live without a check.">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Select" label="Publish automatically" options="{{autoOpts}}" value="{{st.auto}}" on-value-change="{{st.setAuto}}" hint="Everything else waits in Pending for you to check."></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Always hold reviews that contain links, email addresses or profanity" checked="{{st.hold}}" on-change="{{st.setHold}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Ask for a review" options="{{askOpts}}" value="{{st.ask}}" on-value-change="{{st.setAsk}}" hint="Sent by email to customers whose order was delivered."></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Offer 10% off the next order for a review with photos" checked="{{st.photo}}" on-change="{{st.setPhoto}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeSettings}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{st.save}}">Save settings</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","reply","published","empty","settings"],"default":"none","section":"State"},"$preview":{"width":1440,"height":2000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none';
+    let product = null;
+    try { product = new URLSearchParams(window.location.search).get('product'); } catch (e) { /* no query string */ }
+    if (product && !F.PRODUCTS.some((p) => p.id === product)) product = null;
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', menu: null, toast: null,
+      reviews: REVIEWS, tab: product ? 'all' : 'pending', query: '', f: { rating: null, theme: null, product, verified: false, photos: false, noReply: false },
+      sort: 'newest', page: 1, pageSize: 10, sel: [], replyId: null, draft: null, hide: null, settings: null, cfg: Object.assign({}, CFG)
+    };
+    if (demo === 'reply') { const r = REVIEWS.find((x) => x.status === 'pending' && x.rating <= 2); this.state.replyId = r.id; this.state.draft = { tpl: '', text: '', email: true }; }
+    if (demo === 'published') this.state.tab = 'published';
+    if (demo === 'empty') this.state.query = 'zzz';
+    if (demo === 'settings') this.state.settings = Object.assign({}, CFG);
+  }
+  componentDidMount() {
+    this._onDoc = (e) => { if (this.state.menu && !(e.target.closest && e.target.closest('[data-pop]'))) this.setState({ menu: null }); };
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.hide && !this.state.settings) { if (this.state.menu) this.setState({ menu: null }); else if (this.state.replyId) this.setState({ replyId: null, draft: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('mousedown', this._onDoc);
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('mousedown', this._onDoc); document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null }, menu: null });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  setF(patch) { this.setState((s) => ({ f: Object.assign({}, s.f, patch), page: 1, sel: [] })); }
+  patch(ids, fn) { this.setState((s) => ({ reviews: s.reviews.map((r) => (ids.indexOf(r.id) >= 0 ? Object.assign({}, r, fn(r)) : r)) })); }
+  undoable(prev) { return { label: 'Undo', onClick: () => this.setState({ reviews: prev, toast: null }) }; }
+  publish(ids) {
+    const prev = this.state.reviews, ok = prev.filter((r) => ids.indexOf(r.id) >= 0 && r.status !== 'published');
+    if (!ok.length) return this.showToast('Already published', 'Those reviews are live on the product pages.', 'info');
+    this.patch(ok.map((r) => r.id), () => ({ status: 'published', hiddenReason: null, moderatedAt: F.NOW }));
+    this.setState({ sel: [], menu: null });
+    const one = ok.length === 1 ? ok[0] : null;
+    this.showToast(one ? 'Review by ' + one.author + ' published' : F.plural(ok.length, 'review') + ' published', one ? 'It’s live on ' + productOf(one).name + '.' : 'They’re live on the product pages and count toward ratings.', 'success', this.undoable(prev));
+  }
+  hide(ids, reason) {
+    const prev = this.state.reviews, ok = prev.filter((r) => ids.indexOf(r.id) >= 0 && r.status !== 'hidden');
+    this.patch(ok.map((r) => r.id), () => ({ status: 'hidden', hiddenReason: reason, moderatedAt: F.NOW }));
+    this.setState({ sel: [], menu: null, hide: null });
+    this.showToast(ok.length === 1 ? 'Review hidden' : F.plural(ok.length, 'review') + ' hidden', 'Reason: ' + HIDE_LABEL[reason].toLowerCase() + '. You can publish it again from the Hidden tab.', 'success', this.undoable(prev));
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), ch = F.channelOf(s.store);
+    const scoped = s.reviews.filter((r) => !ch || r.channel === ch.key);
+    const q = s.query.trim().toLowerCase();
+    const searched = scoped.filter((r) => !q || r.title.toLowerCase().indexOf(q) >= 0 || r.body.toLowerCase().indexOf(q) >= 0 || r.author.toLowerCase().indexOf(q) >= 0 || productOf(r).name.toLowerCase().indexOf(q) >= 0);
+    const passes = (r) => (!s.f.rating || r.rating === s.f.rating) && (!s.f.theme || r.themes.indexOf(s.f.theme) >= 0) && (!s.f.product || r.product === s.f.product)
+      && (!s.f.verified || r.verified) && (!s.f.photos || r.photos > 0) && (!s.f.noReply || (!r.reply && r.rating <= 3));
+    const inTab = (r, t) => t === 'all' || r.status === t;
+    const filtered = searched.filter(passes), list = filtered.filter((r) => inTab(r, s.tab));
+    const cmp = { newest: (a, b) => b.ts - a.ts, oldest: (a, b) => a.ts - b.ts, low: (a, b) => a.rating - b.rating || b.ts - a.ts, high: (a, b) => b.rating - a.rating || b.ts - a.ts, helpful: (a, b) => b.helpful - a.helpful || b.ts - a.ts }[s.sort];
+    list.sort(cmp);
+    const total = list.length, pages = Math.max(1, Math.ceil(total / s.pageSize)), page = Math.min(s.page, pages);
+    const pageRows = list.slice((page - 1) * s.pageSize, page * s.pageSize), pageIds = pageRows.map((r) => r.id), selOnPage = pageIds.filter((id) => s.sel.indexOf(id) >= 0);
+
+    // KPIs: last 90 days, store scope
+    const counted = scoped.filter((r) => r.status !== 'hidden'), avg = counted.length ? counted.reduce((a, r) => a + r.rating, 0) / counted.length : 0;
+    const last30 = scoped.filter((r) => F.NOW - r.ts <= 30 * F.DAY), prev30 = scoped.filter((r) => F.NOW - r.ts > 30 * F.DAY && F.NOW - r.ts <= 60 * F.DAY);
+    const pending = scoped.filter((r) => r.status === 'pending'), oldest = pending.reduce((m, r) => Math.min(m, r.ts), F.NOW);
+    const low = scoped.filter((r) => r.rating <= 3 && r.status === 'published'), replied = low.filter((r) => r.reply);
+    const allTime = F.PRODUCTS.filter((p) => !ch || p.channels.indexOf(ch.key) >= 0).reduce((a, p) => ({ n: a.n + p.reviews, sum: a.sum + p.rating * p.reviews }), { n: 0, sum: 0 });
+    const allAvg = allTime.n ? allTime.sum / allTime.n : 0, dAvg = avg - allAvg, dNew = prev30.length ? (last30.length - prev30.length) / prev30.length : 0;
+    const kpis = [
+      { label: 'Average rating, 90 days', dot: 'cx-dot cx-dot-warning', value: avg ? avg.toFixed(2) + ' ★' : '—', delta: avg ? (dAvg >= 0 ? '+' : '−') + Math.abs(dAvg).toFixed(2) : null, deltaIcon: dAvg >= 0 ? 'trending-up' : 'trending-down', deltaCls: 'o-delta ' + (dAvg >= 0 ? 'is-good' : 'is-bad'), cmp: 'vs ' + allAvg.toFixed(2) + ' all time (' + F.int(allTime.n) + ')' },
+      { label: 'New reviews, 30 days', dot: 'cx-dot cx-dot-brand', value: F.int(last30.length), delta: prev30.length ? F.signedPct(dNew) : null, deltaIcon: dNew >= 0 ? 'trending-up' : 'trending-down', deltaCls: 'o-delta ' + (dNew >= 0 ? 'is-good' : 'is-bad'), cmp: 'vs ' + F.int(prev30.length) + ' previous 30 days' },
+      { label: 'Awaiting moderation', dot: 'cx-dot cx-dot-danger', value: F.int(pending.length), cmp: pending.length ? 'Oldest waiting ' + F.timeAgo(oldest).replace(' ago', '') : 'All caught up' },
+      { label: 'Replies to 1–3★ reviews', dot: 'cx-dot cx-dot-success', value: low.length ? Math.round(replied.length / low.length * 100) + '%' : '—', cmp: F.int(low.length - replied.length) + ' published without a reply' }
+    ];
+
+    // distribution and themes over everything that counts (store scope, ignoring other filters)
+    const dist = [5, 4, 3, 2, 1].map((n) => { const c = counted.filter((r) => r.rating === n).length, share = counted.length ? c / counted.length : 0;
+      return { stars: n, count: F.int(c), share: Math.round(share * 100) + '%', pct: (share * 100).toFixed(1), on: s.f.rating === n, aria: n + ' stars: ' + c + ' reviews',
+        pick: () => this.setF({ rating: s.f.rating === n ? null : n }) }; });
+    const lowAll = scoped.filter((r) => r.rating <= 3);
+    const themes = THEMES.map((t) => ({ key: t.key, label: t.label, n: lowAll.filter((r) => r.themes.indexOf(t.key) >= 0).length })).filter((t) => t.n).sort((a, b) => b.n - a.n)
+      .map((t) => ({ label: t.label, count: F.int(t.n), on: s.f.theme === t.key, pick: () => this.setF({ theme: s.f.theme === t.key ? null : t.key }) }));
+    const topTheme = THEMES.map((t) => ({ t, n: lowAll.filter((r) => r.themes.indexOf(t.key) >= 0).length })).sort((a, b) => b.n - a.n)[0];
+    const topProd = topTheme && topTheme.n ? topBy(lowAll.filter((r) => r.themes.indexOf(topTheme.t.key) >= 0).map((r) => productOf(r).name)) : null;
+
+    const tabs = TABS.map((t) => ({ id: t.id, label: t.label, count: F.int(filtered.filter((r) => inTab(r, t.id)).length) }));
+    const activeChips = [];
+    if (s.f.rating) activeChips.push({ label: s.f.rating + '★ only', clear: () => this.setF({ rating: null }) });
+    if (s.f.theme) activeChips.push({ label: 'Mentions ' + THEMES.find((t) => t.key === s.f.theme).label.toLowerCase(), clear: () => this.setF({ theme: null }) });
+    if (s.f.product) activeChips.push({ label: 'Product: ' + F.PRODUCTS.find((p) => p.id === s.f.product).name, clear: () => this.setF({ product: null }) });
+    const anyFilter = activeChips.length > 0 || s.f.verified || s.f.photos || s.f.noReply;
+
+    const rows = pageRows.map((r) => {
+      const p = productOf(r), sel = s.sel.indexOf(r.id) >= 0, sv = STATUS_V[r.status], composing = s.replyId === r.id;
+      const flags = r.flags.map((f) => ({ label: f, tone: f === 'Contains a link' || f === 'Possible profanity' ? 'danger' : 'warning' }));
+      if (r.status === 'hidden' && r.hiddenReason) flags.push({ label: 'Hidden: ' + HIDE_LABEL[r.hiddenReason], tone: 'neutral' });
+      return {
+        id: r.id, sel, cls: 'rv-item' + (sel ? ' is-selected' : '') + (r.status === 'pending' ? ' is-pending' : ''),
+        rating: r.rating, pct: r.rating * 20, title: r.title, body: r.body, author: r.author, verified: r.verified, unverified: !r.verified, order: r.order,
+        when: F.fmtWhen(r.ts), channel: F.CHANNELS.find((c) => c.key === r.channel).label, helpful: r.helpful ? F.plural(r.helpful, 'person', 'people') + ' found this helpful' : '',
+        hasPhotos: r.photos > 0, photos: Array.from({ length: r.photos }, (_, i) => i), photosLabel: F.plural(r.photos, 'photo') + ' attached',
+        hasFlags: flags.length > 0, flags, statusBadge: s.tab === 'all' || r.status !== s.tab, statusTone: sv[0], statusIcon: sv[2], statusLabel: sv[1],
+        reply: r.reply, replyBy: 'Reply from Fernhill · ' + (r.replyBy || 'Priya Natarajan'),
+        composing, canPublish: r.status !== 'published', publishVariant: r.status === 'pending' && !r.flags.length ? 'primary' : 'secondary', canHide: r.status !== 'hidden', hideVariant: r.status === 'pending' && r.flags.length ? 'primary' : 'secondary', hideLabel: r.flags.length && r.status !== 'hidden' ? 'Hide as spam' : 'Hide', canReply: r.status !== 'hidden' && !composing,
+        replyCta: r.reply ? 'Edit reply' : 'Reply', canFeature: r.status === 'published' && r.rating >= 4, featureLabel: r.featured ? 'Remove from product page highlight' : 'Highlight on product page',
+        product: p.name, variant: r.variant, initials: F.initials(p.name), thumbCls: F.thumbCls(p), productRating: p.reviews ? p.rating.toFixed(1) + ' ★ from ' + F.plural(p.reviews, 'review') : '',
+        menuOpen: s.menu === r.id, toggleMenu: () => this.setState((x) => ({ menu: x.menu === r.id ? null : r.id })),
+        toggle: () => this.setState((x) => ({ sel: sel ? x.sel.filter((id) => id !== r.id) : x.sel.concat([r.id]) })),
+        publish: () => this.publish([r.id]), hide: () => this.setState({ hide: { ids: [r.id], reason: r.flags.length ? 'spam' : 'off-topic' }, menu: null }),
+        startReply: () => this.setState({ replyId: r.id, draft: { tpl: '', text: r.reply || '', email: r.verified && r.rating <= 3 }, menu: null }),
+        copyLink: () => { const url = 'https://fernhill.co/products/' + p.handle + '#review-' + r.id.toLowerCase(); try { navigator.clipboard.writeText(url); } catch (e) { /* clipboard unavailable */ } this.showToast('Link copied', url, 'info'); },
+        feature: () => { this.patch([r.id], (x) => ({ featured: !x.featured })); this.setState({ menu: null }); this.showToast(r.featured ? 'Highlight removed' : 'Highlighted on ' + p.name, r.featured ? 'The product page shows the newest reviews first again.' : 'It shows first on the product page.'); },
+        spam: () => this.hide([r.id], 'spam')
+      };
+    });
+
+    let draft = { tpl: '', text: '', email: false, empty: true, cta: 'Post reply', emailLabel: '' };
+    if (s.replyId && s.draft) {
+      const r = s.reviews.find((x) => x.id === s.replyId), first = r.author.split(' ')[0], d = s.draft;
+      draft = { tpl: d.tpl, text: d.text, email: d.email, empty: !d.text.trim(), cta: r.reply ? 'Update reply' : r.status === 'published' ? 'Post reply' : 'Post reply and publish',
+        emailLabel: r.verified ? 'Also email ' + first + ' (' + r.order + ')' : 'Email not available: not a verified buyer',
+        setTpl: (v) => { const t = REPLIES.find((x) => x.value === v); this.setState({ draft: Object.assign({}, d, { tpl: v, text: t ? t.text.replace('{name}', first).replace('{product}', productOf(r).name.toLowerCase()) : d.text }) }); },
+        setText: (e) => this.setState({ draft: Object.assign({}, d, { text: e.target.value }) }), setEmail: (v) => this.setState({ draft: Object.assign({}, d, { email: v }) }),
+        cancel: () => this.setState({ replyId: null, draft: null }),
+        post: () => {
+          const prev = s.reviews, publishing = r.status !== 'published';
+          this.patch([r.id], () => ({ reply: d.text.trim(), replyBy: 'Priya Natarajan', status: 'published', hiddenReason: null }));
+          this.setState({ replyId: null, draft: null });
+          this.showToast(publishing ? 'Reply posted and review published' : 'Reply posted', d.email && r.verified ? first + ' also gets it by email.' : 'It shows under the review on the product page.', 'success', this.undoable(prev));
+        } };
+    }
+
+    let hd = { title: '', reason: '', cta: 'Hide' };
+    if (s.hide) {
+      const chosen = s.reviews.filter((r) => s.hide.ids.indexOf(r.id) >= 0), lowN = chosen.filter((r) => r.rating <= 3 && r.verified && !r.flags.length).length;
+      hd = { title: chosen.length === 1 ? 'Hide the review by ' + chosen[0].author + '?' : 'Hide ' + F.plural(chosen.length, 'review') + '?', reason: s.hide.reason,
+        lowNote: lowN && s.hide.reason !== 'spam' ? (lowN === 1 ? 'This is a verified buyer’s honest low rating.' : F.plural(lowN, 'review') + ' are verified buyers’ low ratings.') + ' Hiding genuine negative reviews can break Google and FTC review guidelines. Replying is usually better.' : null,
+        setReason: (v) => this.setState((x) => ({ hide: Object.assign({}, x.hide, { reason: v }) })), cta: chosen.length === 1 ? 'Hide review' : 'Hide ' + F.plural(chosen.length, 'review'),
+        confirm: () => this.hide(s.hide.ids, s.hide.reason) };
+    }
+
+    let st = {};
+    if (s.settings) {
+      const d = s.settings, up = (k) => (v) => this.setState((x) => ({ settings: Object.assign({}, x.settings, { [k]: v }) }));
+      st = { auto: d.auto, hold: d.hold, ask: d.ask, photo: d.photo, setAuto: up('auto'), setHold: up('hold'), setAsk: up('ask'), setPhoto: up('photo'),
+        save: () => { this.setState({ cfg: d, settings: null }); this.showToast('Review settings saved', AUTO_LABEL[d.auto] + '. Requests go out ' + ASK_LABEL[d.ask] + '.'); } };
+    }
+
+    const sortItems = SORTS.map((o) => ({ label: o.label, selected: s.sort === o.value, pick: () => this.setState({ sort: o.value, menu: null, page: 1 }) }));
+    const selCount = s.sel.length, allPending = s.reviews.filter((r) => r.status === 'pending').length;
+    return {
+      yes: true, pageSizes: [10, 25, 50],
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k, page: 1, sel: [] }),
+      navBadges: { 'sales/orders': { count: 24, label: 'pending' }, 'sales/returns': { count: 5, label: 'pending' }, 'products/reviews': allPending ? { count: allPending, label: 'to moderate' } : undefined, 'inventory/low-stock': { count: 18, label: 'low stock', tone: 'warning' } },
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      scopeNote: ch && (ch.key === 'amz' || ch.key === 'wh') ? { title: ch.key === 'amz' ? 'Amazon US reviews are managed in Amazon Seller Central' : 'Wholesale buyers don’t leave product reviews',
+        text: ch.key === 'amz' ? 'Amazon doesn’t let sellers moderate or reply to reviews here. Reviews from fernhill.co and fernhill.eu are moderated on this page.' : 'Reviews come from the Fernhill US and EU storefronts. Switch to All stores to moderate them.',
+        actions: [h(CommerceOS.Button, { key: 'a', variant: 'secondary', size: 'sm', onClick: () => this.setState({ store: 'all', page: 1, sel: [] }) }, 'Show all stores')] } : null,
+      metaCount: F.plural(scoped.length, 'review') + ' in the last 90 days · ' + store.label, autoMeta: AUTO_LABEL[s.cfg.auto],
+      kpis, dist, distSub: F.plural(counted.length, 'published or pending review'), themes,
+      themeSub: F.plural(lowAll.length, 'review') + ' with 1–3 stars in the last 90 days',
+      themeNote: topProd ? topTheme.t.label + ' comes up most. ' + topProd + ' has the most of these complaints. ' + THEME_TIP[topTheme.t.key] : 'No recurring issues in low ratings.',
+      tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id, page: 1, sel: [], replyId: null, draft: null }),
+      query: s.query, setQuery: (v) => this.setState({ query: v, page: 1, sel: [] }),
+      fVerified: s.f.verified, setVerified: (v) => this.setF({ verified: v }), fPhotos: s.f.photos, setPhotos: (v) => this.setF({ photos: v }), fNoReply: s.f.noReply, setNoReply: (v) => this.setF({ noReply: v }),
+      activeChips, showClear: anyFilter, clearAll: () => this.setState({ f: { rating: null, theme: null, product: null, verified: false, photos: false, noReply: false }, page: 1, sel: [] }),
+      openSort: s.menu === 'sort', toggleSort: () => this.setState((x) => ({ menu: x.menu === 'sort' ? null : 'sort' })), sortItems, sortLabel: SORTS.find((o) => o.value === s.sort).label,
+      rows, draft, replyTemplates: [{ value: '', label: 'Blank reply' }].concat(REPLIES.map((t) => ({ value: t.value, label: t.label }))),
+      total, page, pageSize: s.pageSize, setPage: (p) => this.setState({ page: p }), setPageSize: (n) => this.setState({ pageSize: n, page: 1 }),
+      summary: s.tab === 'pending' && total ? 'Auto-publish held these: low ratings, unverified buyers or flagged text' : F.plural(total, 'review'),
+      pageSelLabel: selOnPage.length ? F.int(selOnPage.length) + ' selected on this page' : 'Select page',
+      shown: total > 0, empty: total === 0,
+      emptyIcon: q || anyFilter ? 'search' : 'check-circle',
+      emptyTitle: q || anyFilter ? 'No reviews match' : s.tab === 'pending' ? 'Nothing waiting for moderation' : 'No reviews here',
+      emptyDesc: q || anyFilter ? 'Try a different search or clear the filters.' : s.tab === 'pending' ? 'New reviews that need a check show up here. Auto-publish handles the rest.' : 'Reviews show up here as customers write them.',
+      pageAll: selOnPage.length > 0 && selOnPage.length === pageIds.length, pageSome: selOnPage.length > 0 && selOnPage.length < pageIds.length,
+      togglePage: () => this.setState((x) => ({ sel: selOnPage.length === pageIds.length ? x.sel.filter((id) => pageIds.indexOf(id) < 0) : x.sel.concat(pageIds.filter((id) => x.sel.indexOf(id) < 0)) })),
+      bulk: { show: selCount > 0, count: F.int(selCount) + ' selected', publish: () => this.publish(s.sel.slice()), hide: () => this.setState({ hide: { ids: s.sel.slice(), reason: 'off-topic' } }),
+        exportSel: () => { this.setState({ sel: [] }); this.showToast('Exporting ' + F.plural(selCount, 'review'), 'CSV with ratings, text, products and order numbers.'); }, clear: () => this.setState({ sel: [] }) },
+      exportView: () => this.showToast('Exporting ' + F.plural(total, 'review'), 'CSV of the current tab and filters, sent to your downloads.'),
+      hideOpen: !!s.hide, closeHide: () => this.setState({ hide: null }), hd, hideReasons: HIDE_OPTS,
+      setOpen: !!s.settings, openSettings: () => this.setState({ settings: Object.assign({}, s.cfg) }), closeSettings: () => this.setState({ settings: null }), st, autoOpts: AUTO_OPTS, askOpts: ASK_OPTS,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- review data: last 90 days of Fernhill reviews, Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, h = window.React.createElement, CommerceOS = window.CommerceOS;
+var PROD_BY_ID = {}; F.PRODUCTS.forEach(function (p) { PROD_BY_ID[p.id] = p; });
+function productOf(r) { return PROD_BY_ID[r.product]; }
+function topBy(list) { var c = {}, best = null; list.forEach(function (x) { c[x] = (c[x] || 0) + 1; if (!best || c[x] > c[best]) best = x; }); return best; }
+var TABS = [{ id: 'pending', label: 'Pending' }, { id: 'published', label: 'Published' }, { id: 'hidden', label: 'Hidden' }, { id: 'all', label: 'All' }];
+var STATUS_V = { pending: ['warning', 'Pending', 'clock'], published: ['success', 'Published', 'check-circle'], hidden: ['neutral', 'Hidden', 'eye'] };
+var SORTS = [{ value: 'newest', label: 'Newest first' }, { value: 'oldest', label: 'Oldest first' }, { value: 'low', label: 'Lowest rating first' }, { value: 'high', label: 'Highest rating first' }, { value: 'helpful', label: 'Most helpful' }];
+var HIDE_OPTS = [{ value: 'spam', label: 'Spam or advertising' }, { value: 'off-topic', label: 'Not about the product' }, { value: 'abuse', label: 'Abusive or offensive' }, { value: 'privacy', label: 'Shares personal information' }];
+var HIDE_LABEL = {}; HIDE_OPTS.forEach(function (o) { HIDE_LABEL[o.value] = o.label; });
+var AUTO_OPTS = [{ value: 'verified45', label: '4–5★ reviews from verified buyers' }, { value: 'verified', label: 'All reviews from verified buyers' }, { value: 'none', label: 'Nothing, check every review' }];
+var AUTO_LABEL = { verified45: 'Auto-publishing 4–5★ reviews from verified buyers', verified: 'Auto-publishing all verified reviews', none: 'Every review is checked by hand' };
+var ASK_OPTS = [{ value: '7', label: '7 days after delivery' }, { value: '14', label: '14 days after delivery' }, { value: '21', label: '21 days after delivery' }];
+var ASK_LABEL = { '7': '7 days after delivery', '14': '14 days after delivery', '21': '21 days after delivery' };
+var CFG = { auto: 'verified45', hold: true, ask: '14', photo: true };
+var THEME_TIP = { fit: 'Check its size guide.', fabric: 'Compare the photos and description with the real fabric.', durability: 'Ask the supplier about this batch and check the care label.', color: 'Reshoot the product photos in daylight.', shipping: 'Raise it with the warehouse and carrier.', value: 'Check how it compares on price.' };
+var THEMES = [{ key: 'fit', label: 'Fit & sizing' }, { key: 'fabric', label: 'Fabric & feel' }, { key: 'durability', label: 'Washing & wear' }, { key: 'color', label: 'Color' }, { key: 'shipping', label: 'Delivery' }, { key: 'value', label: 'Price & value' }];
+var REPLIES = [
+  { value: 'thanks', label: 'Thank you', text: 'Thank you, {name}. We’re really glad the {product} is working for you, and we’ve passed your note on to the team who made it.' },
+  { value: 'fit', label: 'Sorry about the fit', text: 'Hi {name}, sorry the {product} didn’t fit as expected. Exchanges are free within 60 days: reply to your order email and we’ll send a prepaid label for the other size. We’re also updating the size guide with your feedback.' },
+  { value: 'quality', label: 'Quality problem', text: 'Hi {name}, that’s not the standard we hold ourselves to. We’ve emailed you about a free replacement or full refund, whichever you prefer, and our quality team is looking at this batch.' },
+  { value: 'delivery', label: 'Delivery delay', text: 'Hi {name}, sorry your order took longer than it should have. We’ve refunded your shipping and are working with our carrier on the delay you saw.' }
+];
+var TPL = {
+  5: [['Exactly as pictured', 'The {color} is just like the photos and the fabric feels substantial. Fits true to size.', ['color', 'fabric']],
+    ['Great quality', 'Second {product} I’ve bought. Washed it a dozen times and it still looks new.', ['durability']],
+    ['Perfect fit', 'I’m usually between sizes and the size guide was spot on. Went with my normal size and it’s perfect.', ['fit']],
+    ['Worth every penny', 'Not cheap, but you can feel where the money went. Neat stitching and lovely material.', ['value', 'fabric']],
+    ['Fast delivery, no plastic', 'Arrived in two days in recycled packaging. The {product} is beautiful.', ['shipping']],
+    ['A gift that landed', 'Bought this for my partner and they’ve barely taken it off.', []]],
+  4: [['Lovely, runs slightly big', 'Really like the {product} but it runs a little big. I’d size down if you’re between sizes.', ['fit']],
+    ['Nice, but creases', 'Looks great, though it creases more than I expected. Fine for weekends.', ['fabric']],
+    ['Good, color a bit darker', 'The {color} is a touch darker than on screen. Still happy with it.', ['color']],
+    ['Solid everyday piece', 'Comfortable and well made. Took off a star because it’s pricier than similar ones.', ['value']]],
+  3: [['It’s fine', 'Decent {product}, but the fabric is thinner than I expected for the price.', ['fabric', 'value']],
+    ['Sizing is off', 'Ordered my usual size and it’s tight across the shoulders. Exchanging for one size up.', ['fit']],
+    ['Took a while to arrive', 'The product is nice but it took 9 days to reach me and tracking didn’t update.', ['shipping']]],
+  2: [['Shrank after washing', 'Washed cold as the label says and it still shrank about a size. Disappointed.', ['durability', 'fit']],
+    ['Color faded fast', 'After four washes the {color} has faded noticeably.', ['color', 'durability']],
+    ['Not like the photos', 'The material looks cheaper in person than in the photos.', ['fabric']]],
+  1: [['Arrived damaged', 'There was a hole near the seam when I opened the package. Waiting to hear back about a replacement.', ['durability', 'shipping']],
+    ['Wrong item sent', 'I ordered {color} and received a different color. The return label took days to arrive.', ['shipping', 'color']]]
+};
+var SPECIAL = {
+  handwoven: ['You can see the handwork', 'The weave is beautiful and slightly irregular in the best way. Love knowing who made it.', []],
+  waterproof: ['Kept me dry in a downpour', 'Walked 40 minutes in heavy rain and stayed completely dry. Packs into its own pocket.', []],
+  merino: ['Doesn’t itch, doesn’t smell', 'Wore it four days straight on a hiking trip. Soft, no itch, and still fresh. Ordering another color.', ['fabric']]
+};
+var SPAM = [
+  ['Great product!!!', 'Love it!!! Find the same thing 70% cheaper at www.best-deal-outlet.xyz', ['Contains a link'], 5, false],
+  ['Total rubbish', 'Absolute ****ing rubbish, don’t waste your money on this ****.', ['Possible profanity'], 1, false],
+  ['Question about my order', 'Where is my order? Email me at mark.t1988@gmail.com or call 07700 900461 asap', ['Shares contact details', 'Not about the product'], 1, false]
+];
+var NAMES = ['Sarah J.', 'Ayesha R.', 'Daniel O.', 'Lena L.', 'Marcus C.', 'Nusrat H.', 'Tomás H.', 'Grace M.', 'Hiroshi T.', 'Fatima K.', 'Oliver B.', 'Tanvir I.', 'Chloé D.', 'Kwame M.', 'Sofia R.', 'Imran S.', 'Emily W.', 'Lucas S.', 'Mehjabin A.', 'Noah F.', 'Aiko N.', 'Rahim H.', 'Elena M.', 'James P.', 'Zara P.', 'Arjun S.', 'Hannah F.', 'Mateo R.', 'Sadia I.'];
+function buildReviews() {
+  var r = F.rng(5531), pool = F.PRODUCTS.filter(function (p) { return p.status === 'active' && p.reviews > 0; }), weights = pool.map(function (p) { return Math.sqrt(p.reviews) * (1 + p.sold30 / 60); });
+  var wsum = weights.reduce(function (a, b) { return a + b; }, 0), out = [], n = 214;
+  function pick() { var x = r() * wsum; for (var i = 0; i < pool.length; i++) { x -= weights[i]; if (x <= 0) return pool[i]; } return pool[pool.length - 1]; }
+  for (var i = 0; i < n; i++) {
+    var p = pick(), v = p.variants[Math.floor(r() * p.variants.length)], ts = F.NOW - Math.round(Math.pow(i / n, 1.1) * 90 * F.DAY + r() * 3e6) - 36e5 * 2;
+    var hi = p.rating >= 4.6, x = r(), rating = x < (hi ? 0.68 : 0.5) ? 5 : x < (hi ? 0.88 : 0.75) ? 4 : x < (hi ? 0.94 : 0.86) ? 3 : x < (hi ? 0.975 : 0.94) ? 2 : 1;
+    var t = TPL[rating][Math.floor(r() * TPL[rating].length)];
+    if (rating === 5 && r() < 0.35) { var sp = p.handwoven ? SPECIAL.handwoven : p.tags.indexOf('waterproof') >= 0 ? SPECIAL.waterproof : p.material === 'Merino wool' ? SPECIAL.merino : null; if (sp) t = sp; }
+    var verified = r() < 0.86, ch = p.channels.indexOf('eu') >= 0 && r() < 0.32 ? 'eu' : 'us';
+    out.push({ id: '', product: p.id, variant: 'Bought ' + v.label, rating: rating, title: t[0], body: t[1].replace('{color}', v.color.toLowerCase()).replace('{product}', p.name.toLowerCase()), themes: t[2],
+      author: NAMES[Math.floor(r() * NAMES.length)], verified: verified, order: verified ? '#ORD-' + (9800 + Math.floor(r() * 820)) : null, ts: ts, channel: ch,
+      photos: r() < 0.14 ? 1 + Math.floor(r() * 3) : 0, helpful: Math.floor(Math.pow(r(), 3) * 30 * Math.min(1, (F.NOW - ts) / (20 * F.DAY))), flags: [], status: 'published', reply: null, replyBy: null, featured: false });
+  }
+  /* three spam/abuse reviews: one waiting, two already hidden */
+  SPAM.forEach(function (s, k) {
+    var p = pool[(k * 7 + 3) % pool.length], ts = k === 0 ? F.NOW - 5 * 36e5 : F.NOW - (12 + k * 9) * F.DAY;
+    out.push({ id: '', product: p.id, variant: 'Bought ' + p.variants[0].label, rating: s[3], title: s[0], body: s[1], themes: [], author: k === 2 ? 'Mark T.' : NAMES[k + 3], verified: s[4], order: null, ts: ts,
+      channel: 'us', photos: 0, helpful: 0, flags: s[2], status: k === 0 ? 'pending' : 'hidden', hiddenReason: k === 1 ? 'abuse' : k === 2 ? 'privacy' : null, reply: null, replyBy: null, featured: false });
+  });
+  out.sort(function (a, b) { return b.ts - a.ts; });
+  /* auto-publish holds low ratings and unverified buyers; the 11 newest of those still wait (12 with the spam one) */
+  var held = 0;
+  out.forEach(function (rv) {
+    if (rv.flags.length) return;
+    if (rv.rating <= 3 || !rv.verified) { if (held < 11) { rv.status = 'pending'; held++; } }
+  });
+  /* about half of older low ratings have a reply */
+  var rr = F.rng(77);
+  out.forEach(function (rv) {
+    if (rv.status !== 'published') return;
+    if (rv.rating <= 2 && rr() < 0.7) rv.reply = REPLIES[rv.themes.indexOf('fit') >= 0 ? 1 : rv.themes.indexOf('shipping') >= 0 && rv.themes.length === 1 ? 3 : 2].text.replace('{name}', rv.author.split(' ')[0]).replace('{product}', productOf(rv).name.toLowerCase());
+    else if (rv.rating === 3 && rr() < 0.4) rv.reply = REPLIES[rv.themes.indexOf('fit') >= 0 ? 1 : rv.themes.indexOf('shipping') >= 0 ? 3 : 0].text.replace('{name}', rv.author.split(' ')[0]).replace('{product}', productOf(rv).name.toLowerCase());
+    else if (rv.rating === 5 && rr() < 0.08) rv.reply = REPLIES[0].text.replace('{name}', rv.author.split(' ')[0]).replace('{product}', productOf(rv).name.toLowerCase());
+    if (rv.reply) rv.replyBy = rr() < 0.6 ? 'Priya Natarajan' : 'Jamal Uddin';
+  });
+  out.forEach(function (rv, i) { rv.id = 'RV-' + (48210 - i); });
+  return out;
+}
+var REVIEWS = buildReviews();
+</script>
+</body>
+</html>

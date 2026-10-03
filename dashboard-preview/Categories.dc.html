@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Categories · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=3">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=3"></script>
+<script src="./catalog.js?v=3"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Categories ---------- */
+.ct-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.ct-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--border)}
+.ct-tools .o-search{flex:1}
+.ct-name{display:flex;align-items:center;gap:6px;min-width:0}
+.ct-name.is-child{padding-left:28px}
+.ct-tw{flex:none;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;border-radius:var(--radius-xs);color:var(--text-secondary);cursor:pointer;padding:0}
+.ct-tw:hover{background:var(--bg-muted);color:var(--text-primary)}
+.ct-tw:focus-visible{outline:2px solid var(--focus-ring);outline-offset:1px}
+.ct-tw .cx-icon{width:16px;height:16px;transition:transform .15s}
+.ct-tw[aria-expanded="false"] .cx-icon{transform:rotate(-90deg)}
+.ct-tw-sp{flex:none;width:24px}
+.ct-guide{flex:none;width:12px;height:20px;border-left:1px solid var(--border-strong);border-bottom:1px solid var(--border-strong);border-bottom-left-radius:4px;margin:-10px 4px 0 6px}
+.ct-label{display:flex;flex-direction:column;min-width:0}
+.ct-top{font-weight:600}
+.ct-share{display:flex;align-items:center;gap:8px;min-width:150px}
+.ct-share .pr-meter{width:80px}
+.ct-share .pr-meter > span{background:var(--brand)}
+.ct-map{display:inline-flex;align-items:center;gap:6px;font-size:13px;max-width:280px}
+.ct-map .cx-icon{flex:none;width:16px;height:16px}
+.ct-map.is-ok .cx-icon{color:var(--success)}
+.ct-map.is-bad{color:var(--warning);font-weight:500}
+.ct-map.is-bad .cx-icon{color:var(--warning)}
+.ct-map span{overflow:hidden;text-overflow:ellipsis}
+.ct-map.is-na{color:var(--text-muted)}
+.ct-map.is-na .cx-icon{color:var(--text-muted)}
+.o-table tr.is-hidden td:not(.c-act){color:var(--text-muted)}
+.o-table tr.is-parent td{background:var(--bg-subtle)}
+.o-table tbody tr.is-parent:hover td{background:var(--bg-muted)}
+.ct-path{font-family:var(--font-mono);font-size:12px;color:var(--text-muted)}
+/* edit panel */
+.dp-wide{width:500px}
+.ct-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+.ct-stats div{padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);min-width:0}
+.ct-stats dt{font-size:12px;line-height:16px;color:var(--text-muted)}
+.ct-stats dd{margin:2px 0 0;font-size:15px;line-height:22px;font-weight:600}
+.ct-attrs{display:flex;flex-wrap:wrap;gap:6px}
+.ct-attr{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 10px;border-radius:var(--radius-full);background:var(--bg-muted);font-size:12px}
+.ct-attr.is-req{background:var(--brand-subtle);color:var(--brand)}
+.ct-top-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ct-top-list li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.ct-top-list li:last-child{border-bottom:0}
+.ct-top-list .pr-cell-main{flex:1}
+.ct-textarea{width:100%;box-sizing:border-box;min-height:72px;padding:8px 12px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-surface);color:var(--text-primary);font:inherit;font-size:14px;line-height:20px;resize:vertical}
+.ct-textarea:focus{outline:2px solid var(--focus-ring);outline-offset:-1px;border-color:transparent}
+.ct-field-label{display:block;margin-bottom:6px;font-size:13px;line-height:20px;font-weight:500}
+.ct-note{margin:0;font-size:12px;line-height:16px;color:var(--text-muted)}
+@media (max-width:1599px){ .c-price{display:none} }
+@media (max-width:1279px){ .c-stock{display:none} }
+@media (max-width:1023px){ .ct-kpis{display:flex} .c-price{display:none} }
+@media (max-width:767px){ .dp-wide{width:100%} .ct-stats{grid-template-columns:repeat(3,minmax(0,1fr))} .ct-m-child{padding-left:32px} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="products/categories" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="products/categories"></x-import>
+<h1>Categories</h1>
+<p class="ph-sub">The product tree behind storefront menus, filters, and Google Shopping and Amazon listings.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Sales: last 30 days · {{storeName}}</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportTree}}"><span class="o-export-label">Export</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openAdd}}">Add category</x-import>
+</div>
+</div>
+
+<sc-if value="{{issue}}" hint-placeholder-val="{{true}}">
+<x-import component-from-global-scope="CommerceOS.Alert" tone="warning" title="{{issue.title}}" actions="{{issue.actions}}">{{issue.text}}</x-import>
+</sc-if>
+
+<section class="o-kpis ct-kpis" aria-label="Category summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section class="o-card" aria-label="Category tree">
+<div class="ct-tools">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search categories" label="Search categories" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="{{expandIcon}}" on-click="{{toggleAll}}">{{expandLabel}}</x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Show hidden categories" checked="{{showHidden}}" on-change="{{setShowHidden}}"></x-import>
+</div>
+
+<sc-if value="{{hasRows}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Categories" role="treegrid">
+<thead><tr>
+<th scope="col">Category</th>
+<th class="is-right" scope="col">Products</th>
+<th scope="col">Revenue, 30 days</th>
+<th class="is-right c-stock" scope="col">On hand</th>
+<th class="is-right c-price" scope="col">Avg. price</th>
+<th scope="col">Google product category</th>
+<th scope="col">Visibility</th>
+<th class="c-act" scope="col"><span class="cx-sr">Actions</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="18">
+<tr class="{{r.trCls}}" aria-level="{{r.level}}" aria-expanded="{{r.ariaExpanded}}">
+<td><div class="{{r.nameCls}}">
+<sc-if value="{{r.isParent}}" hint-placeholder-val="{{true}}"><button class="ct-tw" aria-expanded="{{r.open}}" aria-label="{{r.twAria}}" onClick="{{r.toggle}}"><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-down"></x-import></button></sc-if>
+<sc-if value="{{r.isChild}}" hint-placeholder-val="{{false}}"><span class="ct-guide" aria-hidden="true"></span></sc-if>
+<sc-if value="{{r.isLeafTop}}" hint-placeholder-val="{{false}}"><span class="ct-tw-sp" aria-hidden="true"></span></sc-if>
+<span class="ct-label"><button class="pr-name {{r.topCls}}" onClick="{{r.edit}}">{{r.name}}</button><span class="o-sub">{{r.sub}}</span></span>
+</div></td>
+<td class="is-right"><span class="td-strong">{{r.active}}</span><span class="o-sub">{{r.totalLabel}}</span></td>
+<td><div class="ct-share"><span class="pr-meter" aria-hidden="true"><span style="width: {{r.sharePct}}%"></span></span><span><span>{{r.rev}}</span><span class="o-sub">{{r.shareLabel}}</span></span></div></td>
+<td class="is-right c-stock">{{r.stock}}<span class="o-sub">{{r.stockSub}}</span></td>
+<td class="is-right c-price">{{r.avgPrice}}</td>
+<td><span class="{{r.mapCls}}" title="{{r.google}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{r.mapIcon}}"></x-import><span>{{r.mapLabel}}</span></span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.visTone}}">{{r.visLabel}}</x-import></td>
+<td class="c-act"><span class="o-row-act" data-pop="row"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="more-horizontal" aria-label="Actions for {{r.name}}" aria-haspopup="menu" aria-expanded="{{r.menuOpen}}" on-click="{{r.openMenu}}"></x-import></span></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Categories">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<li class="o-m-card {{r.mCls}}">
+<div class="o-m-top"><span class="ct-label" style="flex: 1"><button class="pr-name {{r.topCls}}" onClick="{{r.edit}}">{{r.name}}</button><span class="o-sub">{{r.active}} active · {{r.sub}}</span></span><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.visTone}}">{{r.visLabel}}</x-import></div>
+<div class="o-m-mid"><span class="{{r.mapCls}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{r.mapIcon}}"></x-import><span>{{r.mapShort}}</span></span><span class="o-m-total">{{r.rev}}</span></div>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{noRows}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.EmptyState" icon="search" title="No categories match “{{query}}”" description="Search covers category names and storefront paths."></x-import>
+</sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{rowMenu}}" hint-placeholder-val="{{false}}">
+<div class="o-rowmenu" data-pop="row" role="menu" aria-label="Actions for {{rowMenu.name}}" style="top: {{rowMenu.top}}px; left: {{rowMenu.left}}px">
+<sc-for list="{{rowMenu.items}}" as="i" hint-placeholder-count="6">
+<sc-if value="{{i.sep}}" hint-placeholder-val="{{false}}"><div class="cx-menu-sep"></div></sc-if>
+<sc-if value="{{i.item}}" hint-placeholder-val="{{true}}"><button class="{{i.cls}}" role="menuitem" disabled="{{i.disabled}}" onClick="{{i.run}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{i.icon}}"></x-import><span class="o-mi-text"><span>{{i.label}}</span><sc-if value="{{i.note}}" hint-placeholder-val="{{false}}"><span class="o-mi-note">{{i.note}}</span></sc-if></span></button></sc-if>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ed}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close category" onClick="{{closeEdit}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="ct-ed-title">
+<div class="o-panel-head"><div><h2 class="o-panel-title" id="ct-ed-title">{{ed.title}}</h2><span class="o-sub">{{ed.sub}}</span></div><button class="icon-btn" aria-label="Close category" onClick="{{closeEdit}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<dl class="ct-stats"><div><dt>Active products</dt><dd>{{ed.active}}</dd></div><div><dt>Revenue (30d)</dt><dd>{{ed.rev}}</dd></div><div><dt>Share</dt><dd>{{ed.share}}</dd></div></dl>
+</section>
+<section class="o-panel-sec"><h3>General</h3>
+<x-import component-from-global-scope="CommerceOS.Input" label="Name" value="{{ed.name}}" on-change="{{ed.setName}}" error="{{ed.nameError}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Parent" options="{{ed.parentOpts}}" value="{{ed.parent}}" on-value-change="{{ed.setParent}}" hint="{{ed.parentHint}}" disabled="{{ed.lockParent}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="URL handle" prefix="fernhill.co/shop/" value="{{ed.handle}}" on-change="{{ed.setHandle}}" error="{{ed.handleError}}" hint="Changing it adds a redirect from the old URL."></x-import>
+<div><label class="ct-field-label" for="ct-desc">Description</label><textarea id="ct-desc" class="ct-textarea" value="{{ed.desc}}" onChange="{{ed.setDesc}}"></textarea><p class="ct-note">Shown at the top of the category page and used as the meta description.</p></div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Show in storefront navigation" checked="{{ed.visible}}" on-change="{{ed.setVisible}}"></x-import>
+</section>
+<section class="o-panel-sec"><h3>Marketplace mapping</h3>
+<x-import component-from-global-scope="CommerceOS.Select" label="Google product category" options="{{googleOpts}}" value="{{ed.google}}" on-value-change="{{ed.setGoogle}}" error="{{ed.googleError}}" hint="Required for Google Shopping ads and free listings."></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="Amazon browse node" value="{{ed.amazon}}" on-change="{{ed.setAmazon}}" placeholder="Inherited from parent" optional="{{yes}}"></x-import>
+</section>
+<section class="o-panel-sec"><h3>Attributes for products in this category</h3>
+<div class="ct-attrs"><sc-for list="{{ed.attrs}}" as="a" hint-placeholder-count="8"><span class="{{a.cls}}">{{a.name}}</span></sc-for></div>
+<p class="ct-note">Highlighted attributes are required before a product can be published. <a href="Attributes.dc.html">Manage attributes</a></p>
+</section>
+<sc-if value="{{ed.hasTop}}" hint-placeholder-val="{{true}}">
+<section class="o-panel-sec"><h3>Top sellers</h3>
+<ul class="ct-top-list"><sc-for list="{{ed.top}}" as="t" hint-placeholder-count="5"><li><span class="{{t.thumbCls}}" aria-hidden="true">{{t.initials}}</span><span class="pr-cell-main"><span>{{t.name}}</span><span class="o-sub">{{t.sub}}</span></span><span class="td-strong">{{t.rev}}</span></li></sc-for></ul>
+<a href="Products.dc.html">See all products</a>
+</section>
+</sc-if>
+</div>
+<div class="o-panel-foot">
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="trash" on-click="{{ed.remove}}">Delete</x-import>
+<div style="display: flex; gap: 8px"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" on-click="{{closeEdit}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" disabled="{{ed.pristine}}" on-click="{{ed.save}}">Save category</x-import></div>
+</div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{addOpen}}" on-close="{{closeAdd}}" size="md" title="{{ad.title}}" description="New categories start hidden from navigation until you add products.">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Input" label="Name" value="{{ad.name}}" on-change="{{ad.setName}}" error="{{ad.nameError}}" placeholder="e.g. Polos" data-autofocus="true"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Parent" options="{{ad.parentOpts}}" value="{{ad.parent}}" on-value-change="{{ad.setParent}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Google product category" options="{{googleOpts}}" value="{{ad.google}}" on-value-change="{{ad.setGoogle}}" hint="{{ad.googleHint}}"></x-import>
+<p class="o-modal-note">Storefront path: <span class="ct-path">{{ad.path}}</span></p>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeAdd}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{ad.save}}">Add category</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{delOpen}}" on-close="{{closeDel}}" tone="danger" size="sm" title="{{dl.title}}" description="{{dl.desc}}">
+<div class="o-modal-stack">
+<sc-if value="{{dl.blocked}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">{{dl.blockedText}}</x-import></sc-if>
+<sc-if value="{{dl.needsMove}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Select" label="Move its products to" options="{{dl.moveOpts}}" value="{{dl.target}}" on-value-change="{{dl.setTarget}}"></x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeDel}}">Keep category</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="danger" disabled="{{dl.blocked}}" on-click="{{dl.confirm}}">{{dl.cta}}</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","edit","add","delete"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none';
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      cats: F.CATEGORIES.map((c) => Object.assign({ handle: handleOf(c.name) }, c)), products: F.PRODUCTS,
+      open: F.CATEGORIES.filter((c) => !c.parent).map((c) => c.key), query: '', showHidden: true, rowMenu: null,
+      edit: null, add: null, del: null
+    };
+    if (demo === 'edit') this.state.edit = this.draftFor(this.state.cats.find((c) => c.key === 'leather'));
+    if (demo === 'add') this.state.add = { name: '', parent: 'tops', google: '', touched: false };
+    if (demo === 'delete') this.state.del = { key: 'socks', target: 'leather' };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this._esc) this._esc(e); };
+    document.addEventListener('keydown', this._onKey);
+    this._onDoc = (e) => { if (this.state.rowMenu && !(e.target.closest && e.target.closest('[data-pop]'))) this.setState({ rowMenu: null }); };
+    this._onScroll = () => { if (this.state.rowMenu) this.setState({ rowMenu: null }); };
+    document.addEventListener('mousedown', this._onDoc);
+    window.addEventListener('scroll', this._onScroll, true);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); document.removeEventListener('mousedown', this._onDoc); window.removeEventListener('scroll', this._onScroll, true); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null }, rowMenu: null });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  draftFor(c) { return { key: c.key, name: c.name, parent: c.parent || '', handle: c.handle, desc: c.desc || '', visible: c.visible, google: c.google || '', amazon: c.amazon || '', touched: false, orig: c }; }
+  openRowMenu(key, r) {
+    const W = 264, H = 280, vw = window.innerWidth, vh = window.innerHeight;
+    const left = Math.max(8, Math.min(r.right - W, vw - W - 8));
+    const top = r.bottom + 4 + H > vh && r.top - H - 4 > 0 ? r.top - H - 4 : r.bottom + 4;
+    this.setState({ rowMenu: { key, top, left } });
+  }
+  move(key, dir) {
+    const cats = this.state.cats.slice(), c = cats.find((x) => x.key === key), sibs = cats.filter((x) => x.parent === c.parent);
+    const i = sibs.indexOf(c), j = i + dir;
+    if (j < 0 || j >= sibs.length) return;
+    const a = cats.indexOf(c), b = cats.indexOf(sibs[j]);
+    cats[a] = sibs[j]; cats[b] = c;
+    this.setState({ cats, rowMenu: null });
+    this.showToast(c.name + ' moved ' + (dir < 0 ? 'up' : 'down'), 'Storefront menus show the new order within a minute.', 'success');
+  }
+  setVisible(key, visible) {
+    const prev = this.state.cats, c = prev.find((x) => x.key === key);
+    this.setState({ cats: prev.map((x) => (x.key === key || (!visible && x.parent === key) ? Object.assign({}, x, { visible }) : x)), rowMenu: null });
+    const kids = prev.filter((x) => x.parent === key).length;
+    this.showToast(visible ? c.name + ' is visible' : c.name + ' is hidden', visible ? 'It’s back in storefront navigation.' : 'Removed from storefront navigation' + (kids ? ' along with its ' + F.plural(kids, 'subcategory', 'subcategories') : '') + '. Products stay searchable.', 'success',
+      { label: 'Undo', onClick: () => this.setState({ cats: prev, toast: null }) });
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), ch = F.channelOf(s.store);
+    const inScope = (p) => !ch || p.channels.indexOf(ch.key) >= 0;
+    const rev = (p) => (ch ? p.revCh[ch.key] || 0 : p.rev30);
+    const prodsOf = (key) => s.products.filter((p) => (p.cat === key || p.parent === key) && inScope(p));
+    const totalRev = s.products.filter(inScope).reduce((a, p) => a + rev(p), 0);
+    const stat = (key) => {
+      const all = prodsOf(key), act = all.filter((p) => p.status === 'active'), r = all.reduce((a, p) => a + rev(p), 0);
+      return { all, act, rev: r, share: totalRev ? r / totalRev : 0, stock: act.reduce((a, p) => a + p.stock, 0), low: act.filter((p) => p.stockStatus === 'low' || p.stockStatus === 'out').length,
+        avg: act.length ? act.reduce((a, p) => a + p.price, 0) / act.length : 0 };
+    };
+    const kids = (key) => s.cats.filter((c) => c.parent === key);
+    const q = s.query.trim().toLowerCase();
+    const matches = (c) => c.name.toLowerCase().indexOf(q) >= 0 || pathOf(s.cats, c).indexOf(q) >= 0;
+    const tops = s.cats.filter((c) => !c.parent && (s.showHidden || c.visible));
+    const rows = [];
+    const rowFor = (c, level) => {
+      const st = stat(c.key), isParent = level === 1 && kids(c.key).length > 0, open = s.open.indexOf(c.key) >= 0 || !!q;
+      const parent = c.parent ? s.cats.find((x) => x.key === c.parent) : null, inherits = !c.google && parent && parent.google;
+      const mapped = !!c.google, perChild = isParent && !c.google;
+      return {
+        key: c.key, name: c.name, level, isParent, isChild: level === 2, isLeafTop: level === 1 && !isParent, open, ariaExpanded: isParent ? String(open) : undefined,
+        twAria: (open ? 'Collapse ' : 'Expand ') + c.name, toggle: () => this.setState((st2) => ({ open: open ? st2.open.filter((k) => k !== c.key) : st2.open.concat([c.key]) })),
+        nameCls: 'ct-name' + (level === 2 ? ' is-child' : ''), topCls: level === 1 ? 'ct-top' : '',
+        trCls: (isParent ? 'is-parent' : '') + (c.visible ? '' : ' is-hidden'), mCls: level === 2 ? 'ct-m-child' : '',
+        sub: isParent ? F.plural(kids(c.key).length, 'subcategory', 'subcategories') : st.low ? F.plural(st.low, 'product') + ' low on stock' : c.desc,
+        path: '/shop/' + pathOf(s.cats, c), active: F.int(st.act.length), totalLabel: F.int(st.all.length) + ' total',
+        rev: F.money0(st.rev), sharePct: (st.share * 100).toFixed(1), shareLabel: (st.share * 100).toFixed(1) + '% of revenue',
+        stock: F.int(st.stock), stockSub: 'units', avgPrice: st.avg ? F.money2(st.avg) : '—',
+        google: c.google || (inherits ? parent.google : ''), mapCls: 'ct-map ' + (perChild ? 'is-na' : mapped || inherits ? 'is-ok' : 'is-bad'), mapIcon: perChild ? 'info' : mapped || inherits ? 'check-circle' : 'alert-triangle',
+        mapLabel: perChild ? 'Set per subcategory' : mapped ? c.google.split(' > ').slice(-1)[0] : inherits ? 'Inherited from ' + parent.name : 'Not mapped', mapShort: perChild ? 'Mapped per subcategory' : mapped || inherits ? 'Google mapped' : 'Not mapped to Google',
+        visTone: c.visible ? 'success' : 'neutral', visLabel: c.visible ? 'Visible' : 'Hidden',
+        menuOpen: !!(s.rowMenu && s.rowMenu.key === c.key), edit: () => this.setState({ edit: this.draftFor(c), rowMenu: null }),
+        openMenu: (e) => { const b = e.currentTarget.getBoundingClientRect(); if (s.rowMenu && s.rowMenu.key === c.key) this.setState({ rowMenu: null }); else this.openRowMenu(c.key, b); }
+      };
+    };
+    tops.forEach((c) => {
+      const ks = kids(c.key).filter((k) => s.showHidden || k.visible), kidHits = ks.filter((k) => !q || matches(k));
+      if (q && !matches(c) && !kidHits.length) return;
+      const r = rowFor(c, 1); rows.push(r);
+      if (r.open) (q ? kidHits : ks).forEach((k) => rows.push(rowFor(k, 2)));
+    });
+
+    // KPIs
+    const leaves = s.cats.filter((c) => c.parent || !kids(c.key).length), unmapped = leaves.filter((c) => !c.google && !(c.parent && (s.cats.find((x) => x.key === c.parent) || {}).google));
+    const topStats = s.cats.filter((c) => !c.parent).map((c) => Object.assign({ c }, stat(c.key))).sort((a, b) => b.rev - a.rev);
+    const leafStats = leaves.map((c) => Object.assign({ c }, stat(c.key))).sort((a, b) => b.rev - a.rev);
+    const scopedProducts = s.products.filter(inScope);
+    const kpis = [
+      { label: 'Categories', dot: 'cx-dot cx-dot-brand', value: F.int(s.cats.length), cmp: F.int(s.cats.filter((c) => !c.parent).length) + ' top level · ' + F.int(s.cats.filter((c) => !c.visible).length) + ' hidden' },
+      { label: 'Largest by revenue', dot: 'cx-dot cx-dot-success', value: topStats[0].c.name, cmp: F.money0(topStats[0].rev) + ' · ' + (topStats[0].share * 100).toFixed(0) + '% of revenue' },
+      { label: 'Fastest-growing subcategory', dot: 'cx-dot cx-dot-info', value: 'Knitwear', cmp: '+38% revenue vs previous 30 days' },
+      { label: 'Google Shopping coverage', dot: 'cx-dot cx-dot-warning', value: F.int(leaves.length - unmapped.length) + ' of ' + F.int(leaves.length) + ' mapped', cmp: F.plural(scopedProducts.filter((p) => unmapped.some((u) => u.key === p.cat)).length, 'product') + ' left out of ads' }
+    ];
+    const ads = unmapped.map((c) => Object.assign({ c }, stat(c.key)));
+    const issue = unmapped.length ? {
+      title: F.plural(unmapped.length, 'category', 'categories') + ' not mapped to a Google product category',
+      text: ads.map((x) => x.c.name + ' (' + F.plural(x.act.length, 'active product') + ')').join(' and ') + (unmapped.length === 1 ? ' is' : ' are') + ' left out of Google Shopping ads and free listings until mapped.',
+      actions: [h(CommerceOS.Button, { key: 'm', variant: 'secondary', size: 'sm', onClick: () => this.setState({ edit: this.draftFor(unmapped[0]) }) }, 'Map ' + unmapped[0].name)]
+    } : null;
+
+    let rowMenu = null;
+    if (s.rowMenu) {
+      const c = s.cats.find((x) => x.key === s.rowMenu.key), sibs = s.cats.filter((x) => x.parent === c.parent), i = sibs.indexOf(c);
+      const it = (label, icon, run, disabled, note, danger) => ({ item: true, label, icon, run, disabled: !!disabled, note: disabled && note ? note : '', cls: 'cx-menu-item o-mi' + (danger ? ' is-danger' : '') });
+      rowMenu = { key: c.key, name: c.name, top: s.rowMenu.top, left: s.rowMenu.left, items: [
+        it('Edit category', 'edit', () => this.setState({ edit: this.draftFor(c), rowMenu: null })),
+        it('Add subcategory', 'plus', () => this.setState({ add: { name: '', parent: c.key, google: c.google || '', touched: false }, rowMenu: null }), !!c.parent, 'Categories go two levels deep.'),
+        it('Move up', 'arrow-up', () => this.move(c.key, -1), i === 0, 'Already first.'),
+        it('Move down', 'arrow-down', () => this.move(c.key, 1), i === sibs.length - 1, 'Already last.'),
+        { sep: true },
+        c.visible ? it('Hide from navigation', 'eye', () => this.setVisible(c.key, false)) : it('Show in navigation', 'eye', () => this.setVisible(c.key, true), c.parent && !(s.cats.find((x) => x.key === c.parent) || {}).visible, 'Its parent is hidden.'),
+        it('Delete', 'trash', () => this.setState({ del: { key: c.key, target: '' }, rowMenu: null }), false, '', true)
+      ] };
+    }
+
+    // edit panel
+    let ed = null;
+    if (s.edit) {
+      const e = s.edit, c = e.orig, st = stat(c.key), hasKids = kids(c.key).length > 0;
+      const up = (k) => (v) => { const val = v && v.target ? v.target.value : v; this.setState((x) => ({ edit: Object.assign({}, x.edit, { [k]: val }) })); };
+      const dupHandle = s.cats.some((x) => x.key !== c.key && x.handle === e.handle && (x.parent || '') === e.parent);
+      const errs = { nameError: !e.name.trim() ? 'Enter a name' : null, handleError: !/^[a-z0-9-]+$/.test(e.handle) ? 'Use lowercase letters, numbers and hyphens' : dupHandle ? 'Another category already uses this handle' : null,
+        googleError: e.touched && !hasKids && !e.google && !(e.parent && (s.cats.find((x) => x.key === e.parent) || {}).google) ? 'Pick a category so these products can run in Google Shopping' : null };
+      const pristine = e.name === c.name && e.parent === (c.parent || '') && e.handle === c.handle && e.desc === (c.desc || '') && e.visible === c.visible && e.google === (c.google || '') && e.amazon === (c.amazon || '');
+      const top = st.act.slice().sort((a, b) => rev(b) - rev(a)).slice(0, 5);
+      const appl = F.ATTRIBUTES.filter((a) => a.applies === 'all' || a.applies.indexOf(c.parent || c.key) >= 0);
+      ed = {
+        title: c.name, sub: '/shop/' + pathOf(s.cats, c) + ' · ' + F.plural(st.all.length, 'product'),
+        active: F.int(st.act.length), rev: F.money0(st.rev), share: (st.share * 100).toFixed(1) + '%',
+        name: e.name, parent: e.parent, handle: e.handle, desc: e.desc, visible: e.visible, google: e.google, amazon: e.amazon,
+        nameError: e.touched ? errs.nameError : null, handleError: errs.handleError, googleError: errs.googleError,
+        parentOpts: [{ value: '', label: 'None (top level)' }].concat(s.cats.filter((x) => !x.parent && x.key !== c.key).map((x) => ({ value: x.key, label: x.name }))),
+        lockParent: hasKids, parentHint: hasKids ? 'Has subcategories, so it stays at the top level.' : null,
+        attrs: appl.map((a) => ({ name: a.name, cls: 'ct-attr' + (a.required ? ' is-req' : '') })),
+        hasTop: top.length > 0, top: top.map((p) => ({ name: p.name, initials: F.initials(p.name), thumbCls: F.thumbCls(p), sub: F.int(ch ? p.unitsCh[ch.key] || 0 : p.sold30) + ' sold · ' + F.money2(p.price), rev: F.money0(rev(p)) })),
+        pristine, setName: up('name'), setParent: up('parent'), setHandle: up('handle'), setDesc: up('desc'), setVisible: up('visible'), setGoogle: up('google'), setAmazon: up('amazon'),
+        remove: () => this.setState({ del: { key: c.key, target: '' } }),
+        save: () => {
+          if (errs.nameError || errs.handleError || (!hasKids && !e.google && !(e.parent && (s.cats.find((x) => x.key === e.parent) || {}).google))) return this.setState({ edit: Object.assign({}, e, { touched: true }) });
+          const prev = s.cats, handleChanged = e.handle !== c.handle;
+          this.setState({ cats: prev.map((x) => (x.key === c.key ? Object.assign({}, x, { name: e.name.trim(), parent: e.parent || null, handle: e.handle, desc: e.desc, visible: e.visible, google: e.google || null, amazon: e.amazon || null }) : x)), edit: null });
+          const mappedNow = !c.google && e.google;
+          this.showToast(e.name.trim() + ' saved', mappedNow ? F.plural(st.act.length, 'product') + ' will be sent to Google Shopping in the next feed run (every 6 hours).' : handleChanged ? 'Redirect added from /shop/' + c.handle + '.' : 'Storefront updates within a minute.', 'success',
+            { label: 'Undo', onClick: () => this.setState({ cats: prev, toast: null }) });
+        }
+      };
+    }
+
+    // add modal
+    let ad = { title: '', parentOpts: [], path: '' };
+    if (s.add) {
+      const a = s.add, up = (k) => (v) => { const val = v && v.target ? v.target.value : v; this.setState((x) => ({ add: Object.assign({}, x.add, { [k]: val }) })); };
+      const parent = s.cats.find((x) => x.key === a.parent), dup = s.cats.some((x) => x.name.toLowerCase() === a.name.trim().toLowerCase());
+      const nameError = !a.name.trim() ? 'Enter a name' : dup ? 'A category with this name already exists' : null;
+      ad = { title: parent ? 'Add a subcategory to ' + parent.name : 'Add category', name: a.name, parent: a.parent, google: a.google, nameError: a.touched || dup ? nameError : null,
+        parentOpts: [{ value: '', label: 'None (top level)' }].concat(s.cats.filter((x) => !x.parent).map((x) => ({ value: x.key, label: x.name }))),
+        googleHint: !a.google && parent && parent.google ? 'Leave empty to use ' + parent.name + '’s mapping.' : 'Required for Google Shopping.',
+        path: '/shop/' + (parent ? parent.handle + '/' : '') + (handleOf(a.name) || 'new-category'),
+        setName: up('name'), setParent: up('parent'), setGoogle: up('google'),
+        save: () => {
+          if (nameError) return this.setState({ add: Object.assign({}, a, { touched: true }) });
+          const key = 'new-' + Date.now().toString(36), c = { key, name: a.name.trim(), parent: a.parent || null, handle: handleOf(a.name), google: a.google || null, visible: false, desc: '' };
+          const cats = s.cats.slice(), at = a.parent ? cats.map((x) => x.key === a.parent || x.parent === a.parent).lastIndexOf(true) + 1 : cats.length;
+          cats.splice(at, 0, c);
+          this.setState({ cats, add: null, open: a.parent && s.open.indexOf(a.parent) < 0 ? s.open.concat([a.parent]) : s.open });
+          this.showToast(c.name + ' added', 'It’s hidden from navigation until you show it. Assign products from All Products.', 'success');
+        } };
+    }
+
+    // delete modal
+    let dl = { title: '', desc: '', moveOpts: [] };
+    if (s.del) {
+      const c = s.cats.find((x) => x.key === s.del.key), st = stat(c.key), own = s.products.filter((p) => p.cat === c.key), ks = kids(c.key);
+      const opts = s.cats.filter((x) => x.key !== c.key && (x.parent || !kids(x.key).length)).map((x) => ({ value: x.key, label: F.catPath(x.key) === '—' ? x.name : (x.parent ? (s.cats.find((y) => y.key === x.parent) || {}).name + ' › ' : '') + x.name }));
+      dl = { title: 'Delete ' + c.name + '?', desc: own.length ? F.plural(own.length, 'product') + ' (' + F.money0(st.rev) + ' in the last 30 days) need a new category. Storefront links to /shop/' + pathOf(s.cats, c) + ' will redirect to it.' : 'This category has no products. Storefront links to it will redirect to its parent.',
+        blocked: ks.length > 0, blockedText: 'Move or delete its ' + F.plural(ks.length, 'subcategory', 'subcategories') + ' first: ' + ks.map((k) => k.name).join(', ') + '.',
+        needsMove: !ks.length && own.length > 0, moveOpts: [{ value: '', label: 'Choose a category', disabled: true }].concat(opts), target: s.del.target,
+        setTarget: (v) => this.setState((x) => ({ del: Object.assign({}, x.del, { target: v }) })),
+        cta: own.length ? 'Move products and delete' : 'Delete category',
+        confirm: () => {
+          if (own.length && !s.del.target) return this.showToast('Choose where the products go', 'Pick a category for its ' + F.plural(own.length, 'product') + ' first.', 'info');
+          const prevC = s.cats, prevP = s.products, tgt = s.cats.find((x) => x.key === s.del.target);
+          this.setState({ cats: prevC.filter((x) => x.key !== c.key), products: prevP.map((p) => (p.cat === c.key ? Object.assign({}, p, { cat: tgt.key, parent: tgt.parent }) : p)), del: null, edit: null });
+          this.showToast(c.name + ' deleted', own.length ? F.plural(own.length, 'product') + ' moved to ' + tgt.name + '.' : 'Redirect added to the parent category.', 'success',
+            { label: 'Undo', onClick: () => this.setState({ cats: prevC, products: prevP, toast: null }) });
+        } };
+    }
+
+    const allOpen = tops.filter((c) => kids(c.key).length).every((c) => s.open.indexOf(c.key) >= 0);
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((st) => ({ collapsed: !st.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((st) => ({ dark: !st.dark })),
+      metaCount: F.plural(s.cats.length, 'category', 'categories') + ' · ' + F.plural(s.products.filter(inScope).length, 'product') + (ch ? ' on ' + ch.label : ''),
+      kpis, issue, rows, hasRows: rows.length > 0, noRows: rows.length === 0, query: s.query, setQuery: (v) => this.setState({ query: v }),
+      showHidden: s.showHidden, setShowHidden: (v) => this.setState({ showHidden: v }),
+      expandLabel: allOpen ? 'Collapse all' : 'Expand all', expandIcon: allOpen ? 'chevron-up' : 'chevron-down',
+      toggleAll: () => this.setState({ open: allOpen ? [] : s.cats.filter((c) => !c.parent).map((c) => c.key) }),
+      rowMenu, ed, closeEdit: () => this.setState({ edit: null }), googleOpts: GOOGLE_OPTS,
+      addOpen: !!s.add, closeAdd: () => this.setState({ add: null }), ad, openAdd: () => this.setState({ add: { name: '', parent: '', google: '', touched: false } }),
+      delOpen: !!s.del, closeDel: () => this.setState({ del: null }), dl,
+      exportTree: () => this.showToast('Exporting the category tree', 'CSV with paths, product counts and marketplace mappings, sent to your downloads.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null }),
+      onRootKey: this._esc = (e) => {
+        const st = this.state;
+        if (st.add || st.del) return;
+        if (st.rowMenu) this.setState({ rowMenu: null });
+        else if (st.edit) this.setState({ edit: null });
+        else if (st.drawer) this.setState({ drawer: false });
+      }
+    };
+  }
+}
+
+/* ---------- category data: Fernhill catalog (catalog.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, h = window.React.createElement;
+function handleOf(name) { return String(name || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+function pathOf(cats, c) { var p = c.parent ? cats.find(function (x) { return x.key === c.parent; }) : null; return (p ? p.handle + '/' : '') + c.handle; }
+var GOOGLE_OPTS = [{ value: '', label: 'Not mapped' }].concat([
+  'Apparel & Accessories > Clothing > Shirts & Tops', 'Apparel & Accessories > Clothing > Shirts & Tops > Sweaters', 'Apparel & Accessories > Clothing > Activewear > Sweatshirts',
+  'Apparel & Accessories > Clothing > Outerwear', 'Apparel & Accessories > Clothing > Outerwear > Coats & Jackets', 'Apparel & Accessories > Clothing > Outerwear > Rain Gear',
+  'Apparel & Accessories > Clothing > Pants', 'Apparel & Accessories > Clothing > Shorts', 'Apparel & Accessories > Clothing > Underwear & Socks > Socks',
+  'Apparel & Accessories > Clothing Accessories', 'Apparel & Accessories > Clothing Accessories > Hats', 'Apparel & Accessories > Clothing Accessories > Scarves & Shawls',
+  'Apparel & Accessories > Clothing Accessories > Belts', 'Apparel & Accessories > Handbags, Wallets & Cases', 'Apparel & Accessories > Handbags, Wallets & Cases > Wallets & Money Clips',
+  'Home & Garden > Linens & Bedding > Bedding > Blankets', 'Home & Garden > Decor > Throw Pillows'
+].map(function (g) { return { value: g, label: g.replace('Apparel & Accessories > ', '').replace(/ > /g, ' › ') }; }));
+</script>
+</body>
+</html>

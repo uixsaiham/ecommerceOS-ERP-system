@@ -1,6 +1,6 @@
-/* CommerceOS list pages (Orders, Abandoned Carts, Returns & Refunds, …): page layout, KPI cards,
-   tabs, filter bar, data table, bulk bar, side panel, mobile cards. Copied from the Orders page so
-   every operational list looks the same. Load after shell.css. */
+/* CommerceOS list pages (Orders, Abandoned Carts, Returns & Refunds, Products, …): page layout, KPI
+   cards, tabs, filter bar, data table, bulk bar, side panel, mobile cards, product thumbnails and
+   ratings. Copied from the Orders page so every operational list looks the same. Load after shell.css. */
 body{margin:0;background:var(--bg-canvas)}
 a{color:var(--link)}a:hover{color:var(--brand-hover)}
 .app{background:var(--bg-canvas);color:var(--text-primary);font-family:var(--font-sans);font-size:14px;line-height:20px;font-feature-settings:"tnum" 1}
@@ -179,6 +179,35 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 .cx-toasts .cx-toast{min-width:0}
 /* dialogs opened from a side panel (record details, filters) sit above it */
 .cx-overlay{z-index:66}
+
+/* product bits shared by the Products pages: thumbnail, rating stars, color swatch, channel chips */
+.pr-cell{display:flex;align-items:center;gap:10px;min-width:0}
+.pr-cell-main{display:flex;flex-direction:column;min-width:0}
+.pr-thumb{flex:none;width:36px;height:36px;border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;letter-spacing:-0.01em}
+.pr-thumb.is-lg{width:48px;height:48px;font-size:15px}
+.th-0{background:var(--brand-subtle);color:var(--brand)}
+.th-1{background:var(--info-subtle);color:var(--info)}
+.th-2{background:var(--success-subtle);color:var(--success)}
+.th-3{background:var(--warning-subtle);color:var(--warning)}
+.th-4{background:var(--bg-muted);color:var(--text-secondary)}
+.pr-name{font-weight:500;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;max-width:260px;border:0;background:none;padding:0;font:inherit;font-weight:500;text-align:left;cursor:pointer}
+.pr-name:hover{color:var(--link);text-decoration:underline}
+.pr-name:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:2px}
+.pr-stars{position:relative;display:inline-block;font-size:13px;line-height:1;letter-spacing:1px;color:var(--border-strong);vertical-align:-1px}
+.pr-stars::before{content:"★★★★★"}
+.pr-stars-fill{position:absolute;left:0;top:0;overflow:hidden;white-space:nowrap;color:var(--warning)}
+.pr-stars-fill::before{content:"★★★★★"}
+.pr-rating{display:inline-flex;align-items:center;gap:6px;font-size:13px}
+.pr-swatch{flex:none;display:inline-block;width:14px;height:14px;border-radius:var(--radius-full);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);vertical-align:-2px}
+.pr-chs{display:inline-flex;gap:3px}
+.pr-ch{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:20px;padding:0 4px;box-sizing:border-box;border-radius:var(--radius-xs);font-size:10px;font-weight:600;letter-spacing:.02em;background:var(--bg-muted);color:var(--text-disabled)}
+.pr-ch.is-on{background:var(--brand-subtle);color:var(--brand)}
+.pr-ch.is-warn{background:var(--warning-subtle);color:var(--warning)}
+.pr-strike{color:var(--text-muted);text-decoration:line-through;font-size:12px;margin-left:6px}
+.pr-meter{display:block;width:100%;height:6px;border-radius:var(--radius-full);background:var(--bg-muted);overflow:hidden}
+.pr-meter > span{display:block;height:100%;border-radius:inherit;background:var(--success)}
+.pr-meter.is-warn > span{background:var(--warning)}
+.pr-meter.is-bad > span{background:var(--danger)}
 
 @media (max-width:1279px){
   .page{padding:24px 24px 40px}

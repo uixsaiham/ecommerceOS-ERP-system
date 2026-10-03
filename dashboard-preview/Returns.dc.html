@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <title>Returns &amp; Refunds · CommerceOS</title>
 <script src="./support.js"></script>
-<link rel="stylesheet" href="ds/commerceos/tokens.css">
-<link rel="stylesheet" href="ds/commerceos/components/bundle.css">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css">
-<link rel="stylesheet" href="ds/commerceos/shell/list.css">
-<script src="ds/commerceos/components/bundle.js"></script>
-<script src="ds/commerceos/shell/shell.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=3">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=3"></script>
 </head>
 <body>
 <x-dc>
@@ -600,7 +600,7 @@ class Component extends DCLogic {
       appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
       toggleCollapse: () => this.setState((st) => ({ collapsed: !st.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
       stores: STORES, store: s.store, storeName: store.label, user: USER,
-      navBadges: { 'sales/orders': { count: 24, label: 'pending' }, 'sales/returns': allPend ? { count: allPend, label: 'pending' } : undefined, 'inventory/low-stock': { count: 18, label: 'low stock', tone: 'warning' } },
+      navBadges: { 'sales/orders': { count: 24, label: 'pending' }, 'sales/returns': allPend ? { count: allPend, label: 'pending' } : undefined, 'products/reviews': { count: 12, label: 'to moderate' }, 'inventory/low-stock': { count: 18, label: 'low stock', tone: 'warning' } },
       setStore: (k) => this.setState({ store: k, page: 1, sel: [] }),
       navigate: (path) => this.showToast(navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
       themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((st) => ({ dark: !st.dark })),

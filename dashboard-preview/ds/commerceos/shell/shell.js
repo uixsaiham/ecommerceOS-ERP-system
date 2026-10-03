@@ -27,11 +27,11 @@
         { key: "returns", label: "Returns & Refunds", href: "Returns.dc.html" },
         { key: "channels", label: "Sales Channels", href: "SalesChannels.dc.html" }] },
       { key: "products", label: "Products", icon: "tag", children: [
-        { key: "all", label: "All Products" },
-        { key: "categories", label: "Categories" },
-        { key: "collections", label: "Collections" },
-        { key: "reviews", label: "Product Reviews" },
-        { key: "attributes", label: "Attributes" }] },
+        { key: "all", label: "All Products", href: "Products.dc.html" },
+        { key: "categories", label: "Categories", href: "Categories.dc.html" },
+        { key: "collections", label: "Collections", href: "Collections.dc.html" },
+        { key: "reviews", label: "Product Reviews", href: "ProductReviews.dc.html" },
+        { key: "attributes", label: "Attributes", href: "Attributes.dc.html" }] },
       { key: "inventory", label: "Inventory", icon: "package", children: [
         { key: "overview", label: "Overview" },
         { key: "stock-levels", label: "Stock Levels" },
@@ -86,6 +86,7 @@
   var DEFAULT_BADGES = {
     "sales/orders": { count: 24, label: "pending" },
     "sales/returns": { count: 5, label: "pending" },
+    "products/reviews": { count: 12, label: "to moderate" },
     "inventory/low-stock": { count: 18, label: "low stock", tone: "warning" }
   };
 

@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Attributes · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=3">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=3"></script>
+<script src="./catalog.js?v=3"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Attributes ---------- */
+.at-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.at-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--border)}
+.at-tools .o-search{flex:1}
+.at-key{display:block;font-family:var(--font-mono);font-size:12px;line-height:16px;color:var(--text-muted)}
+.o-table td.c-applies{white-space:normal;min-width:160px;max-width:220px}
+.at-vals{display:flex;align-items:center;gap:4px;flex-wrap:nowrap;max-width:220px;overflow:hidden}
+.at-val{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:var(--radius-full);background:var(--bg-muted);font-size:12px;white-space:nowrap}
+.at-val .pr-swatch{width:10px;height:10px}
+.at-more{font-size:12px;color:var(--text-muted);white-space:nowrap}
+.at-fill{display:flex;align-items:center;gap:8px;min-width:150px}
+.at-fill .pr-meter{width:72px}
+.at-fill-lbl{display:flex;flex-direction:column}
+.at-yes{display:inline-flex;align-items:center;gap:4px;color:var(--text-primary)}
+.at-yes .cx-icon{width:14px;height:14px;color:var(--success)}
+.at-no{color:var(--text-muted)}
+.at-feed{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary)}
+.at-type{display:inline-flex;align-items:center;gap:6px}
+/* panel */
+.dp-wide{width:520px}
+.at-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+.at-stats div{padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);min-width:0}
+.at-stats dt{font-size:12px;line-height:16px;color:var(--text-muted)}
+.at-stats dd{margin:2px 0 0;font-size:15px;line-height:22px;font-weight:600}
+.at-vlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--radius-sm);max-height:300px;overflow-y:auto}
+.at-vlist li{display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--border);font-size:13px}
+.at-vlist li:last-child{border-bottom:0}
+.at-vlist li.is-dup{background:var(--warning-subtle)}
+.at-vname{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+.at-vcount{color:var(--text-muted);font-size:12px;white-space:nowrap}
+.at-add{display:flex;gap:8px;align-items:flex-start}
+.at-add .cx-field{flex:1}
+.at-miss{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.at-miss li{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.at-miss li:last-child{border-bottom:0}
+.at-miss .pr-thumb{width:28px;height:28px;font-size:11px}
+.at-kv{display:grid;grid-template-columns:120px minmax(0,1fr);gap:6px 12px;margin:0;font-size:13px;line-height:20px}
+.at-kv dt{color:var(--text-muted)}
+.at-kv dd{margin:0}
+.at-checks{display:flex;flex-direction:column;gap:8px}
+.at-note{margin:0;font-size:12px;line-height:16px;color:var(--text-muted)}
+.at-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:1599px){ .c-feed{display:none} }
+@media (max-width:1279px){ .c-applies{display:none} }
+@media (max-width:1023px){ .at-kpis{display:flex} .c-vals{display:none} }
+@media (max-width:767px){ .dp-wide{width:100%} .at-grid2{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="products/attributes" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="products/attributes"></x-import>
+<h1>Attributes</h1>
+<p class="ph-sub">The fields that describe every product: variant options, product details, and shipping and compliance data.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Completeness counts active and draft products</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openAdd}}">Add attribute</x-import>
+</div>
+</div>
+
+<sc-if value="{{issue}}" hint-placeholder-val="{{true}}">
+<x-import component-from-global-scope="CommerceOS.Alert" tone="warning" title="{{issue.title}}" actions="{{issue.actions}}">{{issue.text}}</x-import>
+</sc-if>
+
+<section class="o-kpis at-kpis" aria-label="Attribute summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section class="o-card" aria-label="Attributes">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Attribute group" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="at-tools">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search attributes or values" label="Search attributes" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Only show incomplete" checked="{{onlyGaps}}" on-change="{{setOnlyGaps}}"></x-import>
+</div>
+<sc-if value="{{hasRows}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Attributes">
+<thead><tr>
+<th scope="col">Attribute</th>
+<th scope="col">Type</th>
+<th class="c-applies" scope="col">Used in</th>
+<th class="c-vals" scope="col">Values</th>
+<th scope="col">Filled in</th>
+<th scope="col">Required</th>
+<th scope="col">Storefront filter</th>
+<th class="c-feed" scope="col">Feed field</th>
+<th class="c-act" scope="col"><span class="cx-sr">Actions</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+<tr>
+<td><button class="pr-name" onClick="{{r.open}}">{{r.name}}</button><span class="at-key">{{r.key}}</span></td>
+<td><span>{{r.type}}</span><span class="o-sub">{{r.scope}}</span></td>
+<td class="c-applies"><span>{{r.applies}}</span><span class="o-sub">{{r.appliesSub}}</span></td>
+<td class="c-vals"><div class="at-vals"><sc-for list="{{r.vals}}" as="v" hint-placeholder-count="4"><span class="at-val"><sc-if value="{{v.swatch}}" hint-placeholder-val="{{false}}"><span class="pr-swatch" style="background: {{v.swatch}}" aria-hidden="true"></span></sc-if>{{v.label}}</span></sc-for><sc-if value="{{r.more}}" hint-placeholder-val="{{false}}"><span class="at-more">{{r.more}}</span></sc-if></div></td>
+<td><div class="at-fill"><span class="{{r.meterCls}}" aria-hidden="true"><span style="width: {{r.pct}}%"></span></span><span class="at-fill-lbl"><span class="td-strong">{{r.pctLabel}}</span><span class="o-sub">{{r.missLabel}}</span></span></div></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.reqTone}}">{{r.reqLabel}}</x-import></td>
+<td><sc-if value="{{r.filterable}}" hint-placeholder-val="{{true}}"><span class="at-yes"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import>Yes</span></sc-if><sc-if value="{{r.notFilterable}}" hint-placeholder-val="{{false}}"><span class="at-no">No</span></sc-if></td>
+<td class="c-feed"><span class="at-feed">{{r.feed}}</span></td>
+<td class="c-act"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="chevron-right" aria-label="Open {{r.name}}" on-click="{{r.open}}"></x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Attributes">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<li class="o-m-card">
+<div class="o-m-top"><span class="pr-cell-main" style="flex: 1"><button class="pr-name" onClick="{{r.open}}">{{r.name}}</button><span class="o-sub">{{r.type}} · {{r.scope}}</span></span><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.reqTone}}">{{r.reqLabel}}</x-import></div>
+<div class="at-fill"><span class="{{r.meterCls}}" aria-hidden="true"><span style="width: {{r.pct}}%"></span></span><span class="at-fill-lbl"><span class="td-strong">{{r.pctLabel}} filled in</span><span class="o-sub">{{r.missLabel}}</span></span></div>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{noRows}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.EmptyState" icon="{{emptyIcon}}" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import>
+</sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{ed}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close attribute" onClick="{{closeEdit}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="at-ed-title">
+<div class="o-panel-head"><div><h2 class="o-panel-title" id="at-ed-title">{{ed.name}}</h2><span class="o-sub">{{ed.sub}}</span></div><button class="icon-btn" aria-label="Close attribute" onClick="{{closeEdit}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<dl class="at-stats"><div><dt>Filled in</dt><dd>{{ed.pctLabel}}</dd></div><div><dt>{{ed.unitLabel}}</dt><dd>{{ed.using}}</dd></div><div><dt>Values</dt><dd>{{ed.valueCount}}</dd></div></dl>
+<p class="o-modal-note">{{ed.desc}}</p>
+</section>
+<section class="o-panel-sec"><h3>Settings</h3>
+<dl class="at-kv"><dt>Type</dt><dd>{{ed.type}}</dd><dt>Set on</dt><dd>{{ed.scope}}</dd><dt>Used in</dt><dd>{{ed.applies}}</dd><dt>Feed field</dt><dd>{{ed.feed}}</dd></dl>
+<div class="at-checks">
+<sc-if value="{{ed.lockRequired}}" hint-placeholder-val="{{false}}"><p class="at-note">Variant options are always required: every variant needs one.</p></sc-if>
+<sc-if value="{{ed.canRequire}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Checkbox" label="Required before a product can be published" checked="{{ed.required}}" on-change="{{ed.setRequired}}"></x-import></sc-if>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Show as a filter on storefront category pages" checked="{{ed.filterable}}" on-change="{{ed.setFilterable}}" disabled="{{ed.lockFilter}}"></x-import>
+</div>
+<sc-if value="{{ed.reqNote}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="info">{{ed.reqNote}}</x-import></sc-if>
+</section>
+<sc-if value="{{ed.hasValues}}" hint-placeholder-val="{{true}}">
+<section class="o-panel-sec"><h3>Values</h3>
+<sc-if value="{{ed.dup}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning" title="{{ed.dup.title}}" actions="{{ed.dup.actions}}">{{ed.dup.text}}</x-import></sc-if>
+<ul class="at-vlist"><sc-for list="{{ed.values}}" as="v" hint-placeholder-count="8"><li class="{{v.cls}}"><span class="at-vname"><sc-if value="{{v.swatch}}" hint-placeholder-val="{{false}}"><span class="pr-swatch" style="background: {{v.swatch}}" aria-hidden="true"></span></sc-if><span>{{v.label}}</span></span><span class="at-vcount">{{v.count}}</span></li></sc-for></ul>
+<sc-if value="{{ed.canAdd}}" hint-placeholder-val="{{true}}">
+<div class="at-add"><x-import component-from-global-scope="CommerceOS.Input" size="sm" aria-label="New value" placeholder="{{ed.addPlaceholder}}" value="{{ed.newValue}}" on-change="{{ed.setNewValue}}" error="{{ed.newError}}"></x-import><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="plus" on-click="{{ed.addValue}}">Add value</x-import></div>
+</sc-if>
+</section>
+</sc-if>
+<section class="o-panel-sec"><h3>{{ed.missTitle}}</h3>
+<sc-if value="{{ed.hasMissing}}" hint-placeholder-val="{{true}}">
+<ul class="at-miss"><sc-for list="{{ed.missing}}" as="m" hint-placeholder-count="5"><li><span class="{{m.thumbCls}}" aria-hidden="true">{{m.initials}}</span><span class="pr-cell-main" style="flex: 1"><span>{{m.name}}</span><span class="o-sub">{{m.sub}}</span></span><x-import component-from-global-scope="CommerceOS.Badge" tone="{{m.tone}}">{{m.status}}</x-import></li></sc-for></ul>
+<a href="Products.dc.html">{{ed.missLink}}</a>
+</sc-if>
+<sc-if value="{{ed.noMissing}}" hint-placeholder-val="{{false}}"><p class="o-modal-note">Every product that uses this attribute has it filled in.</p></sc-if>
+</section>
+</div>
+<div class="o-panel-foot">
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="trash" disabled="{{ed.lockDelete}}" on-click="{{ed.remove}}">Delete</x-import>
+<div style="display: flex; gap: 8px"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" on-click="{{closeEdit}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" disabled="{{ed.pristine}}" on-click="{{ed.save}}">Save attribute</x-import></div>
+</div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{addOpen}}" on-close="{{closeAdd}}" size="md" title="Add attribute" description="New attributes appear on the product form for the categories you pick.">
+<div class="o-modal-stack">
+<div class="at-grid2">
+<x-import component-from-global-scope="CommerceOS.Input" label="Name" value="{{ad.name}}" on-change="{{ad.setName}}" error="{{ad.nameError}}" placeholder="e.g. Neckline" data-autofocus="true"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Type" options="{{typeOpts}}" value="{{ad.type}}" on-value-change="{{ad.setType}}"></x-import>
+</div>
+<div class="at-grid2">
+<x-import component-from-global-scope="CommerceOS.Select" label="Group" options="{{groupOpts}}" value="{{ad.group}}" on-value-change="{{ad.setGroup}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Used in" options="{{appliesOpts}}" value="{{ad.applies}}" on-value-change="{{ad.setApplies}}"></x-import>
+</div>
+<sc-if value="{{ad.listType}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Input" label="Values" value="{{ad.values}}" on-change="{{ad.setValues}}" placeholder="Crew, V-neck, Henley" hint="Separate values with commas. You can add more later."></x-import></sc-if>
+<div class="at-checks">
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Required before a product can be published" checked="{{ad.required}}" on-change="{{ad.setRequired}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Show as a filter on storefront category pages" checked="{{ad.filterable}}" on-change="{{ad.setFilterable}}" disabled="{{ad.noFilter}}"></x-import>
+</div>
+<sc-if value="{{ad.reqWarn}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">{{ad.reqWarn}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeAdd}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{ad.save}}">Add attribute</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{delOpen}}" on-close="{{closeDel}}" tone="danger" size="sm" title="{{dl.title}}" description="{{dl.desc}}">
+<div class="o-modal-stack">
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeDel}}">Keep attribute</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="danger" on-click="{{dl.confirm}}">Delete attribute</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","color","gender","add"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none';
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      attrs: F.ATTRIBUTES.map((a) => Object.assign({ extra: [] }, a)), products: F.PRODUCTS, tab: 'all', query: '', onlyGaps: false, edit: null, add: null, del: null
+    };
+    if (demo === 'color') this.state.edit = this.draftFor(this.state.attrs[0]);
+    if (demo === 'gender') this.state.edit = this.draftFor(this.state.attrs.find((a) => a.key === 'gender'));
+    if (demo === 'add') this.state.add = newAdd();
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.add && !this.state.del) { if (this.state.edit) this.setState({ edit: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  draftFor(a) { return { key: a.key, required: a.required, filterable: a.filterable, newValue: '', touched: false }; }
+  mergeColor(from, into) {
+    const prev = this.state.products;
+    const next = prev.map((p) => (p.colors.indexOf(from) < 0 ? p : Object.assign({}, p, { colors: p.colors.map((c) => (c === from ? into : c)).filter((c, i, l) => l.indexOf(c) === i),
+      variants: p.variants.map((v) => (v.color === from ? Object.assign({}, v, { color: into, label: v.label.replace(from, into) }) : v)) })));
+    const n = prev.filter((p) => p.colors.indexOf(from) >= 0).length;
+    this.setState({ products: next });
+    this.showToast('Merged ' + from + ' into ' + into, F.plural(n, 'product') + ' updated. Storefront color filters now show one ' + into + ' swatch.', 'success', { label: 'Undo', onClick: () => this.setState({ products: prev, toast: null }) });
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), ch = F.channelOf(s.store);
+    const live = s.products.filter((p) => p.status !== 'archived' && (!ch || p.channels.indexOf(ch.key) >= 0));
+    const info = (a) => {
+      const applies = live.filter((p) => appliesTo(a, p));
+      if (a.key === 'barcode') { const vs = [].concat.apply([], applies.map((p) => p.variants.map((v) => ({ p, v })))), miss = vs.filter((x) => !x.v.barcode);
+        return { unit: 'variants', total: vs.length, filled: vs.length - miss.length, missingProducts: uniqProducts(miss.map((x) => x.p)), missingDetail: (p) => F.plural(p.variants.filter((v) => !v.barcode).length, 'variant') + ' without a barcode' }; }
+      const miss = applies.filter((p) => !hasValue(a, p));
+      return { unit: 'products', total: applies.length, filled: applies.length - miss.length, missingProducts: miss, missingDetail: () => F.catPath(miss.length ? miss[0].cat : '') };
+    };
+    const valuesOf = (a) => {
+      const counts = {};
+      const add = (v) => { counts[v] = (counts[v] || 0) + 1; };
+      live.forEach((p) => {
+        if (!appliesTo(a, p)) return;
+        if (a.key === 'color') p.colors.forEach(add);
+        else if (a.key === 'size') uniqList(p.sizes).forEach(add);
+        else if (a.key === 'handwoven') add(p.handwoven ? 'Yes' : 'No');
+        else if (LISTED[a.key] && p[a.key]) add(p[a.key]);
+      });
+      a.extra.forEach((v) => { if (!counts[v]) counts[v] = 0; });
+      return Object.keys(counts).sort((x, y) => (a.key === 'size' ? SIZE_ORDER.indexOf(x) - SIZE_ORDER.indexOf(y) : counts[y] - counts[x] || x.localeCompare(y))).map((v) => ({ v, n: counts[v] }));
+    };
+    const q = s.query.trim().toLowerCase();
+    const inTab = (a, t) => t === 'all' || a.group === t;
+    const enriched = s.attrs.map((a) => ({ a, i: info(a), vals: hasList(a) ? valuesOf(a) : [] }));
+    const searched = enriched.filter((x) => !q || x.a.name.toLowerCase().indexOf(q) >= 0 || x.a.key.indexOf(q) >= 0 || x.vals.some((v) => v.v.toLowerCase().indexOf(q) >= 0))
+      .filter((x) => !s.onlyGaps || x.i.filled < x.i.total);
+    const rows = searched.filter((x) => inTab(x.a, s.tab)).map((x) => {
+      const a = x.a, i = x.i, pct = i.total ? i.filled / i.total : 1, miss = i.total - i.filled;
+      return {
+        key: a.key, name: a.name, type: a.type, scope: a.scope, applies: appliesLabel(a), appliesSub: F.plural(i.total, i.unit === 'variants' ? 'variant' : 'product'),
+        vals: hasList(a) ? x.vals.slice(0, a.key === 'color' ? 5 : 3).map((v) => ({ label: v.v, swatch: a.key === 'color' ? F.SWATCH[v.v] || 'var(--bg-muted)' : null })) : [{ label: FREE_TEXT[a.key], swatch: null }],
+        more: hasList(a) && x.vals.length > (a.key === 'color' ? 5 : 3) ? '+' + (x.vals.length - (a.key === 'color' ? 5 : 3)) : '',
+        pct: (pct * 100).toFixed(1), pctLabel: pct === 1 ? '100%' : (Math.floor(pct * 1000) / 10).toFixed(1) + '%',
+        missLabel: miss ? F.int(miss) + ' ' + (i.unit === 'variants' ? (miss === 1 ? 'variant' : 'variants') : (miss === 1 ? 'product' : 'products')) + ' missing' : 'Complete',
+        meterCls: 'pr-meter' + (pct >= 0.98 ? '' : pct >= 0.9 ? ' is-warn' : ' is-bad'),
+        reqTone: a.required ? 'brand' : 'neutral', reqLabel: a.required ? 'Required' : 'Optional',
+        filterable: a.filterable, notFilterable: !a.filterable, feed: a.google || '—',
+        open: () => this.setState({ edit: this.draftFor(a) })
+      };
+    });
+
+    // KPIs over required attributes
+    const req = enriched.filter((x) => x.a.required && x.a.key !== 'barcode');
+    const incomplete = live.filter((p) => req.some((x) => appliesTo(x.a, p) && !hasValue(x.a, p)));
+    const totalSlots = req.reduce((n, x) => n + x.i.total, 0), filledSlots = req.reduce((n, x) => n + x.i.filled, 0);
+    const bc = enriched.find((x) => x.a.key === 'barcode').i;
+    const kpis = [
+      { label: 'Attributes', dot: 'cx-dot cx-dot-brand', value: F.int(s.attrs.length), cmp: F.int(s.attrs.filter((a) => a.group === 'variant').length) + ' variant options · ' + F.int(s.attrs.filter((a) => a.required).length) + ' required' },
+      { label: 'Required data filled in', dot: 'cx-dot cx-dot-success', value: totalSlots ? (Math.floor(filledSlots / totalSlots * 1000) / 10).toFixed(1) + '%' : '—', cmp: F.int(filledSlots) + ' of ' + F.int(totalSlots) + ' required fields' },
+      { label: 'Products with gaps', dot: 'cx-dot cx-dot-warning', value: F.int(incomplete.length), cmp: F.int(incomplete.filter((p) => p.status === 'active').length) + ' live · ' + F.int(incomplete.filter((p) => p.status === 'draft').length) + ' drafts' },
+      { label: 'Variants with a barcode', dot: 'cx-dot cx-dot-info', value: F.int(bc.filled) + ' of ' + F.int(bc.total), cmp: F.int(bc.total - bc.filled) + ' missing · needed by Amazon and Google' }
+    ];
+    const gender = enriched.find((x) => x.a.key === 'gender'), gMiss = gender.i.missingProducts.filter((p) => p.status === 'active');
+    const gLive = gMiss.filter((p) => p.channels.length);
+    const issue = gMiss.length ? {
+      title: 'Gender is missing on ' + F.plural(gMiss.length, 'live product'),
+      text: 'Google Shopping disapproves apparel listings without gender, so ' + (gLive.length === 1 ? 'this product isn’t' : 'these products aren’t') + ' showing in Shopping ads. Includes ' + gMiss.slice(0, 3).map((p) => p.name).join(', ') + (gMiss.length > 3 ? ' and ' + (gMiss.length - 3) + ' more.' : '.'),
+      actions: [h(CommerceOS.Button, { key: 'g', variant: 'secondary', size: 'sm', onClick: () => this.setState({ edit: this.draftFor(gender.a) }) }, 'See products')]
+    } : null;
+
+    let ed = null;
+    if (s.edit) {
+      const e = s.edit, x = enriched.find((y) => y.a.key === e.key), a = x.a, i = x.i, pct = i.total ? i.filled / i.total : 1;
+      const up = (k) => (v) => { const val = v && v.target ? v.target.value : v; this.setState((st) => ({ edit: Object.assign({}, st.edit, { [k]: val }) })); };
+      const dupPair = a.key === 'color' ? DUPES.map((d) => ({ from: d[0], into: d[1] })).find((d) => x.vals.some((v) => v.v === d.from)) : null;
+      const newTrim = e.newValue.trim(), exists = x.vals.some((v) => v.v.toLowerCase() === newTrim.toLowerCase());
+      const variantOpt = a.group === 'variant';
+      const missList = i.missingProducts.slice().sort((p, q2) => (p.status === q2.status ? q2.sold30 - p.sold30 : p.status === 'active' ? -1 : 1));
+      ed = {
+        name: a.name, sub: a.type + ' · ' + GROUP_LABEL[a.group], desc: a.desc, type: a.type, scope: a.scope, applies: appliesLabel(a), feed: a.google ? a.google + ' (Google Merchant Center)' : 'Not sent to marketplaces',
+        pctLabel: (Math.floor(pct * 1000) / 10).toFixed(1) + '%', unitLabel: i.unit === 'variants' ? 'Variants' : 'Products', using: F.int(i.total), valueCount: hasList(a) ? F.int(x.vals.length) : 'Free text',
+        required: e.required, filterable: e.filterable, lockRequired: variantOpt, canRequire: !variantOpt, lockFilter: !hasList(a),
+        setRequired: up('required'), setFilterable: up('filterable'),
+        reqNote: e.required && !a.required && i.total > i.filled ? 'Making this required blocks publishing for ' + F.plural(i.missingProducts.filter((p) => p.status === 'draft').length, 'draft') + ' until it’s filled in. Live products stay live.' : null,
+        hasValues: hasList(a), canAdd: hasList(a) && a.key !== 'handwoven',
+        values: x.vals.map((v) => ({ label: v.v, count: v.n ? F.plural(v.n, 'product') : 'Not used yet', swatch: a.key === 'color' ? F.SWATCH[v.v] || 'var(--bg-muted)' : null, cls: dupPair && v.v === dupPair.from ? 'is-dup' : '' })),
+        dup: dupPair ? { title: dupPair.from + ' looks like a duplicate of ' + dupPair.into, text: 'Shoppers filtering by ' + dupPair.into + ' miss ' + F.plural(x.vals.find((v) => v.v === dupPair.from).n, 'product') + ' tagged ' + dupPair.from + '. Merging updates the products and their variants.',
+          actions: [h(CommerceOS.Button, { key: 'm', variant: 'secondary', size: 'sm', onClick: () => this.mergeColor(dupPair.from, dupPair.into) }, 'Merge into ' + dupPair.into)] } : null,
+        addPlaceholder: a.key === 'color' ? 'e.g. Moss' : a.key === 'size' ? 'e.g. XXL' : 'New value', newValue: e.newValue, setNewValue: up('newValue'),
+        newError: e.touched && !newTrim ? 'Enter a value' : exists && newTrim ? 'That value already exists' : null,
+        addValue: () => {
+          if (!newTrim || exists) return this.setState({ edit: Object.assign({}, e, { touched: true }) });
+          this.setState((st) => ({ attrs: st.attrs.map((y) => (y.key === a.key ? Object.assign({}, y, { extra: y.extra.concat([newTrim]) }) : y)), edit: Object.assign({}, st.edit, { newValue: '', touched: false }) }));
+          this.showToast(newTrim + ' added to ' + a.name, 'It’s available on the product form now.' + (a.key === 'color' ? ' Set its swatch color from the product form.' : ''));
+        },
+        missTitle: i.unit === 'variants' ? 'Products with variants missing a barcode' : 'Products missing ' + a.name.toLowerCase(),
+        hasMissing: missList.length > 0, noMissing: missList.length === 0,
+        missing: missList.slice(0, 8).map((p) => ({ name: p.name, initials: F.initials(p.name), thumbCls: F.thumbCls(p), sub: i.unit === 'variants' ? F.plural(p.variants.filter((v) => !v.barcode).length, 'variant') + ' without a barcode' : F.catPath(p.cat),
+          status: p.status === 'active' ? 'Active' : 'Draft', tone: p.status === 'active' ? 'success' : 'neutral' })),
+        missLink: missList.length > 8 ? 'See all ' + F.plural(missList.length, 'product') + ' in All Products' : 'Fix in All Products',
+        pristine: e.required === a.required && e.filterable === a.filterable,
+        lockDelete: variantOpt || a.google === 'gtin',
+        remove: () => this.setState({ del: a.key }),
+        save: () => {
+          const prev = s.attrs;
+          this.setState({ attrs: prev.map((y) => (y.key === a.key ? Object.assign({}, y, { required: e.required, filterable: e.filterable }) : y)), edit: null });
+          const msg = e.filterable !== a.filterable ? (e.filterable ? a.name + ' now shows as a filter on category pages.' : a.name + ' no longer shows as a filter.') : e.required ? 'Drafts can’t be published until it’s filled in.' : 'It’s optional on the product form now.';
+          this.showToast(a.name + ' saved', msg, 'success', { label: 'Undo', onClick: () => this.setState({ attrs: prev, toast: null }) });
+        }
+      };
+    }
+
+    let ad = {};
+    if (s.add) {
+      const d = s.add, up = (k) => (v) => { const val = v && v.target ? v.target.value : v; this.setState((st) => ({ add: Object.assign({}, st.add, { [k]: val }) })); };
+      const exists = s.attrs.some((a) => a.name.toLowerCase() === d.name.trim().toLowerCase());
+      const nameError = !d.name.trim() ? 'Enter a name' : exists ? 'An attribute with this name already exists' : null;
+      const listType = d.type === 'Dropdown' || d.type === 'Swatch';
+      const nApplies = live.filter((p) => appliesTo({ applies: d.applies === 'all' ? 'all' : [d.applies] }, p)).length;
+      ad = { name: d.name, type: d.type, group: d.group, applies: d.applies, values: d.values, required: d.required, filterable: listType && d.filterable, listType, noFilter: !listType,
+        nameError: d.touched || exists ? nameError : null,
+        reqWarn: d.required ? 'All ' + F.plural(nApplies, 'product') + ' in ' + (d.applies === 'all' ? 'the catalog' : F.catOf(d.applies).name) + ' start without this value. Drafts can’t be published until it’s filled in; live products stay live.' : null,
+        setName: up('name'), setType: up('type'), setGroup: up('group'), setApplies: up('applies'), setValues: up('values'), setRequired: up('required'), setFilterable: up('filterable'),
+        save: () => {
+          if (nameError) return this.setState({ add: Object.assign({}, d, { touched: true }) });
+          const key = d.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+          const attr = { key, name: d.name.trim(), group: d.group, type: d.type, scope: 'Product', filterable: listType && d.filterable, required: d.required, google: null, applies: d.applies === 'all' ? 'all' : [d.applies],
+            desc: 'Added by Priya Natarajan on Oct 1, 2026.', extra: listType ? d.values.split(',').map((v) => v.trim()).filter(Boolean) : [], custom: true };
+          this.setState({ attrs: s.attrs.concat([attr]), add: null, tab: 'all', query: '' });
+          this.showToast(attr.name + ' added', 'It’s on the product form for ' + (d.applies === 'all' ? 'every category' : F.catOf(d.applies).name) + '. Fill it in from All Products or with a CSV import.');
+        } };
+    }
+
+    let dl = { title: '', desc: '' };
+    if (s.del) {
+      const x = enriched.find((y) => y.a.key === s.del);
+      dl = { title: 'Delete ' + x.a.name + '?', desc: x.a.custom ? 'No products use it yet, so nothing else changes.' : 'Removes the ' + x.a.name.toLowerCase() + ' value from ' + F.plural(x.i.filled, 'product') + (x.a.filterable ? ' and its storefront filter' : '') + '. You can’t undo this after you leave the page.',
+        confirm: () => { const prev = s.attrs; this.setState({ attrs: prev.filter((a) => a.key !== s.del), del: null, edit: null });
+          this.showToast(x.a.name + ' deleted', 'Removed from the product form.', 'success', { label: 'Undo', onClick: () => this.setState({ attrs: prev, toast: null }) }); } };
+    }
+
+    const tabs = GROUPS.map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((x) => inTab(x.a, t.id)).length) }));
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((st) => ({ collapsed: !st.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((st) => ({ dark: !st.dark })),
+      metaCount: F.plural(s.attrs.length, 'attribute') + ' across ' + F.plural(live.length, 'product') + (ch ? ' on ' + ch.label : ''),
+      kpis, issue, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      onlyGaps: s.onlyGaps, setOnlyGaps: (v) => this.setState({ onlyGaps: v }),
+      rows, hasRows: rows.length > 0, noRows: rows.length === 0,
+      emptyIcon: s.onlyGaps && !q ? 'check-circle' : 'search', emptyTitle: s.onlyGaps && !q ? 'Everything here is complete' : 'No attributes match', emptyDesc: s.onlyGaps && !q ? 'Every product has these attributes filled in.' : 'Search covers attribute names, keys and values.',
+      ed, closeEdit: () => this.setState({ edit: null }),
+      addOpen: !!s.add, openAdd: () => this.setState({ add: newAdd() }), closeAdd: () => this.setState({ add: null }), ad, typeOpts: TYPE_OPTS, groupOpts: GROUP_OPTS, appliesOpts: APPLIES_OPTS,
+      delOpen: !!s.del, closeDel: () => this.setState({ del: null }), dl,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- attribute data: Fernhill catalog (catalog.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, h = window.React.createElement, CommerceOS = window.CommerceOS;
+var GROUPS = [{ id: 'all', label: 'All' }, { id: 'variant', label: 'Variant options' }, { id: 'details', label: 'Product details' }, { id: 'compliance', label: 'Shipping & compliance' }];
+var GROUP_LABEL = { variant: 'Variant options', details: 'Product details', compliance: 'Shipping & compliance' };
+var GROUP_OPTS = GROUPS.slice(1).map(function (g) { return { value: g.id, label: g.label }; });
+var TYPE_OPTS = ['Dropdown', 'Swatch', 'Text', 'Number', 'Yes / No'].map(function (t) { return { value: t, label: t }; });
+var APPLIES_OPTS = [{ value: 'all', label: 'All categories' }].concat(F.CATEGORIES.filter(function (c) { return !c.parent; }).map(function (c) { return { value: c.key, label: c.name }; }));
+var LISTED = { material: 1, fit: 1, gender: 1, season: 1, origin: 1 };
+var FREE_TEXT = { care: 'Free text', hs: 'Six-digit code', barcode: 'UPC or EAN', weight: 'Grams per variant' };
+var SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', '30', '32', '34', '36', '36–38', '39–42', '43–46', 'One size'];
+/* colour values that mean the same thing */
+var DUPES = [['Navy blue', 'Navy']];
+function newAdd() { return { name: '', type: 'Dropdown', group: 'details', applies: 'tops', values: '', required: false, filterable: true, touched: false }; }
+function hasList(a) { return a.type === 'Swatch' || a.type === 'Dropdown' || a.type === 'Yes / No'; }
+function appliesTo(a, p) { return a.applies === 'all' || a.applies.indexOf(p.parent || p.cat) >= 0; }
+function appliesLabel(a) { return a.applies === 'all' ? 'All categories' : a.applies.map(function (k) { return F.catOf(k).name; }).join(', '); }
+function hasValue(a, p) {
+  switch (a.key) {
+    case 'color': return p.colors.length > 0;
+    case 'size': return p.sizes.length > 0;
+    case 'care': return !!p.care;
+    case 'handwoven': return true;
+    case 'barcode': return p.variants.length > 0 && p.variants.every(function (v) { return v.barcode; });
+    case 'weight': return p.weight > 0;
+    default: return a.custom ? false : !!p[a.key];
+  }
+}
+function uniqList(l) { return l.filter(function (x, i) { return l.indexOf(x) === i; }); }
+function uniqProducts(l) { return l.filter(function (p, i) { return l.indexOf(p) === i; }); }
+</script>
+</body>
+</html>

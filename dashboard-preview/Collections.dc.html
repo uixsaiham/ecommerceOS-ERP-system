@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Collections · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=3">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=3"></script>
+<script src="./catalog.js?v=3"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Collections ---------- */
+.cl-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.o-kpi.is-static{cursor:default}
+.o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
+.cl-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.cl-bar .cx-tabs{border-bottom:0;gap:20px}
+.cl-bar .o-search{flex:0 1 320px;min-width:200px}
+.cl-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:12px}
+.cl-card{display:flex;flex-direction:column;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+.cl-card.is-hidden{background:var(--bg-subtle)}
+.cl-card.is-warn{border-color:var(--warning)}
+.cl-head{display:flex;align-items:flex-start;gap:12px;padding:16px 16px 8px}
+.cl-logo{flex:none;width:40px;height:40px;border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.cl-c0{background:var(--brand-subtle);color:var(--brand)}
+.cl-c1{background:var(--info-subtle);color:var(--info)}
+.cl-c2{background:var(--success-subtle);color:var(--success)}
+.cl-c3{background:var(--warning-subtle);color:var(--warning)}
+.cl-c4{background:var(--bg-muted);color:var(--text-secondary)}
+.cl-titles{flex:1;min-width:0;display:flex;flex-direction:column}
+.cl-name{border:0;background:none;padding:0;font:inherit;font-size:15px;line-height:22px;font-weight:600;color:var(--text-primary);text-align:left;cursor:pointer}
+.cl-name:hover{color:var(--link);text-decoration:underline}
+.cl-name:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:2px}
+.cl-sub{font-size:12px;line-height:16px;color:var(--text-muted)}
+.cl-desc{margin:0;padding:0 16px 12px;font-size:13px;line-height:20px;color:var(--text-secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:40px}
+.cl-strip{display:flex;align-items:center;padding:0 16px 12px}
+.cl-strip .pr-thumb{width:30px;height:30px;font-size:11px;margin-right:-6px;box-shadow:0 0 0 2px var(--bg-surface)}
+.cl-card.is-hidden .cl-strip .pr-thumb{box-shadow:0 0 0 2px var(--bg-subtle)}
+.cl-more{margin-left:14px;font-size:12px;color:var(--text-muted)}
+.cl-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:12px 16px;border-top:1px solid var(--border)}
+.cl-metrics dt{font-size:12px;line-height:16px;color:var(--text-muted)}
+.cl-metrics dd{margin:2px 0 0;font-size:16px;line-height:24px;font-weight:600}
+.cl-rule{display:flex;align-items:flex-start;gap:8px;padding:10px 16px;border-top:1px solid var(--border);font-size:12px;line-height:18px;color:var(--text-secondary)}
+.cl-rule .cx-icon{flex:none;width:14px;height:14px;margin-top:2px}
+.cl-warn{color:var(--warning);font-weight:500}
+.cl-foot{display:flex;align-items:center;gap:8px;margin-top:auto;padding:12px 16px;border-top:1px solid var(--border)}
+.cl-foot .pr-chs{margin-right:auto}
+/* editor */
+.dp-wide{width:580px}
+.cl-type{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cl-type button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-surface);font:inherit;text-align:left;color:var(--text-primary);cursor:pointer}
+.cl-type button[aria-pressed="true"]{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand);background:var(--brand-subtle)}
+.cl-type button:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.cl-type strong{font-size:13px}
+.cl-type span{font-size:12px;line-height:16px;color:var(--text-secondary)}
+.cl-rules{display:flex;flex-direction:column;gap:8px}
+.cl-rrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) 32px;gap:8px;align-items:start}
+.cl-match{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
+.cl-preview{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--radius-sm);max-height:320px;overflow-y:auto}
+.cl-preview li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--border);font-size:13px}
+.cl-preview li:last-child{border-bottom:0}
+.cl-preview .pr-cell-main{flex:1}
+.cl-preview .pr-thumb{width:30px;height:30px;font-size:11px}
+.cl-count{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}
+.cl-count strong{font-size:14px}
+.cl-chans{display:flex;flex-wrap:wrap;gap:4px 16px}
+.cl-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cl-textarea{width:100%;box-sizing:border-box;min-height:64px;padding:8px 12px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-surface);color:var(--text-primary);font:inherit;font-size:14px;line-height:20px;resize:vertical}
+.cl-textarea:focus{outline:2px solid var(--focus-ring);outline-offset:-1px;border-color:transparent}
+.cl-label{display:block;margin-bottom:6px;font-size:13px;line-height:20px;font-weight:500}
+@media (max-width:1279px){ .cl-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:1023px){ .cl-kpis{display:flex} }
+@media (max-width:767px){ .cl-grid{grid-template-columns:minmax(0,1fr)} .dp-wide{width:100%} .cl-rrow{grid-template-columns:1fr 1fr} .cl-grid2{grid-template-columns:1fr} .cl-bar .o-search{flex-basis:100%} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="products/collections" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="products/collections"></x-import>
+<h1>Collections</h1>
+<p class="ph-sub">Curated and rule-based groups of products for storefront pages, campaigns and wholesale catalogs.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Sales: last 30 days · {{storeName}}</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openNew}}">Create collection</x-import>
+</div>
+</div>
+
+<sc-if value="{{issue}}" hint-placeholder-val="{{true}}">
+<x-import component-from-global-scope="CommerceOS.Alert" tone="warning" title="{{issue.title}}" actions="{{issue.actions}}">{{issue.text}}</x-import>
+</sc-if>
+
+<section class="o-kpis cl-kpis" aria-label="Collection summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section aria-labelledby="cl-h">
+<h2 id="cl-h" class="cx-sr">Collections</h2>
+<div class="cl-bar">
+<x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Collection type" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import>
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search collections" label="Search collections" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+</div>
+<sc-if value="{{hasCards}}" hint-placeholder-val="{{true}}">
+<div class="cl-grid">
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="6">
+<article class="{{c.cls}}" aria-labelledby="cl-n-{{c.key}}">
+<div class="cl-head">
+<span class="{{c.logoCls}}" aria-hidden="true">{{c.initials}}</span>
+<div class="cl-titles"><button class="cl-name" id="cl-n-{{c.key}}" onClick="{{c.open}}">{{c.name}}</button><span class="cl-sub">{{c.sub}}</span></div>
+<x-import component-from-global-scope="CommerceOS.Badge" tone="{{c.tone}}" icon="{{c.icon}}">{{c.statusLabel}}</x-import>
+</div>
+<p class="cl-desc">{{c.desc}}</p>
+<div class="cl-strip" aria-hidden="true"><sc-for list="{{c.thumbs}}" as="t" hint-placeholder-count="5"><span class="{{t.cls}}" title="{{t.name}}">{{t.initials}}</span></sc-for><sc-if value="{{c.more}}" hint-placeholder-val="{{false}}"><span class="cl-more">{{c.more}}</span></sc-if></div>
+<dl class="cl-metrics">
+<div><dt>Products</dt><dd>{{c.count}}</dd></div>
+<div><dt>Revenue (30d)</dt><dd>{{c.rev}}</dd></div>
+<div><dt>Sell-through</dt><dd>{{c.sell}}</dd></div>
+</dl>
+<div class="cl-rule"><x-import component-from-global-scope="CommerceOS.Icon" name="{{c.ruleIcon}}"></x-import><span class="{{c.ruleCls}}">{{c.rule}}</span></div>
+<div class="cl-foot">
+<span class="pr-chs" aria-label="{{c.chAria}}"><sc-for list="{{c.chs}}" as="h" hint-placeholder-count="4"><span class="{{h.cls}}" title="{{h.title}}">{{h.label}}</span></sc-for></span>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="edit" on-click="{{c.open}}">Edit</x-import>
+<div class="o-pop" data-pop="card">
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="more-horizontal" aria-label="More actions for {{c.name}}" aria-haspopup="menu" aria-expanded="{{c.menuOpen}}" on-click="{{c.toggleMenu}}"></x-import>
+<sc-if value="{{c.menuOpen}}" hint-placeholder-val="{{false}}">
+<div class="cx-menu cx-menu-end" role="menu" aria-label="Actions for {{c.name}}">
+<button class="cx-menu-item" role="menuitem" onClick="{{c.copyLink}}"><x-import component-from-global-scope="CommerceOS.Icon" name="copy"></x-import><span>Copy storefront link</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{c.duplicate}}"><x-import component-from-global-scope="CommerceOS.Icon" name="plus"></x-import><span>Duplicate</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{c.toggleHide}}"><x-import component-from-global-scope="CommerceOS.Icon" name="eye"></x-import><span>{{c.hideLabel}}</span></button>
+<div class="cx-menu-sep"></div>
+<button class="cx-menu-item is-danger" role="menuitem" onClick="{{c.remove}}"><x-import component-from-global-scope="CommerceOS.Icon" name="trash"></x-import><span>Delete</span></button>
+</div>
+</sc-if>
+</div>
+</div>
+</article>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{noCards}}" hint-placeholder-val="{{false}}">
+<div class="o-card" style="margin-top: 12px"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="search" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import></div>
+</sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{ed}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close collection" onClick="{{closeEdit}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="cl-ed-title">
+<div class="o-panel-head"><div><h2 class="o-panel-title" id="cl-ed-title">{{ed.title}}</h2><span class="o-sub">{{ed.sub}}</span></div><button class="icon-btn" aria-label="Close collection" onClick="{{closeEdit}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<sc-if value="{{ed.isNew}}" hint-placeholder-val="{{false}}">
+<section class="o-panel-sec"><h3>Collection type</h3>
+<div class="cl-type" role="group" aria-label="Collection type">
+<button aria-pressed="{{ed.isSmart}}" onClick="{{ed.pickSmart}}"><strong>Smart</strong><span>Products that match your conditions are added and removed automatically.</span></button>
+<button aria-pressed="{{ed.isManual}}" onClick="{{ed.pickManual}}"><strong>Manual</strong><span>You choose each product and set the order by hand.</span></button>
+</div>
+<p class="o-modal-note">The type can’t be changed later.</p>
+</section>
+</sc-if>
+<section class="o-panel-sec"><h3>Details</h3>
+<x-import component-from-global-scope="CommerceOS.Input" label="Name" value="{{ed.name}}" on-change="{{ed.setName}}" error="{{ed.nameError}}" placeholder="e.g. Linen for summer"></x-import>
+<div><label class="cl-label" for="cl-desc">Description</label><textarea id="cl-desc" class="cl-textarea" value="{{ed.desc}}" onChange="{{ed.setDesc}}" placeholder="Shown at the top of the collection page"></textarea></div>
+<div class="cl-grid2">
+<x-import component-from-global-scope="CommerceOS.Select" label="Visibility" options="{{statusOpts}}" value="{{ed.status}}" on-value-change="{{ed.setStatus}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" label="Product order" options="{{ed.sortOpts}}" value="{{ed.sort}}" on-value-change="{{ed.setSort}}"></x-import>
+</div>
+<sc-if value="{{ed.scheduled}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Input" label="Goes live on" type="date" value="{{ed.date}}" on-change="{{ed.setDate}}" error="{{ed.dateError}}" width="200px"></x-import></sc-if>
+<span class="cl-label">Published on</span>
+<div class="cl-chans"><sc-for list="{{ed.chans}}" as="h" hint-placeholder-count="4"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{h.label}}" checked="{{h.checked}}" on-change="{{h.toggle}}"></x-import></sc-for></div>
+</section>
+<sc-if value="{{ed.isSmart}}" hint-placeholder-val="{{true}}">
+<section class="o-panel-sec"><h3>Conditions</h3>
+<div class="cl-match"><span>Products must match</span><x-import component-from-global-scope="CommerceOS.Select" size="sm" aria-label="Match" options="{{matchOpts}}" value="{{ed.match}}" on-value-change="{{ed.setMatch}}" width="170px"></x-import></div>
+<div class="cl-rules">
+<sc-for list="{{ed.rules}}" as="r" hint-placeholder-count="2">
+<div class="cl-rrow">
+<x-import component-from-global-scope="CommerceOS.Select" size="sm" aria-label="Field" options="{{fieldOpts}}" value="{{r.field}}" on-value-change="{{r.setField}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" size="sm" aria-label="Condition" options="{{r.opOpts}}" value="{{r.op}}" on-value-change="{{r.setOp}}"></x-import>
+<sc-if value="{{r.isSelect}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Select" size="sm" aria-label="Value" options="{{r.valueOpts}}" value="{{r.value}}" on-value-change="{{r.setValue}}"></x-import></sc-if>
+<sc-if value="{{r.isInput}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Input" size="sm" aria-label="Value" inputmode="decimal" prefix="{{r.prefix}}" suffix="{{r.suffix}}" value="{{r.value}}" on-change="{{r.setValueEv}}" error="{{r.error}}"></x-import></sc-if>
+<sc-if value="{{r.isNone}}" hint-placeholder-val="{{false}}"><span></span></sc-if>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="x" aria-label="Remove condition" disabled="{{ed.oneRule}}" on-click="{{r.remove}}"></x-import>
+</div>
+</sc-for>
+</div>
+<div><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="plus" on-click="{{ed.addRule}}">Add condition</x-import></div>
+</section>
+</sc-if>
+<section class="o-panel-sec"><h3>{{ed.listTitle}}</h3>
+<sc-if value="{{ed.isManual}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search products to add" label="Search products to add" value="{{ed.pick}}" on-change="{{ed.setPick}}" shortcut=""></x-import>
+<sc-if value="{{ed.hasHits}}" hint-placeholder-val="{{false}}">
+<ul class="cl-preview" aria-label="Search results"><sc-for list="{{ed.hits}}" as="p" hint-placeholder-count="5"><li><span class="{{p.thumbCls}}" aria-hidden="true">{{p.initials}}</span><span class="pr-cell-main"><span>{{p.name}}</span><span class="o-sub">{{p.sub}}</span></span><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="plus" on-click="{{p.add}}">Add</x-import></li></sc-for></ul>
+</sc-if>
+</sc-if>
+<div class="cl-count"><span><strong>{{ed.countLabel}}</strong> <span class="o-sub">{{ed.countSub}}</span></span></div>
+<sc-if value="{{ed.hasList}}" hint-placeholder-val="{{true}}">
+<ul class="cl-preview" aria-label="Products in this collection"><sc-for list="{{ed.list}}" as="p" hint-placeholder-count="8"><li><span class="{{p.thumbCls}}" aria-hidden="true">{{p.initials}}</span><span class="pr-cell-main"><span>{{p.name}}</span><span class="{{p.subCls}}">{{p.sub}}</span></span><span class="td-strong">{{p.price}}</span><sc-if value="{{p.removable}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="x" aria-label="Remove {{p.name}}" on-click="{{p.remove}}"></x-import></sc-if></li></sc-for></ul>
+</sc-if>
+<sc-if value="{{ed.noList}}" hint-placeholder-val="{{false}}"><p class="o-modal-note">{{ed.emptyNote}}</p></sc-if>
+</section>
+</div>
+<div class="o-panel-foot">
+<sc-if value="{{ed.canDelete}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="trash" on-click="{{ed.remove}}">Delete</x-import></sc-if>
+<sc-if value="{{ed.isNew}}" hint-placeholder-val="{{false}}"><span></span></sc-if>
+<div style="display: flex; gap: 8px"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" on-click="{{closeEdit}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" on-click="{{ed.save}}">{{ed.cta}}</x-import></div>
+</div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{delOpen}}" on-close="{{closeDel}}" tone="danger" size="sm" title="{{dl.title}}" description="{{dl.desc}}">
+<div class="o-modal-stack">
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeDel}}">Keep collection</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="danger" on-click="{{dl.confirm}}">Delete collection</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","smart","manual","new"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none';
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', menu: null, toast: null,
+      cols: F.COLLECTIONS.map(cloneCol), tab: 'all', query: '', edit: null, del: null, seq: 0
+    };
+    if (demo === 'smart') this.state.edit = this.draftFor(this.state.cols.find((c) => c.key === 'under-50'));
+    if (demo === 'manual') this.state.edit = this.draftFor(this.state.cols.find((c) => c.key === 'gift-guide'));
+    if (demo === 'new') this.state.edit = this.newDraft();
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this._esc) this._esc(e); };
+    document.addEventListener('keydown', this._onKey);
+    this._onDoc = (e) => { if (this.state.menu && !(e.target.closest && e.target.closest('[data-pop]'))) this.setState({ menu: null }); };
+    document.addEventListener('mousedown', this._onDoc);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); document.removeEventListener('mousedown', this._onDoc); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null }, menu: null });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  draftFor(c) {
+    return { key: c.key, isNew: false, type: c.type, name: c.name, desc: c.desc, status: c.status, sort: c.sort, channels: c.channels.slice(), match: c.match || 'all',
+      rules: (c.rules || []).map((r) => Object.assign({}, r)), products: (c.products || []).slice(), date: c.status === 'scheduled' ? isoDate(c.since) : '', pick: '', touched: false };
+  }
+  newDraft() { return { key: null, isNew: true, type: 'smart', name: '', desc: '', status: 'active', sort: 'best', channels: ['us', 'eu'], match: 'all', rules: [{ field: 'price', op: 'lt', value: '50' }], products: [], date: '', pick: '', touched: false }; }
+  setHidden(key, hidden) {
+    const prev = this.state.cols, c = prev.find((x) => x.key === key);
+    this.setState({ cols: prev.map((x) => (x.key === key ? Object.assign({}, x, { status: hidden ? 'hidden' : 'active', since: hidden ? x.since : F.NOW, channels: hidden ? x.channels : x.channels.length ? x.channels : ['us', 'eu'] }) : x)), menu: null });
+    this.showToast(hidden ? c.name + ' hidden' : c.name + ' is live', hidden ? 'Its page returns a redirect to the homepage. Products aren’t changed.' : 'Published on ' + chanNames(c.channels.length ? c.channels : ['us', 'eu']) + '.', 'success',
+      { label: 'Undo', onClick: () => this.setState({ cols: prev, toast: null }) });
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), ch = F.channelOf(s.store);
+    const rev = (p) => (ch ? p.revCh[ch.key] || 0 : p.rev30), units = (p) => (ch ? p.unitsCh[ch.key] || 0 : p.sold30);
+    const q = s.query.trim().toLowerCase();
+    const scoped = s.cols.filter((c) => !ch || c.channels.indexOf(ch.key) >= 0);
+    const inTab = (c, t) => t === 'all' || (t === 'smart' ? c.type === 'smart' : t === 'manual' ? c.type === 'manual' : c.status !== 'active');
+    const searched = scoped.filter((c) => !q || c.name.toLowerCase().indexOf(q) >= 0 || c.desc.toLowerCase().indexOf(q) >= 0);
+    const statsOf = (c) => {
+      const ps = F.collectionProducts(c), act = ps.filter((p) => p.status === 'active'), r = ps.reduce((a, p) => a + rev(p), 0), u = act.reduce((a, p) => a + units(p), 0), stock = act.reduce((a, p) => a + p.stock, 0);
+      return { ps, act, rev: r, sell: u + stock ? u / (u + stock) : 0, drafts: ps.filter((p) => p.status !== 'active'), out: act.filter((p) => p.stockStatus === 'out') };
+    };
+    const cards = searched.filter((c) => inTab(c, s.tab)).map((c) => {
+      const st = statsOf(c), sv = STATUS_V[c.status], warn = c.status !== 'hidden' && (st.drafts.length > 0 || st.out.length > 0);
+      return {
+        key: c.key, name: c.name, desc: c.desc, initials: F.initials(c.name), logoCls: 'cl-logo cl-' + c.tone,
+        cls: 'cl-card' + (c.status === 'hidden' ? ' is-hidden' : '') + (warn ? ' is-warn' : ''),
+        sub: (c.type === 'smart' ? 'Smart' : 'Manual') + ' · /collections/' + c.handle,
+        tone: sv[0], icon: sv[2], statusLabel: c.status === 'scheduled' ? 'Live ' + shortDate(c.since) : sv[1],
+        thumbs: st.ps.slice(0, 6).map((p) => ({ cls: F.thumbCls(p), initials: F.initials(p.name), name: p.name })), more: st.ps.length > 6 ? '+' + (st.ps.length - 6) + ' more' : '',
+        count: F.int(st.act.length) + (st.ps.length !== st.act.length ? ' / ' + st.ps.length : ''), rev: F.money0(st.rev), sell: st.act.length ? Math.round(st.sell * 100) + '%' : '—',
+        rule: warn ? (st.drafts.length ? F.plural(st.drafts.length, 'product') + ' won’t show: ' + (st.drafts.length === 1 ? st.drafts[0].name + ' is a ' + st.drafts[0].status : 'drafts or archived') : '') + (st.drafts.length && st.out.length ? ' · ' : '') + (st.out.length ? F.plural(st.out.length, 'product') + ' out of stock' : '')
+          : c.type === 'smart' ? ruleText(c) : 'Hand-picked · ' + SORT_LABEL[c.sort].toLowerCase(),
+        ruleIcon: warn ? 'alert-triangle' : c.type === 'smart' ? 'sliders' : 'clipboard-list', ruleCls: warn ? 'cl-warn' : '',
+        chs: F.CHANNELS.map((h) => { const on = c.channels.indexOf(h.key) >= 0; return { label: h.short, cls: 'pr-ch' + (on ? ' is-on' : ''), title: h.label + (on ? ': published' : ': not published') }; }),
+        chAria: c.channels.length ? 'Published on ' + chanNames(c.channels) : 'Not published',
+        menuOpen: s.menu === c.key, toggleMenu: () => this.setState((x) => ({ menu: x.menu === c.key ? null : c.key })),
+        open: () => this.setState({ edit: this.draftFor(c), menu: null }),
+        copyLink: () => { const url = 'https://fernhill.co/collections/' + c.handle; try { navigator.clipboard.writeText(url); } catch (e) { /* clipboard unavailable */ } this.showToast('Link copied', url, 'info'); },
+        duplicate: () => { const n = s.seq + 1, copy = Object.assign(cloneCol(c), { key: c.key + '-copy-' + n, name: 'Copy of ' + c.name, handle: c.handle + '-copy', status: 'hidden', channels: [] });
+          this.setState({ cols: s.cols.concat([copy]), seq: n, menu: null, edit: this.draftFor(copy) }); this.showToast('Duplicated as hidden', 'Rename it and choose where to publish it.', 'success'); },
+        hideLabel: c.status === 'hidden' ? 'Publish now' : 'Hide', toggleHide: () => this.setHidden(c.key, c.status !== 'hidden'),
+        remove: () => this.setState({ del: c.key, menu: null })
+      };
+    });
+
+    // KPIs and issues
+    const live = scoped.filter((c) => c.status === 'active'), smart = scoped.filter((c) => c.type === 'smart').length;
+    const activeProducts = F.PRODUCTS.filter((p) => p.status === 'active' && (!ch || p.channels.indexOf(ch.key) >= 0));
+    const covered = activeProducts.filter((p) => live.some((c) => F.collectionProducts(c).some((x) => x.id === p.id)));
+    const best = live.map((c) => ({ c, st: statsOf(c) })).sort((a, b) => b.st.rev - a.st.rev)[0];
+    const sched = scoped.filter((c) => c.status === 'scheduled').sort((a, b) => a.since - b.since)[0];
+    const kpis = [
+      { label: 'Collections', dot: 'cx-dot cx-dot-brand', value: F.int(scoped.length), cmp: F.int(smart) + ' smart · ' + F.int(scoped.length - smart) + ' manual' },
+      { label: 'Live now', dot: 'cx-dot cx-dot-success', value: F.int(live.length), cmp: sched ? sched.name + ' goes live ' + shortDate(sched.since) : F.int(scoped.length - live.length) + ' hidden' },
+      { label: 'Top collection by revenue', dot: 'cx-dot cx-dot-info', value: best ? best.c.name : '—', cmp: best ? F.money0(best.st.rev) + ' in the last 30 days' : '' },
+      { label: 'Products in a live collection', dot: 'cx-dot cx-dot-warning', value: activeProducts.length ? Math.round(covered.length / activeProducts.length * 100) + '%' : '—', cmp: F.int(covered.length) + ' of ' + F.plural(activeProducts.length, 'active product') }
+    ];
+    const gg = scoped.find((c) => c.key === 'gift-guide' && c.status === 'scheduled'), ggSt = gg ? statsOf(gg) : null;
+    const issue = gg && ggSt.drafts.length ? {
+      title: gg.name + ' goes live ' + shortDate(gg.since) + ' with ' + F.plural(ggSt.drafts.length, 'product') + ' that won’t show',
+      text: ggSt.drafts.map((p) => p.name).join(', ') + (ggSt.drafts.length === 1 ? ' is still a draft.' : ' are still drafts.') + ' Publish ' + (ggSt.drafts.length === 1 ? 'it' : 'them') + ' before the holiday email goes out, or remove ' + (ggSt.drafts.length === 1 ? 'it' : 'them') + ' from the collection.',
+      actions: [h(CommerceOS.Button, { key: 'r', variant: 'secondary', size: 'sm', onClick: () => this.setState({ edit: this.draftFor(gg) }) }, 'Review collection'),
+        h(CommerceOS.Button, { key: 'p', variant: 'ghost', size: 'sm', href: 'Products.dc.html' }, 'Open drafts in All Products')]
+    } : null;
+
+    // editor
+    let ed = null;
+    if (s.edit) {
+      const e = s.edit, orig = e.key ? s.cols.find((x) => x.key === e.key) : null;
+      const up = (k) => (v) => { const val = v && v.target ? v.target.value : v; this.setState((x) => ({ edit: Object.assign({}, x.edit, { [k]: val }) })); };
+      const setRule = (i, patch) => this.setState((x) => ({ edit: Object.assign({}, x.edit, { rules: x.edit.rules.map((r, j) => (j === i ? Object.assign({}, r, patch) : r)) }) }));
+      const draftCol = { type: e.type, rules: e.rules, match: e.match, products: e.products };
+      const ruleErrs = e.rules.map((r) => { const f = FIELD[r.field]; return f.kind === 'number' || f.kind === 'within' ? (r.value === '' || isNaN(Number(r.value)) ? 'Enter a number' : null) : null; });
+      const valid = ruleErrs.every((x) => !x);
+      const matched = valid ? F.collectionProducts(draftCol) : [];
+      const sorted = sortProducts(matched, e.sort, units);
+      const visible = sorted.filter((p) => p.status === 'active');
+      const nameError = !e.name.trim() ? 'Enter a name' : s.cols.some((x) => x.key !== e.key && x.name.toLowerCase() === e.name.trim().toLowerCase()) ? 'Another collection has this name' : null;
+      const dateError = e.status === 'scheduled' && (!e.date || Date.parse(e.date) <= F.NOW) ? 'Pick a date after today' : null;
+      const pq = e.pick.trim().toLowerCase();
+      const hits = e.type === 'manual' && pq ? F.PRODUCTS.filter((p) => p.status !== 'archived' && e.products.indexOf(p.id) < 0 && (p.name.toLowerCase().indexOf(pq) >= 0 || p.variants.some((v) => v.sku.toLowerCase().indexOf(pq) >= 0))).slice(0, 6) : [];
+      ed = {
+        isNew: e.isNew, canDelete: !e.isNew, isSmart: e.type === 'smart', isManual: e.type === 'manual',
+        title: e.isNew ? 'Create collection' : orig.name, sub: e.isNew ? 'Fernhill storefronts' : (e.type === 'smart' ? 'Smart collection' : 'Manual collection') + ' · fernhill.co/collections/' + orig.handle,
+        pickSmart: () => this.setState((x) => ({ edit: Object.assign({}, x.edit, { type: 'smart', sort: 'best', rules: x.edit.rules.length ? x.edit.rules : [{ field: 'price', op: 'lt', value: '50' }] }) })),
+        pickManual: () => this.setState((x) => ({ edit: Object.assign({}, x.edit, { type: 'manual', sort: 'manual' }) })),
+        name: e.name, desc: e.desc, status: e.status, sort: e.sort, date: e.date, match: e.match, pick: e.pick,
+        nameError: e.touched ? nameError : null, dateError: e.touched ? dateError : null, scheduled: e.status === 'scheduled',
+        sortOpts: SORTS.filter((o) => e.type === 'manual' || o.value !== 'manual'),
+        setName: up('name'), setDesc: up('desc'), setStatus: up('status'), setSort: up('sort'), setDate: up('date'), setMatch: up('match'), setPick: up('pick'),
+        chans: F.CHANNELS.map((h2) => { const on = e.channels.indexOf(h2.key) >= 0; return { label: h2.label, checked: on, toggle: () => this.setState((x) => ({ edit: Object.assign({}, x.edit, { channels: on ? x.edit.channels.filter((k) => k !== h2.key) : x.edit.channels.concat([h2.key]) }) })) }; }),
+        oneRule: e.rules.length <= 1,
+        rules: e.rules.map((r, i) => {
+          const f = FIELD[r.field], kind = f.kind;
+          return { field: r.field, op: r.op, value: r.value, opOpts: OPS[kind], isSelect: kind === 'text', isInput: kind === 'number' || kind === 'within', isNone: kind === 'set',
+            valueOpts: valueOptsFor(r.field), prefix: r.field === 'price' ? '$' : null, suffix: kind === 'within' ? 'days' : r.field === 'stock' || r.field === 'sold30' ? 'units' : null, error: ruleErrs[i],
+            setField: (v) => setRule(i, { field: v, op: OPS[FIELD[v].kind][0].value, value: FIELD[v].kind === 'text' ? valueOptsFor(v)[0].value : FIELD[v].kind === 'set' ? '' : FIELD[v].kind === 'within' ? '30' : '' }),
+            setOp: (v) => setRule(i, { op: v }), setValue: (v) => setRule(i, { value: v }), setValueEv: (ev) => setRule(i, { value: ev.target.value }),
+            remove: () => this.setState((x) => ({ edit: Object.assign({}, x.edit, { rules: x.edit.rules.filter((_, j) => j !== i) }) })) };
+        }),
+        addRule: () => this.setState((x) => ({ edit: Object.assign({}, x.edit, { rules: x.edit.rules.concat([{ field: 'tag', op: 'eq', value: valueOptsFor('tag')[0].value }]) }) })),
+        listTitle: e.type === 'smart' ? 'Matching products' : 'Products',
+        countLabel: F.plural(visible.length, 'product') + ' will show',
+        countSub: matched.length > visible.length ? '· ' + F.int(matched.length - visible.length) + ' draft or archived won’t show' : e.type === 'smart' ? '· updates every night' : '',
+        hasHits: hits.length > 0,
+        hits: hits.map((p) => ({ name: p.name, initials: F.initials(p.name), thumbCls: F.thumbCls(p), sub: F.money2(p.price) + ' · ' + (p.status === 'active' ? F.int(p.stock) + ' in stock' : 'Draft'),
+          add: () => this.setState((x) => ({ edit: Object.assign({}, x.edit, { products: x.edit.products.concat([p.id]), pick: '' }) })) })),
+        hasList: sorted.length > 0, noList: sorted.length === 0,
+        emptyNote: !valid ? 'Fix the conditions above to see matching products.' : e.type === 'smart' ? 'No products match these conditions yet.' : 'Search above to add products.',
+        list: sorted.slice(0, 40).map((p) => ({ name: p.name, initials: F.initials(p.name), thumbCls: F.thumbCls(p), price: F.money2(p.price),
+          sub: p.status !== 'active' ? (p.status === 'draft' ? 'Draft · won’t show until published' : 'Archived · won’t show') : p.stockStatus === 'out' ? 'Out of stock' : F.int(units(p)) + ' sold · ' + F.int(p.stock) + ' in stock',
+          subCls: p.status !== 'active' || p.stockStatus === 'out' ? 'o-sub cl-warn' : 'o-sub', removable: e.type === 'manual',
+          remove: () => this.setState((x) => ({ edit: Object.assign({}, x.edit, { products: x.edit.products.filter((id) => id !== p.id) }) })) })),
+        cta: e.isNew ? 'Create collection' : 'Save collection',
+        remove: () => this.setState({ del: e.key }),
+        save: () => {
+          if (nameError || dateError || !valid) return this.setState({ edit: Object.assign({}, e, { touched: true }) });
+          if (e.status !== 'hidden' && !e.channels.length) return this.showToast('Choose at least one channel', 'Or set visibility to Hidden to keep it off every storefront.', 'info');
+          const fields = { name: e.name.trim(), desc: e.desc.trim(), type: e.type, status: e.status, sort: e.sort, channels: e.status === 'hidden' ? e.channels : e.channels.slice(), match: e.match,
+            rules: e.type === 'smart' ? e.rules.map((r) => Object.assign({}, r)) : undefined, products: e.type === 'manual' ? e.products.slice() : undefined,
+            since: e.status === 'scheduled' ? Date.parse(e.date + 'T08:00:00Z') : orig && orig.status === e.status ? orig.since : F.NOW };
+          const prev = s.cols;
+          if (e.isNew) {
+            const handle = fields.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), col = Object.assign({ key: handle + '-' + (s.seq + 1), handle, tone: 'c' + (s.cols.length % 5) }, fields);
+            this.setState({ cols: prev.concat([col]), edit: null, seq: s.seq + 1, tab: 'all', query: '' });
+            this.showToast(col.name + ' created', F.plural(visible.length, 'product') + (col.status === 'active' ? ' live on ' + chanNames(col.channels) + '.' : col.status === 'scheduled' ? ', going live ' + shortDate(col.since) + '.' : ', hidden for now.'), 'success');
+          } else {
+            this.setState({ cols: prev.map((x) => (x.key === e.key ? Object.assign({}, x, fields) : x)), edit: null });
+            this.showToast(fields.name + ' saved', F.plural(visible.length, 'product') + ' showing' + (e.type === 'smart' ? '. The list refreshes every night as products change.' : '.'), 'success',
+              { label: 'Undo', onClick: () => this.setState({ cols: prev, toast: null }) });
+          }
+        }
+      };
+    }
+
+    let dl = { title: '', desc: '' };
+    if (s.del) {
+      const c = s.cols.find((x) => x.key === s.del), st = statsOf(c);
+      dl = { title: 'Delete ' + c.name + '?', desc: 'fernhill.co/collections/' + c.handle + ' will redirect to the homepage. The ' + F.plural(st.ps.length, 'product') + ' in it aren’t changed. Campaign links and menus that point here will need updating.',
+        confirm: () => { const prev = s.cols; this.setState({ cols: prev.filter((x) => x.key !== c.key), del: null, edit: null });
+          this.showToast(c.name + ' deleted', 'Redirect added to the homepage.', 'success', { label: 'Undo', onClick: () => this.setState({ cols: prev, toast: null }) }); } };
+    }
+
+    const tabs = TABS.map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((c) => inTab(c, t.id)).length) }));
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((st) => ({ collapsed: !st.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((st) => ({ dark: !st.dark })),
+      metaCount: F.plural(scoped.length, 'collection') + (ch ? ' published on ' + ch.label : ''),
+      kpis, issue, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      cards, hasCards: cards.length > 0, noCards: cards.length === 0,
+      emptyTitle: q ? 'No collections match “' + s.query + '”' : 'Nothing here', emptyDesc: q ? 'Search covers collection names and descriptions.' : 'Scheduled and hidden collections show up here.',
+      ed, closeEdit: () => this.setState({ edit: null }), openNew: () => this.setState({ edit: this.newDraft() }),
+      statusOpts: STATUS_OPTS, matchOpts: MATCH_OPTS, fieldOpts: F.RULE_FIELDS.map((f) => ({ value: f.value, label: f.label })),
+      delOpen: !!s.del, closeDel: () => this.setState({ del: null }), dl,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null }),
+      onRootKey: this._esc = (e) => {
+        const st = this.state;
+        if (st.del) return;
+        if (st.menu) this.setState({ menu: null });
+        else if (st.edit) this.setState({ edit: null });
+        else if (st.drawer) this.setState({ drawer: false });
+      }
+    };
+  }
+}
+
+/* ---------- collection data: Fernhill catalog (catalog.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, h = window.React.createElement, CommerceOS = window.CommerceOS;
+function cloneCol(c) { return Object.assign({}, c, { channels: c.channels.slice(), products: c.products ? c.products.slice() : undefined, rules: c.rules ? c.rules.map(function (r) { return Object.assign({}, r); }) : undefined }); }
+var TABS = [{ id: 'all', label: 'All' }, { id: 'smart', label: 'Smart' }, { id: 'manual', label: 'Manual' }, { id: 'off', label: 'Scheduled & hidden' }];
+var STATUS_V = { active: ['success', 'Live', 'check-circle'], scheduled: ['info', 'Scheduled', 'calendar'], hidden: ['neutral', 'Hidden', 'eye'] };
+var STATUS_OPTS = [{ value: 'active', label: 'Live now' }, { value: 'scheduled', label: 'Scheduled' }, { value: 'hidden', label: 'Hidden' }];
+var MATCH_OPTS = [{ value: 'all', label: 'all conditions' }, { value: 'any', label: 'any condition' }];
+var SORTS = [{ value: 'manual', label: 'Manual order' }, { value: 'best', label: 'Best selling' }, { value: 'newest', label: 'Newest first' }, { value: 'price-asc', label: 'Price, low to high' }, { value: 'price-desc', label: 'Price, high to low' }];
+var SORT_LABEL = {}; SORTS.forEach(function (o) { SORT_LABEL[o.value] = o.label; });
+var FIELD = {}; F.RULE_FIELDS.forEach(function (f) { FIELD[f.value] = f; });
+var OPS = {
+  number: [{ value: 'gte', label: 'is at least' }, { value: 'lte', label: 'is at most' }, { value: 'gt', label: 'is more than' }, { value: 'lt', label: 'is less than' }, { value: 'eq', label: 'is exactly' }],
+  set: [{ value: 'set', label: 'is set' }, { value: 'unset', label: 'is not set' }],
+  within: [{ value: 'within', label: 'is within the last' }],
+  text: [{ value: 'eq', label: 'is' }, { value: 'neq', label: 'is not' }]
+};
+function uniq(list) { return list.filter(function (x, i) { return x && list.indexOf(x) === i; }).sort(); }
+var VALUE_OPTS = {
+  material: uniq(F.PRODUCTS.map(function (p) { return p.material; })).map(function (v) { return { value: v, label: v }; }),
+  origin: uniq(F.PRODUCTS.map(function (p) { return p.origin; })).map(function (v) { return { value: v, label: v }; }),
+  tag: uniq([].concat.apply([], F.PRODUCTS.map(function (p) { return p.tags; }))).map(function (v) { return { value: v, label: v }; }),
+  cat: F.CATEGORIES.map(function (c) { return { value: c.key, label: F.catPath(c.key) }; }),
+  status: [{ value: 'active', label: 'Active' }, { value: 'draft', label: 'Draft' }, { value: 'archived', label: 'Archived' }]
+};
+function valueOptsFor(field) { return VALUE_OPTS[field] || []; }
+function ruleText(c) {
+  return c.rules.map(function (r) {
+    var f = FIELD[r.field], op = (OPS[f.kind].filter(function (o) { return o.value === r.op; })[0] || {}).label || r.op;
+    var v = f.kind === 'set' ? '' : f.kind === 'within' ? ' ' + r.value + ' days' : r.field === 'price' ? ' $' + r.value : r.field === 'cat' ? ' ' + F.catOf(r.value).name : r.field === 'status' ? ' ' + r.value.charAt(0).toUpperCase() + r.value.slice(1) : ' ' + r.value;
+    return f.label + ' ' + op + v;
+  }).join(c.match === 'any' ? ' or ' : ' and ');
+}
+function chanNames(keys) { return F.CHANNELS.filter(function (c) { return keys.indexOf(c.key) >= 0; }).map(function (c) { return c.label; }).join(', ').replace(/, ([^,]*)$/, ' and $1'); }
+var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function shortDate(ts) { var d = new Date(ts); return MON[d.getUTCMonth()] + ' ' + d.getUTCDate(); }
+function isoDate(ts) { return new Date(ts).toISOString().slice(0, 10); }
+function sortProducts(list, sort, units) {
+  var out = list.slice();
+  if (sort === 'best') out.sort(function (a, b) { return units(b) - units(a); });
+  if (sort === 'newest') out.sort(function (a, b) { return b.created - a.created; });
+  if (sort === 'price-asc') out.sort(function (a, b) { return a.price - b.price; });
+  if (sort === 'price-desc') out.sort(function (a, b) { return b.price - a.price; });
+  return out;
+}
+</script>
+</body>
+</html>
