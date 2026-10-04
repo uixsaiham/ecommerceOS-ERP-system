@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Segments · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./customers.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Segments ---------- */
+.sg-life{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.sg-life-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.sg-life-head h2{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.sg-life-head p{margin:2px 0 0;font-size:12px;line-height:16px;color:var(--text-muted)}
+.sg-stack{display:flex;height:14px;border-radius:var(--radius-full);overflow:hidden;gap:2px;background:var(--bg-muted)}
+.sg-stack span{display:block;height:100%}
+.sg-legend{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.sg-leg{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;min-width:0}
+.sg-leg:hover{border-color:var(--border-strong)}
+.sg-leg:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.sg-leg-top{display:flex;align-items:center;gap:6px;font-size:13px;line-height:18px}
+.sg-leg strong{font-size:18px;line-height:24px;font-weight:600}
+.sg-sw{flex:none;width:10px;height:10px;border-radius:3px}
+.l-new{background:var(--info)}
+.l-active{background:var(--success)}
+.l-risk{background:var(--warning)}
+.l-lapsed{background:var(--border-strong)}
+.sg-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.sg-card{display:flex;flex-direction:column;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+.sg-card:hover{border-color:var(--border-strong)}
+.sg-card-main{display:flex;flex-direction:column;gap:8px;padding:16px;border:0;background:none;font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;flex:1}
+.sg-card-main:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px;border-radius:var(--radius-md)}
+.sg-title{display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px;font-weight:600}
+.sg-title .cx-icon{width:14px;height:14px;color:var(--text-muted)}
+.sg-desc{margin:0;font-size:13px;line-height:18px;color:var(--text-secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:36px}
+.sg-nums{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.sg-nums strong{font-size:22px;line-height:28px;font-weight:600;letter-spacing:-0.01em}
+.sg-rule{display:flex;align-items:flex-start;gap:8px;padding:10px 16px;border-top:1px solid var(--border);font-size:12px;line-height:18px;color:var(--text-secondary)}
+.sg-rule .cx-icon{flex:none;width:14px;height:14px;margin-top:2px}
+.sg-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 16px;border-top:1px solid var(--border);font-size:12px;line-height:18px;color:var(--text-muted)}
+.sg-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* panel */
+.sg-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.sg-stats > div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);min-width:0}
+.sg-stats strong{font-size:16px;line-height:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.sg-rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.sg-rows li{display:grid;grid-template-columns:120px minmax(0,1fr) 90px;gap:10px;align-items:center;font-size:13px;line-height:18px}
+.sg-rows li span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.sg-rows .pr-meter > span{background:var(--brand)}
+.sg-rules-read{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:20px}
+.sg-rules-read li{padding:6px 10px;background:var(--bg-subtle);border-radius:var(--radius-sm)}
+.sg-ppl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.sg-ppl li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:20px}
+.sg-ppl li:last-child{border-bottom:0}
+.sg-ppl a{color:var(--text-primary);font-weight:500;text-decoration:none}
+.sg-ppl a:hover{text-decoration:underline}
+/* builder */
+.sg-match{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
+.sg-rrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.1fr) minmax(0,1fr) 32px;gap:8px;align-items:start}
+.sg-preview{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-subtle);font-size:13px;line-height:18px}
+.sg-preview strong{font-size:18px;line-height:24px}
+.sg-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:1279px){ .sg-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:767px){ .sg-grid,.sg-grid2{grid-template-columns:1fr} .sg-legend,.sg-stats{grid-template-columns:1fr 1fr} .sg-rrow{grid-template-columns:1fr 1fr} .sg-rows li{grid-template-columns:90px minmax(0,1fr) 70px} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="customers/segments" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="customers/segments"></x-import>
+<h1>Segments</h1>
+<p class="ph-sub">Saved rules that group customers by what they do. Counts update as customers order.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>{{metaStore}}</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{newSeg}}">New segment</x-import>
+</div>
+</div>
+
+<section class="sg-life" aria-label="Customer lifecycle">
+<div class="sg-life-head"><div><h2>Where customers are in their lifecycle</h2><p>Every customer is in exactly one stage. Click a stage to save it as a segment.</p></div></div>
+<div class="sg-stack" role="img" aria-label="{{lifeAria}}"><sc-for list="{{life}}" as="l" hint-placeholder-count="4"><span class="{{l.sw}}" style="{{l.w}}"></span></sc-for></div>
+<div class="sg-legend"><sc-for list="{{life}}" as="l" hint-placeholder-count="4"><button class="sg-leg" onClick="{{l.pick}}"><span class="sg-leg-top"><span class="{{l.sw2}}" aria-hidden="true"></span>{{l.label}}</span><strong>{{l.count}}</strong><span class="o-sub">{{l.sub}}</span></button></sc-for></div>
+</section>
+
+<div class="sg-bar">
+<x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Segment filter" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import>
+<div class="o-search" style="flex: 1; min-width: 220px"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search segments" label="Search segments" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+</div>
+
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<section class="sg-grid" aria-label="Segments">
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="9">
+<article class="sg-card">
+<button class="sg-card-main" onClick="{{c.open}}">
+<span class="sg-title"><span class="{{c.dot}}"></span>{{c.name}}<sc-if value="{{c.pinned}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Badge" size="sm">Pinned</x-import></sc-if></span>
+<p class="sg-desc">{{c.desc}}</p>
+<span class="sg-nums"><strong>{{c.count}}</strong><span class="o-sub">{{c.share}}</span></span>
+<span class="o-sub">{{c.rev}}</span>
+</button>
+<div class="sg-rule"><x-import component-from-global-scope="CommerceOS.Icon" name="sliders"></x-import><span>{{c.rule}}</span></div>
+<div class="sg-foot"><span>{{c.used}}</span><span>{{c.updated}}</span></div>
+</article>
+</sc-for>
+</section>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="search" title="No segments match" description="Try another name, or create a new segment."></x-import></sc-if>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close segment" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="sg-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="sg-dp-title">{{dp.name}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close segment" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<p style="margin: 0; font-size: 13px; line-height: 20px; color: var(--text-secondary)">{{dp.desc}}</p>
+<div class="sg-stats"><sc-for list="{{dp.stats}}" as="m" hint-placeholder-count="4"><div><span class="o-sub">{{m.label}}</span><strong>{{m.value}}</strong><span class="o-sub">{{m.sub}}</span></div></sc-for></div>
+<a href="{{dp.href}}" style="font-size: 13px">View these customers in All Customers</a>
+</section>
+<section class="o-panel-sec"><h3>{{dp.matchLabel}}</h3>
+<ul class="sg-rules-read"><sc-for list="{{dp.rules}}" as="r" hint-placeholder-count="2"><li>{{r}}</li></sc-for></ul>
+</section>
+<section class="o-panel-sec"><h3>By store</h3>
+<ul class="sg-rows"><sc-for list="{{dp.stores}}" as="r" hint-placeholder-count="4"><li><span>{{r.label}}</span><span class="pr-meter"><span style="{{r.w}}"></span></span><span>{{r.value}}</span></li></sc-for></ul>
+</section>
+<section class="o-panel-sec"><h3>Top countries</h3>
+<ul class="sg-rows"><sc-for list="{{dp.countries}}" as="r" hint-placeholder-count="5"><li><span>{{r.label}}</span><span class="pr-meter"><span style="{{r.w}}"></span></span><span>{{r.value}}</span></li></sc-for></ul>
+</section>
+<section class="o-panel-sec"><h3>Biggest spenders in this segment</h3>
+<ul class="sg-ppl"><sc-for list="{{dp.people}}" as="p" hint-placeholder-count="6"><li><span class="pr-cell-main"><a href="{{p.href}}">{{p.name}}</a><span class="o-sub">{{p.sub}}</span></span><span>{{p.spent}}</span></li></sc-for></ul>
+</section>
+<section class="o-panel-sec"><h3>Used in</h3>
+<sc-if value="{{dp.hasUses}}" hint-placeholder-val="{{true}}"><ul class="sg-rules-read"><sc-for list="{{dp.uses}}" as="u" hint-placeholder-count="1"><li>{{u}}</li></sc-for></ul></sc-if>
+<sc-if value="{{dp.noUses}}" hint-placeholder-val="{{false}}"><p class="o-sub" style="margin: 0">Not used in any campaign, flow or group yet.</p></sc-if>
+</section>
+</div>
+<div class="o-panel-foot"><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="trash" disabled="{{dp.noDelete}}" on-click="{{dp.remove}}">Delete</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="copy" on-click="{{dp.duplicate}}">Duplicate</x-import></div><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{dp.exportSeg}}">Export</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="edit" on-click="{{dp.edit}}">Edit rules</x-import></div></div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{edOpen}}" on-close="{{closeEd}}" size="lg" title="{{ed.title}}" description="Customers join and leave automatically as they order, return or change their preferences.">
+<div class="o-modal-stack">
+<div class="sg-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Name" value="{{ed.name}}" on-change="{{ed.setName}}" error="{{ed.nameError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Description" optional="{{yes}}" value="{{ed.desc}}" on-change="{{ed.setDesc}}"></x-import></div>
+<div class="sg-match"><span>Customers must match</span><x-import component-from-global-scope="CommerceOS.Select" size="sm" aria-label="Match" options="{{matchOpts}}" value="{{ed.match}}" on-value-change="{{ed.setMatch}}" width="190px"></x-import></div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{ed.rules}}" as="r" hint-placeholder-count="2">
+<div class="sg-rrow">
+<x-import component-from-global-scope="CommerceOS.Select" size="sm" aria-label="Field" options="{{fieldOpts}}" value="{{r.field}}" on-value-change="{{r.setField}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" size="sm" aria-label="Condition" options="{{r.opOpts}}" value="{{r.op}}" on-value-change="{{r.setOp}}"></x-import>
+<sc-if value="{{r.isSelect}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Select" size="sm" aria-label="Value" options="{{r.valueOpts}}" value="{{r.value}}" on-value-change="{{r.setValue}}"></x-import></sc-if>
+<sc-if value="{{r.isInput}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Input" size="sm" aria-label="Value" inputmode="decimal" prefix="{{r.prefix}}" suffix="{{r.suffix}}" value="{{r.value}}" on-change="{{r.setValueEv}}" error="{{r.error}}"></x-import></sc-if>
+<sc-if value="{{r.isNone}}" hint-placeholder-val="{{false}}"><span></span></sc-if>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon-only="{{yes}}" icon="x" aria-label="Remove condition" disabled="{{ed.oneRule}}" on-click="{{r.remove}}"></x-import>
+</div>
+</sc-for>
+</div>
+<div><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="plus" on-click="{{ed.addRule}}">Add condition</x-import></div>
+<div class="sg-preview" aria-live="polite"><span class="o-sub">Matches right now</span><strong>{{ed.count}}</strong><span>{{ed.countSub}}</span><span class="o-sub">{{ed.sample}}</span></div>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeEd}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{ed.save}}">{{ed.cta}}</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{delOpen}}" on-close="{{closeDel}}" size="sm" title="{{del.title}}" description="The customers aren’t affected. Exports and reports that used it keep their numbers.">
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeDel}}">Keep it</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="danger" icon="trash" on-click="{{del.go}}">Delete segment</x-import></div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","detail","new"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none', q = new URLSearchParams(window.location.search);
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      segs: C.SEGMENTS.map((x) => Object.assign({}, x, { rules: x.rules.map((r) => Object.assign({}, r)) })), tab: 'all', query: '', detail: q.get('segment') || null, ed: null, del: null, seq: 1
+    };
+    if (demo === 'detail') this.state.detail = 'risk';
+    if (demo === 'new') this.state.ed = this.draft(null);
+    this._cache = {};
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.ed && !this.state.del) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  /* members per segment rules and store, cached because the base has 18k customers */
+  members(seg, base) {
+    const k = this.state.store + '|' + seg.match + '|' + JSON.stringify(seg.rules);
+    if (!this._cache[k]) this._cache[k] = C.segmentMembers(seg, base);
+    return this._cache[k];
+  }
+  draft(seg) {
+    if (seg) return { key: seg.key, name: seg.name, desc: seg.desc || '', match: seg.match, rules: seg.rules.map((r) => Object.assign({}, r)), touched: false };
+    return { key: null, name: '', desc: '', match: 'all', rules: [{ field: 'spent', op: 'gte', value: '500' }], touched: false };
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), chan = s.store === 'all' ? null : F.channelOf(s.store).key;
+    const base = chan ? C.CUSTOMERS.filter((c) => c.channel === chan) : C.CUSTOMERS, n = base.length;
+    const rev30 = base.reduce((a, c) => a + c.rev30, 0);
+
+    // lifecycle (exclusive)
+    const st = { new: [], active: [], risk: [], lapsed: [] };
+    base.forEach((c) => { const age = F.NOW - c.lastTs; st[c.firstTs >= C.WIN ? 'new' : age <= 90 * F.DAY ? 'active' : age <= 365 * F.DAY ? 'risk' : 'lapsed'].push(c); });
+    const LIFE = [
+      { key: 'new', label: 'New', sub: 'first order in 30 days', rules: [{ field: 'firstOrder', op: 'within', value: '30' }], name: 'New customers' },
+      { key: 'active', label: 'Active', sub: 'ordered in the last 90 days', rules: [{ field: 'lastOrder', op: 'within', value: '90' }, { field: 'firstOrder', op: 'before', value: '30' }], name: 'Active customers' },
+      { key: 'risk', label: 'At risk', sub: 'last order 3–12 months ago', rules: [{ field: 'lastOrder', op: 'before', value: '90' }, { field: 'lastOrder', op: 'within', value: '365' }], name: 'Quiet for 3–12 months' },
+      { key: 'lapsed', label: 'Lapsed', sub: 'nothing in over a year', rules: [{ field: 'lastOrder', op: 'before', value: '365' }], name: 'Lapsed customers' }];
+    const life = LIFE.map((l) => ({ label: l.label, count: F.int(st[l.key].length), sub: Math.round(st[l.key].length / n * 100) + '% · ' + l.sub, sw: 'l-' + l.key, sw2: 'sg-sw l-' + l.key, w: 'width: ' + (st[l.key].length / n * 100).toFixed(2) + '%',
+      pick: () => this.setState({ ed: { key: null, name: l.name, desc: 'Lifecycle stage: ' + l.sub + '.', match: 'all', rules: l.rules.map((r) => Object.assign({}, r)), touched: false } }) }));
+
+    const q = s.query.trim().toLowerCase();
+    const searched = s.segs.filter((x) => !q || x.name.toLowerCase().indexOf(q) >= 0 || (x.desc || '').toLowerCase().indexOf(q) >= 0);
+    const inTab = (x, t) => t === 'all' || (t === 'pinned' ? x.pinned : t === 'used' ? x.usedIn.length > 0 : x.usedIn.length === 0);
+    const list = searched.filter((x) => inTab(x, s.tab)).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+    const cards = list.map((x) => {
+      const m = this.members(x, base), r30 = m.reduce((a, c) => a + c.rev30, 0);
+      return { name: x.name, desc: x.desc || 'No description', pinned: !!x.pinned, dot: 'cx-dot cx-dot-' + (x.tone === 'neutral' ? 'brand' : x.tone), count: F.int(m.length), share: (m.length / n * 100).toFixed(1) + '% of customers',
+        rev: r30 ? F.money0(r30) + ' revenue in 30 days · ' + Math.round(r30 / Math.max(1, rev30) * 100) + '% of total' : 'No orders in the last 30 days', rule: ruleText(x),
+        used: x.usedIn.length ? 'Used in ' + F.plural(x.usedIn.length, 'place') : 'Not used yet', updated: 'Edited ' + F.timeAgo(x.updated), open: () => this.setState({ detail: x.key }) };
+    });
+    const tabs = [{ id: 'all', label: 'All' }, { id: 'pinned', label: 'Pinned' }, { id: 'used', label: 'In use' }, { id: 'unused', label: 'Not used' }].map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((x) => inTab(x, t.id)).length) }));
+
+    let dp = null;
+    if (s.detail) {
+      const x = s.segs.find((y) => y.key === s.detail);
+      if (x) {
+        const m = this.members(x, base), r30 = m.reduce((a, c) => a + c.rev30, 0), spent = m.reduce((a, c) => a + c.spent, 0), reach = m.filter((c) => c.consent.email && c.channel !== 'amz').length;
+        const byStore = ['us', 'eu', 'wh', 'amz'].map((k) => ({ k, n: m.filter((c) => c.channel === k).length })).filter((r) => r.n);
+        const cc = {}; m.forEach((c) => { cc[c.country] = (cc[c.country] || 0) + 1; });
+        const topC = Object.keys(cc).sort((a, b) => cc[b] - cc[a]).slice(0, 5), maxC = topC.length ? cc[topC[0]] : 1, maxS = Math.max(1, ...byStore.map((r) => r.n));
+        dp = { name: x.name, sub: F.int(m.length) + ' customers · edited ' + F.timeAgo(x.updated) + ' by ' + x.by, desc: x.desc || 'No description.',
+          stats: [{ label: 'Customers', value: F.int(m.length), sub: (m.length / n * 100).toFixed(1) + '% of ' + (chan ? store.label : 'all') }, { label: 'Revenue, 30 days', value: F.money0(r30), sub: Math.round(r30 / Math.max(1, rev30) * 100) + '% of ' + F.money0(rev30) },
+            { label: 'Average spent', value: F.money0(m.length ? spent / m.length : 0), sub: 'lifetime, per customer' }, { label: 'Reachable by email', value: F.int(reach), sub: m.length ? Math.round(reach / m.length * 100) + '% subscribed' : '—' }],
+          href: 'Customers.dc.html?segment=' + x.key, matchLabel: x.rules.length > 1 ? (x.match === 'any' ? 'Matches any of these' : 'Matches all of these') : 'Rule',
+          rules: x.rules.map(ruleLine),
+          stores: byStore.map((r) => ({ label: C.CHANNEL_LABEL[r.k], w: 'width: ' + (r.n / maxS * 100).toFixed(1) + '%', value: F.int(r.n) })),
+          countries: topC.map((k) => ({ label: k, w: 'width: ' + (cc[k] / maxC * 100).toFixed(1) + '%', value: F.int(cc[k]) })),
+          people: m.slice().sort((a, b) => b.spent - a.spent).slice(0, 6).map((c) => ({ name: c.name, href: 'Customers.dc.html?c=' + c.id, sub: F.plural(c.orders, 'order') + ' · last ' + F.fmtDate(c.lastTs), spent: F.money2(c.spent) })),
+          hasUses: x.usedIn.length > 0, noUses: x.usedIn.length === 0, uses: x.usedIn, noDelete: x.usedIn.length > 0,
+          remove: () => this.setState({ del: x.key }),
+          duplicate: () => this.setState({ ed: Object.assign(this.draft(x), { key: null, name: x.name + ' (copy)' }) }),
+          exportSeg: () => this.showToast('Exporting ' + F.plural(m.length, 'customer'), 'CSV of everyone in ' + x.name + (reach < m.length ? '. ' + F.int(m.length - reach) + ' aren’t subscribed; use it for analysis, not email.' : '.')),
+          edit: () => this.setState({ ed: this.draft(x) }) };
+      }
+    }
+
+    let ed = { title: '', rules: [] };
+    if (s.ed) {
+      const e = s.ed, up = (k) => (ev) => { const v = ev.target.value; this.setState((x) => ({ ed: Object.assign({}, x.ed, { [k]: v }) })); };
+      const setRule = (i, patch) => this.setState((x) => ({ ed: Object.assign({}, x.ed, { rules: x.ed.rules.map((r, j) => (j === i ? Object.assign({}, r, patch) : r)) }) }));
+      const errs = e.rules.map((r) => { const k = FIELD[r.field].kind; return (k === 'number' || k === 'days') && (r.value === '' || isNaN(Number(r.value)) || Number(r.value) < 0) ? 'Enter a number' : null; });
+      const valid = errs.every((x) => !x);
+      const m = valid ? C.segmentMembers(e, base) : [], reach = m.filter((c) => c.consent.email && c.channel !== 'amz').length;
+      const dupe = s.segs.some((x) => x.key !== e.key && x.name.toLowerCase() === e.name.trim().toLowerCase());
+      const nameError = !e.name.trim() ? 'Give the segment a name' : dupe ? 'A segment with this name already exists' : null;
+      ed = { title: e.key ? 'Edit ' + s.segs.find((x) => x.key === e.key).name : 'New segment', name: e.name, desc: e.desc, match: e.match, nameError: e.touched ? nameError : null,
+        setName: up('name'), setDesc: up('desc'), setMatch: (v) => this.setState((x) => ({ ed: Object.assign({}, x.ed, { match: v }) })), oneRule: e.rules.length <= 1,
+        rules: e.rules.map((r, i) => {
+          const f = FIELD[r.field], kind = f.kind;
+          return { field: r.field, op: r.op, value: r.value, opOpts: OPS[kind], isSelect: kind === 'text', isInput: kind === 'number' || kind === 'days', isNone: kind === 'bool',
+            valueOpts: valueOpts(r.field), prefix: f.prefix || null, suffix: kind === 'days' ? 'days' : null, error: errs[i],
+            setField: (v) => { const k2 = FIELD[v].kind; setRule(i, { field: v, op: OPS[k2][0].value, value: k2 === 'text' ? valueOpts(v)[0].value : k2 === 'bool' ? '' : k2 === 'days' ? '90' : '' }); },
+            setOp: (v) => setRule(i, { op: v }), setValue: (v) => setRule(i, { value: v }), setValueEv: (ev) => setRule(i, { value: ev.target.value }),
+            remove: () => this.setState((x) => ({ ed: Object.assign({}, x.ed, { rules: x.ed.rules.filter((_, j) => j !== i) }) })) };
+        }),
+        addRule: () => this.setState((x) => ({ ed: Object.assign({}, x.ed, { rules: x.ed.rules.concat([{ field: 'lastOrder', op: 'within', value: '90' }]) }) })),
+        count: valid ? F.int(m.length) + ' customers' : '—', countSub: valid ? (m.length / n * 100).toFixed(1) + '% of ' + (chan ? store.label : 'all customers') + ' · ' + F.int(reach) + ' reachable by email · ' + F.money0(m.reduce((a, c) => a + c.rev30, 0)) + ' revenue in 30 days' : 'Fix the highlighted values to see a count',
+        sample: valid && m.length ? 'For example ' + m.slice().sort((a, b) => b.lastTs - a.lastTs).slice(0, 3).map((c) => c.name).join(', ') : valid ? 'No one matches yet. Loosen a condition.' : '',
+        cta: e.key ? 'Save segment' : 'Create segment',
+        save: () => {
+          if (nameError || !valid) return this.setState({ ed: Object.assign({}, e, { touched: true }) });
+          const fields = { name: e.name.trim(), desc: e.desc.trim(), match: e.match, rules: e.rules.map((r) => Object.assign({}, r)), updated: F.NOW, by: F.USER.name };
+          if (e.key) { this.setState((x) => ({ segs: x.segs.map((y) => (y.key === e.key ? Object.assign({}, y, fields) : y)), ed: null })); this.showToast(fields.name + ' saved', F.int(m.length) + ' customers match.'); return; }
+          const key = 'custom-' + s.seq;
+          this.setState((x) => ({ segs: x.segs.concat([Object.assign({ key, usedIn: [], tone: 'neutral' }, fields)]), seq: x.seq + 1, ed: null, detail: key, tab: 'all', query: '' }));
+          this.showToast(fields.name + ' created', F.int(m.length) + ' customers match. It updates as customers order.');
+        } };
+    }
+    const delSeg = s.del ? s.segs.find((x) => x.key === s.del) : null;
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(s.segs.length, 'segment') + ' · ' + F.plural(s.segs.filter((x) => x.usedIn.length).length, 'in use', 'in use'), metaStore: chan ? 'Counting ' + store.label + ' customers only' : 'Counting all ' + F.int(n) + ' customers',
+      lifeAria: life.map((l) => l.label + ' ' + l.count).join(', '), life,
+      tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      cards, shown: cards.length > 0, empty: cards.length === 0,
+      dp, closeDetail: () => this.setState({ detail: null }),
+      edOpen: !!s.ed, newSeg: () => this.setState({ ed: this.draft(null) }), closeEd: () => this.setState({ ed: null }), ed,
+      fieldOpts: C.SEG_FIELDS.map((f) => ({ value: f.value, label: f.label })), matchOpts: [{ value: 'all', label: 'all conditions' }, { value: 'any', label: 'any condition' }],
+      delOpen: !!delSeg, closeDel: () => this.setState({ del: null }), del: { title: delSeg ? 'Delete ' + delSeg.name + '?' : '', go: () => { this.setState((x) => ({ segs: x.segs.filter((y) => y.key !== s.del), del: null, detail: null })); this.showToast(delSeg.name + ' deleted', 'You can rebuild it from the same rules any time.', 'info'); } },
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- segments: Fernhill customers (customers.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, C = window.FernhillCustomers, CommerceOS = window.CommerceOS;
+var FIELD = {}; C.SEG_FIELDS.forEach(function (f) { FIELD[f.value] = f; });
+var OPS = {
+  number: [{ value: 'gte', label: 'is at least' }, { value: 'lte', label: 'is at most' }, { value: 'gt', label: 'is more than' }, { value: 'lt', label: 'is less than' }, { value: 'eq', label: 'is exactly' }],
+  days: [{ value: 'within', label: 'was in the last' }, { value: 'before', label: 'was more than' }],
+  text: [{ value: 'eq', label: 'is' }, { value: 'neq', label: 'is not' }],
+  bool: [{ value: 'yes', label: 'is subscribed' }, { value: 'no', label: 'is not subscribed' }]
+};
+var OP_LABEL = { gte: 'at least', lte: 'at most', gt: 'more than', lt: 'less than', eq: 'exactly' };
+function valueOpts(field) {
+  if (field === 'channel') return Object.keys(C.CHANNEL_LABEL).map(function (k) { return { value: k, label: C.CHANNEL_LABEL[k] }; });
+  if (field === 'country') { var seen = {}; return C.CUSTOMERS.map(function (c) { return c.country; }).filter(function (x) { if (seen[x]) return false; seen[x] = 1; return true; }).sort().map(function (x) { return { value: x, label: x }; }); }
+  if (field === 'group') return C.GROUPS.map(function (g) { return { value: g.key, label: g.name }; });
+  if (field === 'source') return C.SOURCES.map(function (x) { return { value: x, label: x }; });
+  return [];
+}
+function valueLabel(r) {
+  if (r.field === 'channel') return C.CHANNEL_LABEL[r.value];
+  if (r.field === 'group') return (C.GROUP[r.value] || {}).name || r.value;
+  return r.value;
+}
+function ruleLine(r) {
+  var f = FIELD[r.field];
+  if (f.kind === 'number') return f.label + ' is ' + OP_LABEL[r.op] + ' ' + (f.prefix || '') + F.int(Number(r.value));
+  if (f.kind === 'days') return f.label + (r.op === 'within' ? ' was in the last ' : ' was more than ') + r.value + ' days' + (r.op === 'before' ? ' ago' : '');
+  if (f.kind === 'bool') return r.op === 'yes' ? 'Subscribed to email marketing' : 'Not subscribed to email marketing';
+  return f.label + (r.op === 'neq' ? ' is not ' : ' is ') + valueLabel(r);
+}
+function ruleText(seg) { return seg.rules.map(ruleLine).join(seg.match === 'any' ? ' or ' : ' and '); }
+</script>
+</body>
+</html>

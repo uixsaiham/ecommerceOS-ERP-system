@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shipping · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./orders.js?v=1"></script>
+<script src="./fulfillment.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Shipping ---------- */
+.sh-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.sh-slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.sh-slot{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font-size:13px;line-height:18px;min-width:0}
+.sh-slot strong{font-size:18px;line-height:24px;font-variant-numeric:tabular-nums}
+.sh-slot.is-done{background:var(--bg-subtle);color:var(--text-muted)}
+.sh-slot.is-done strong{color:var(--text-muted)}
+.sh-slot.is-next{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.sh-trk{font-family:var(--font-mono);font-size:12px}
+.sh-bad{color:var(--danger);font-weight:500}
+.sh-row-acts{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.sh-sum{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-subtle);font-size:13px;line-height:18px}
+.sh-sum div{display:flex;justify-content:space-between;gap:12px}
+.sh-sum strong{font-variant-numeric:tabular-nums}
+.sh-hand{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg-subtle);font-size:13px;flex-wrap:wrap}
+@media (max-width:1279px){ .c-box{display:none} }
+@media (max-width:1023px){ .sh-kpis{display:flex} .sh-slots{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:767px){ .o-head-actions{flex-wrap:wrap} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="fulfillment/shipping" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="fulfillment/shipping"></x-import>
+<h1>Shipping</h1>
+<p class="ph-sub">Packed orders waiting for a label or the carrier, and today’s pickups at the dock.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>{{localTime}}</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Warehouse" options="{{whOpts}}" value="{{wh}}" on-value-change="{{setWh}}" width="210px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="file-text" disabled="{{noLabels}}" on-click="{{buyAll}}">{{buyLabel}}</x-import>
+</div>
+</div>
+
+<section class="o-kpis sh-kpis" aria-label="Shipping summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<sc-if value="{{missed}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning" title="{{missed.title}}" actions="{{missed.actions}}">{{missed.text}}</x-import></sc-if>
+
+<section aria-label="Pickups today">
+<div class="sh-slots"><sc-for list="{{slots}}" as="p" hint-placeholder-count="4"><div class="{{p.cls}}"><span class="o-sub">{{p.when}}</span><strong>{{p.carrier}}</strong><span>{{p.count}}</span></div></sc-for></div>
+</section>
+
+<section class="o-card" aria-label="Parcels">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Carrier" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<sc-if value="{{hand}}" hint-placeholder-val="{{false}}"><div class="sh-hand"><span>{{hand.text}}</span><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="truck" disabled="{{hand.disabled}}" on-click="{{hand.go}}">{{hand.label}}</x-import></div></sc-if>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Parcels ready to ship">
+<thead><tr><th scope="col">Order</th><th scope="col">Customer</th><th scope="col">Service</th><th class="c-box" scope="col">Parcel</th><th scope="col">Label</th><th scope="col">Status</th><th class="c-act" scope="col" style="width: auto"><span class="cx-sr">Actions</span></th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="10"><tr>
+<td><span class="o-id">{{r.id}}</span><span class="o-sub">{{r.packed}}</span></td>
+<td><span>{{r.customer}}</span><span class="o-sub">{{r.channel}}</span></td>
+<td><span>{{r.carrier}}</span><span class="o-sub">{{r.service}}</span></td>
+<td class="c-box"><span>{{r.box}}</span><span class="o-sub">{{r.weight}}</span></td>
+<td><span class="{{r.labelCls}}">{{r.label}}</span><span class="o-sub">{{r.labelSub}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.status}}</x-import></td>
+<td class="c-act" style="width: auto; padding-right: 12px"><div class="sh-row-acts"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></div></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Parcels ready to ship"><sc-for list="{{rows}}" as="r" hint-placeholder-count="6"><li class="o-m-card"><div class="o-m-top"><span class="o-id" style="flex: 1">{{r.id}}</span><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}">{{r.status}}</x-import></div><div class="o-m-mid"><div><span class="td-strong">{{r.customer}}</span><span class="o-sub">{{r.carrier}} · {{r.label}}</span></div></div><div class="o-m-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></div></li></sc-for></ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="check-circle" title="Nothing waiting here" description="Packed orders show up here until the carrier collects them."></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{lbOpen}}" on-close="{{closeLb}}" size="sm" title="{{lb.title}}" description="Labels are bought on Fernhill’s carrier accounts and print at the shipping desk.">
+<div class="o-modal-stack">
+<div class="sh-sum"><sc-for list="{{lb.lines}}" as="l" hint-placeholder-count="2"><div><span>{{l.label}}</span><strong>{{l.value}}</strong></div></sc-for></div>
+<sc-if value="{{lb.intl}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="info">{{lb.intl}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeLb}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="file-text" on-click="{{lb.save}}">{{lb.cta}}</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const q = new URLSearchParams(window.location.search);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      wh: X.SITES.indexOf(q.get('wh')) >= 0 ? q.get('wh') : 'dhk', tab: 'all', labels: {}, gone: {}, notified: {}, lb: null };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.lb && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  label(f) { return this.state.labels[f.id] || f.label; }
+  rate(f) { const intl = (f.site === 'dhk' || f.site === 'ctg') && f.channel !== 'Wholesale' && f.delivery !== 'Same-day', w = f.weight || X.weightOf(f);
+    const base = { 'DHL eCommerce': intl ? 14.2 : 6.4, FedEx: intl ? 31.5 : 12.8, 'Pathao Courier': 1.1, Trunkrs: 5.9, 'Uber Direct': 9.5, PostNL: 5.2 }[f.carrier] || 6;
+    return Math.round((base + Math.max(0, w - 0.5) * (intl ? 6 : 1.8)) * 100) / 100; }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), chan = s.store === 'all' ? null : F.channelOf(s.store).label, w = I.WH[s.wh];
+    const ready = X.OPEN.filter((f) => f.site === s.wh && f.step === 'ship' && !s.gone[f.id] && (!chan || f.channel === chan));
+    const carriers = Array.from(new Set(ready.map((f) => f.carrier))).sort((a, b) => (a === 'Collection') - (b === 'Collection') || a.localeCompare(b));
+    const noLabel = ready.filter((f) => f.carrier !== 'Collection' && !this.label(f)), missed = ready.filter((f) => f.missed);
+    const slotsAll = X.PICKUPS[s.wh].map((p) => ({ carrier: p[0], ts: X.localToday(s.wh, p[1]) })), next = slotsAll.find((p) => p.ts > F.NOW);
+    const inH = (ts) => { const m = Math.round((ts - F.NOW) / 6e4); return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min'; };
+    const shippedToday = X.SHIPMENTS.filter((x) => x.site === s.wh && x.shipped >= F.DAY0);
+    const kpis = [
+      { label: 'Packed, waiting to ship', dot: 'cx-dot cx-dot-brand', value: F.int(ready.length), cmp: F.int(ready.filter((f) => f.carrier === 'Collection').length) + ' for customer collection' },
+      { label: 'Need a label', dot: 'cx-dot cx-dot-warning', value: F.int(noLabel.length), cmp: noLabel.length ? F.money2(noLabel.reduce((a, f) => a + this.rate(f), 0)) + ' at current rates' : 'Every parcel is labelled' },
+      { label: 'Missed a pickup', dot: 'cx-dot cx-dot-danger', value: F.int(missed.length), cmp: missed.length ? 'oldest packed ' + F.timeAgo(Math.min(...missed.map((f) => f.packed))) : 'None' },
+      { label: 'Next pickup', dot: 'cx-dot cx-dot-success', value: next ? X.localHour(s.wh, next.ts) : '—', cmp: next ? next.carrier + ' · in ' + inH(next.ts) + ' local time' : 'No more pickups today · ' + F.plural(shippedToday.length, 'parcel') + ' shipped' }
+    ];
+    const slots = slotsAll.map((p) => { const done = p.ts <= F.NOW, isNext = next && p === next, n = done ? shippedToday.filter((x) => x.carrier === p.carrier && Math.abs(x.shipped - p.ts) < 6e4).length : ready.filter((f) => f.carrier === p.carrier && this.label(f)).length;
+      return { when: X.localHour(s.wh, p.ts) + ' local' + (isNext ? ' · next, in ' + inH(p.ts) : done ? ' · done' : ''), carrier: p.carrier, count: done ? (n ? F.plural(n, 'parcel') + ' collected' : 'nothing collected') : F.plural(n, 'labelled parcel') + ' ready', cls: 'sh-slot' + (done ? ' is-done' : isNext ? ' is-next' : '') }; });
+    const tabs = [{ id: 'all', label: 'All', count: F.int(ready.length) }].concat(carriers.map((c) => ({ id: c, label: c === 'Collection' ? 'Customer collection' : c, count: F.int(ready.filter((f) => f.carrier === c).length) })));
+    const tab = s.tab === 'all' || carriers.indexOf(s.tab) >= 0 ? s.tab : 'all';
+    const list = ready.filter((f) => tab === 'all' || f.carrier === tab).sort((a, b) => (b.missed ? 1 : 0) - (a.missed ? 1 : 0) || (this.label(a) ? 1 : 0) - (this.label(b) ? 1 : 0) || a.priority - b.priority);
+    const buyFor = (fs) => this.setState({ lb: { ids: fs.map((f) => f.id) } });
+    const rows = list.map((f) => { const lab = this.label(f), coll = f.carrier === 'Collection', notified = s.notified[f.id];
+      const st = coll ? (notified ? ['success', 'Customer notified', 'check'] : ['info', 'Ready to collect', 'inbox']) : f.missed ? ['danger', 'Missed pickup', 'alert-triangle'] : lab ? ['brand', 'Ready for pickup', 'truck'] : ['warning', 'Needs a label', 'file-text'];
+      return { id: f.id, packed: 'Packed ' + F.timeAgo(f.packed) + ' by ' + f.packedBy.split(' ')[0], customer: f.customer, channel: f.channel, carrier: coll ? 'Customer collects' : f.carrier, service: coll ? 'At the ' + w.short + ' pickup desk' : f.delivery,
+        box: f.box, weight: (f.weight || X.weightOf(f)).toFixed(2) + ' kg', label: coll ? 'No label needed' : lab || 'No label yet', labelCls: lab ? 'sh-trk' : coll ? '' : 'sh-bad', labelSub: lab && !coll ? F.money2(this.rate(f)) : '',
+        status: st[1], tone: st[0], icon: st[2],
+        btnLabel: coll ? (notified ? 'Mark collected' : 'Notify customer') : !lab ? 'Buy label' : f.missed ? 'Book pickup' : 'Reprint', btnVariant: coll || !lab || f.missed ? 'primary' : 'ghost',
+        act: () => { if (coll) { if (notified) { this.setState((x) => ({ gone: Object.assign({}, x.gone, { [f.id]: true }) })); this.showToast(f.id + ' collected', f.customer + ' picked it up. The order is now fulfilled.'); } else { this.setState((x) => ({ notified: Object.assign({}, x.notified, { [f.id]: true }) })); this.showToast(f.customer + ' notified', 'Email and SMS sent with the pickup desk hours: ' + w.hours + '.'); } }
+          else if (!lab) buyFor([f]);
+          else if (f.missed) { const nx = slotsAll.find((p) => p.ts > F.NOW && p.carrier === f.carrier); this.showToast(nx ? 'Added to the ' + X.localHour(s.wh, nx.ts) + ' ' + f.carrier + ' pickup' : 'Extra pickup requested from ' + f.carrier, nx ? 'Move the parcel to the ' + f.carrier + ' cage at the dock.' : 'They usually confirm within an hour.', 'success'); }
+          else this.showToast('Label reprinted', lab + ' sent to the shipping desk printer.', 'info'); } }; });
+
+    const missedAlert = missed.length ? { title: F.plural(missed.length, 'parcel') + ' missed their pickup at ' + w.short, text: Array.from(new Set(missed.map((f) => f.carrier))).join(' and ') + ' didn’t collect them. Add them to the next pickup or book an extra one.',
+      actions: [h(CommerceOS.Button, { key: 'a', variant: 'secondary', size: 'sm', onClick: () => this.showToast('Missed parcels added to the next pickups', F.plural(missed.length, 'parcel') + ' moved to the front of the ' + Array.from(new Set(missed.map((f) => f.carrier))).join(' and ') + ' cages.') }, 'Add to next pickups')] } : null;
+
+    const handCarrier = tab !== 'all' && tab !== 'Collection' ? tab : null, handN = handCarrier ? ready.filter((f) => f.carrier === handCarrier && this.label(f)).length : 0, handSlot = handCarrier ? slotsAll.find((p) => p.carrier === handCarrier && p.ts > F.NOW) : null;
+    const hand = handCarrier ? { text: handSlot ? handCarrier + ' collects at ' + X.localHour(s.wh, handSlot.ts) + ' local (in ' + inH(handSlot.ts) + '). Hand over when the driver arrives.' : 'No more ' + handCarrier + ' pickups today. Book an extra one or they go tomorrow.',
+      label: 'Hand over ' + F.plural(handN, 'parcel'), disabled: handN === 0,
+      go: () => { const ids = ready.filter((f) => f.carrier === handCarrier && this.label(f)).map((f) => f.id); const g = Object.assign({}, s.gone); ids.forEach((id) => { g[id] = true; }); this.setState({ gone: g });
+        this.showToast(F.plural(ids.length, 'parcel') + ' handed to ' + handCarrier, 'Manifest ' + handCarrier.slice(0, 3).toUpperCase() + '-' + s.wh.toUpperCase() + '-1001 signed. Customers got their tracking links; follow them in Delivery Tracking.'); } } : null;
+
+    let lb = { title: '', lines: [] };
+    if (s.lb) {
+      const fs = s.lb.ids.map((id) => X.OPEN.find((f) => f.id === id)), by = {};
+      fs.forEach((f) => { by[f.carrier] = by[f.carrier] || { n: 0, cost: 0 }; by[f.carrier].n++; by[f.carrier].cost += this.rate(f); });
+      const total = fs.reduce((a, f) => a + this.rate(f), 0), intl = fs.filter((f) => (f.site === 'dhk' || f.site === 'ctg') && f.channel !== 'Wholesale' && f.delivery !== 'Same-day').length;
+      lb = { title: fs.length === 1 ? 'Buy a label for ' + fs[0].id : 'Buy ' + fs.length + ' labels', lines: Object.keys(by).map((c) => ({ label: c + ' · ' + F.plural(by[c].n, 'label'), value: F.money2(by[c].cost) })).concat([{ label: 'Total', value: F.money2(total) }]),
+        intl: intl ? F.plural(intl, 'parcel') + ' leave Bangladesh; commercial invoices and customs declarations print with the labels.' : null, cta: 'Buy for ' + F.money2(total),
+        save: () => { const l = Object.assign({}, s.labels); fs.forEach((f) => { l[f.id] = X.trackingNo(f.carrier, f.id); }); this.setState({ labels: l, lb: null });
+          this.showToast(F.plural(fs.length, 'label') + ' bought', F.money2(total) + ' charged to the carrier accounts. They’re printing at the ' + w.short + ' shipping desk.'); } };
+    }
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(ready.length, 'parcel') + ' at ' + w.name + ' · ' + F.plural(shippedToday.length, 'shipped', 'shipped') + ' today', localTime: X.localHour(s.wh, F.NOW) + ' local time',
+      whOpts: X.SITES.map((k) => ({ value: k, label: I.WH[k].name })), wh: s.wh, setWh: (v) => this.setState({ wh: v, tab: 'all' }),
+      noLabels: noLabel.length === 0, buyLabel: noLabel.length ? 'Buy ' + F.plural(noLabel.length, 'label') : 'All labelled', buyAll: () => buyFor(noLabel),
+      kpis, missed: missedAlert, slots, tabs, tab, setTab: (id) => this.setState({ tab: id }), hand,
+      rows, shown: rows.length > 0, empty: rows.length === 0,
+      lbOpen: !!s.lb, closeLb: () => this.setState({ lb: null }), lb,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- shipping: Fernhill orders (orders.js) and fulfillment (fulfillment.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, X = window.FernhillFulfillment, h = window.React.createElement, CommerceOS = window.CommerceOS;
+</script>
+</body>
+</html>

@@ -187,13 +187,13 @@
   /* ---------- warehouse operations (Warehouses pages) ---------- */
   var OPS = {
     dhk: { address: 'Plot 14, Tejgaon Industrial Area, Dhaka 1208', manager: 'Jamal Uddin', phone: '+880 2 5501 2290', staff: 22, sqm: 3200, docks: 4, hours: 'Sat–Thu, 08:00–20:00', cutoff: '16:00', tz: 'BST',
-      status: 'operational', shippedToday: 64, toShip: 41, late: 0, onTime: 0.97, accuracy: 0.995, pickHours: 5.2, cost: 0.92 },
+      status: 'busy', note: '25 orders are past the 24-hour processing target after the weekend sale. Two extra pickers are on the afternoon shift.', shippedToday: 10, toShip: 100, late: 25, onTime: 0.97, accuracy: 0.995, pickHours: 5.2, cost: 0.92 },
     ctg: { address: 'Bay Terminal Road, Patenga, Chattogram 4204', manager: 'Nusrat Jahan', phone: '+880 31 250 4471', staff: 14, sqm: 2400, docks: 3, hours: 'Sat–Thu, 08:00–20:00', cutoff: '15:00', tz: 'BST',
-      status: 'operational', shippedToday: 22, toShip: 18, late: 0, onTime: 0.98, accuracy: 0.993, pickHours: 6.1, cost: 0.88 },
+      status: 'operational', note: '17 orders are past the 24-hour target; most are export orders waiting on the 16:00 Pathao pickup.', shippedToday: 4, toShip: 73, late: 17, onTime: 0.98, accuracy: 0.993, pickHours: 6.1, cost: 0.88 },
     rtm: { address: 'Waalhaven Zuidzijde 41, 3089 JH Rotterdam', manager: 'Sofie de Vries', phone: '+31 10 808 2140', staff: 26, sqm: 4100, docks: 6, hours: 'Mon–Sat, 07:00–22:00', cutoff: '15:00', tz: 'CET',
-      status: 'busy', note: '14 orders are past the 24-hour processing target. Two pickers are out sick this week.', shippedToday: 118, toShip: 96, late: 14, onTime: 0.86, accuracy: 0.991, pickHours: 19.4, cost: 1.64 },
+      status: 'busy', note: '20 orders are past the 24-hour processing target. Two pickers are out sick this week.', shippedToday: 0, toShip: 70, late: 20, onTime: 0.86, accuracy: 0.991, pickHours: 19.4, cost: 1.64 },
     ewr: { address: '600 Doremus Avenue, Newark, NJ 07105', manager: 'Marcus Reed', phone: '+1 (973) 555-0148', staff: 31, sqm: 5200, docks: 8, hours: 'Mon–Fri, 06:00–22:00 · Sat, 08:00–16:00', cutoff: '14:00', tz: 'ET',
-      status: 'operational', note: 'Roof leak over aisle 7 is being repaired. Bins C-07-01 to C-07-05 are blocked until Oct 3.', shippedToday: 162, toShip: 74, late: 3, onTime: 0.95, accuracy: 0.996, pickHours: 7.8, cost: 1.38 },
+      status: 'operational', note: 'Roof leak over aisle 7 is being repaired. Bins C-07-01 to C-07-05 are blocked until Oct 3.', shippedToday: 0, toShip: 43, late: 9, onTime: 0.95, accuracy: 0.996, pickHours: 7.8, cost: 1.38 },
     syd: { address: 'Unit 3, 20 Bourke Road, Alexandria NSW 2015', manager: 'Liam Chen (Harbour Logistics)', phone: '+61 2 9037 4410', staff: 6, sqm: 900, docks: 2, hours: 'Mon–Fri, 08:00–17:00', cutoff: '13:00', tz: 'AEST',
       status: 'operational', partner: 'Harbour Logistics Pty Ltd', shippedToday: 19, toShip: 7, late: 0, onTime: 0.99, accuracy: 0.998, pickHours: 4.1, cost: 2.65 }
   };
@@ -249,8 +249,9 @@
     var r = F.rng(6151), sups = ['Narayanganj Garments Ltd.', 'Porto Knit Lda.', 'Saigon Outdoor Co.', 'Baltic Linen UAB', 'Anatolia Socks', 'Highland Mill', 'Dhaka Loom Co.'], active = ITEMS.filter(function (it) { return it.p.status === 'active'; });
     for (var i = 0; i < 26; i++) {
       var wx = r(), w = wx < 0.35 ? 'ewr' : wx < 0.6 ? 'rtm' : wx < 0.85 ? 'dhk' : wx < 0.95 ? 'ctg' : 'syd', at = NOW - (1 + i * 1.1 + r()) * DAY, nl = 2 + Math.floor(r() * 4), lines = [], seen = {};
-      for (var l = 0; l < nl; l++) { var it = active[Math.floor(r() * active.length)]; if (seen[it.sku]) continue; seen[it.sku] = 1; var q = 20 * (2 + Math.floor(r() * 9)), short = r() < 0.03 ? Math.ceil(q * 0.05) : 0, dmg = r() < 0.03 ? 1 + Math.floor(r() * 3) : 0; lines.push([it.sku, q, q - short, dmg]); }
-      rc({ ref: 'PO-' + (20411 - i), kind: 'po', from: sups[Math.floor(r() * sups.length)], wh: w, status: 'completed', eta: at - 2 * 36e5, arrived: at - 2 * 36e5, completed: at, dock: 'Dock ' + (1 + Math.floor(r() * WH[w].docks)), carrier: 'Freight', cartons: Math.ceil(lines.reduce(function (a, x) { return a + x[1]; }, 0) / 24), by: WH[w].manager.split(' (')[0], lines: lines });
+      var sup = sups[Math.floor(r() * sups.length)], own = active.filter(function (x) { return x.supplier === sup; }); if (!own.length) own = active;
+      for (var l = 0; l < nl; l++) { var it = own[Math.floor(r() * own.length)]; if (seen[it.sku]) continue; seen[it.sku] = 1; var q = 20 * (2 + Math.floor(r() * 9)), short = r() < 0.03 ? Math.ceil(q * 0.05) : 0, dmg = r() < 0.03 ? 1 + Math.floor(r() * 3) : 0; lines.push([it.sku, q, q - short, dmg]); }
+      rc({ ref: 'PO-' + (20411 - i), kind: 'po', from: sup, wh: w, status: 'completed', eta: at - 2 * 36e5, arrived: at - 2 * 36e5, completed: at, dock: 'Dock ' + (1 + Math.floor(r() * WH[w].docks)), carrier: 'Freight', cartons: Math.ceil(lines.reduce(function (a, x) { return a + x[1]; }, 0) / 24), by: WH[w].manager.split(' (')[0], lines: lines });
     }
   })();
   window.FernhillInventory = {

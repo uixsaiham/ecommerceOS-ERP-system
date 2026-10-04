@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Picking · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./orders.js?v=1"></script>
+<script src="./fulfillment.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Picking ---------- */
+.pk-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pk-late{color:var(--danger);font-weight:500}
+.pk-zones{display:flex;gap:4px;flex-wrap:wrap}
+.pk-zone{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 4px;border-radius:var(--radius-xs);background:var(--bg-muted);font-size:11px;font-weight:600;color:var(--text-secondary)}
+.pk-lists{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:16px}
+.pk-card{display:flex;flex-direction:column;gap:8px;padding:14px 16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;min-width:0}
+.pk-card:hover{border-color:var(--border-strong)}
+.pk-card:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.pk-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pk-card-top strong{font-family:var(--font-mono);font-size:13px}
+.pk-who{display:flex;align-items:center;gap:8px;font-size:13px}
+.pk-av{flex:none;width:26px;height:26px;border-radius:var(--radius-full);display:inline-flex;align-items:center;justify-content:center;background:var(--brand-subtle);color:var(--brand);font-size:11px;font-weight:600}
+.pk-prog{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary)}
+.pk-prog .pr-meter{flex:1}
+.pk-prog .pr-meter > span{background:var(--brand)}
+/* pick list panel */
+.pk-route{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.pk-line{display:grid;grid-template-columns:24px 76px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:18px}
+.pk-line:last-child{border-bottom:0}
+.pk-line.is-done .pk-what{color:var(--text-muted);text-decoration:line-through}
+.pk-line.is-short .pk-bin{color:var(--danger)}
+.pk-bin{font-family:var(--font-mono);font-size:12px;font-weight:600}
+.pk-what{display:flex;flex-direction:column;min-width:0}
+.pk-what .o-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk-qty{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.pk-qty strong{font-size:15px}
+.pk-zone-h{padding:8px 0 4px;font-size:12px;font-weight:600;color:var(--text-secondary);border-bottom:1px solid var(--border)}
+.pk-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pk-sum{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--text-secondary)}
+.pk-sum strong{color:var(--text-primary)}
+@media (max-width:1279px){ .pk-lists{grid-template-columns:repeat(2,minmax(0,1fr))} .c-chan{display:none} }
+@media (max-width:1023px){ .pk-kpis{display:flex} }
+@media (max-width:767px){ .pk-lists{grid-template-columns:minmax(0,1fr);padding:12px} .pk-grid2{grid-template-columns:1fr} .o-head-actions{flex-wrap:wrap} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="fulfillment/picking" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="fulfillment/picking"></x-import>
+<h1>Picking</h1>
+<p class="ph-sub">Batch paid orders into pick lists and walk each list in bin order.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>{{localTime}}</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Warehouse" options="{{whOpts}}" value="{{wh}}" on-value-change="{{setWh}}" width="210px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="clipboard-list" disabled="{{noneToPick}}" on-click="{{createAuto}}">{{createLabel}}</x-import>
+</div>
+</div>
+
+<section class="o-kpis pk-kpis" aria-label="Picking summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<sc-if value="{{alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning" title="{{alert.title}}">{{alert.text}}</x-import></sc-if>
+
+<section class="o-card" aria-label="Picking">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Picking view" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+
+<sc-if value="{{isQueue}}" hint-placeholder-val="{{true}}">
+<div class="o-tools"><div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by order, customer or SKU" label="Search orders to pick" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Delivery" options="{{delOpts}}" value="{{del}}" on-value-change="{{setDel}}" width="180px"></x-import>
+</div></div>
+<div class="o-bulkwrap">
+<sc-if value="{{bulk.show}}" hint-placeholder-val="{{false}}">
+<div class="o-bulk" role="region" aria-label="Bulk actions">
+<span class="o-bulk-count">{{bulk.count}}</span>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="clipboard-list" on-click="{{bulk.create}}"><span class="o-bulk-label">Create pick list</span></x-import>
+<div class="o-bulk-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" on-click="{{bulk.clear}}">Clear selection</x-import></div>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Orders to pick">
+<thead><tr>
+<th class="c-check" scope="col"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="Select all orders" checked="{{allSel}}" indeterminate="{{someSel}}" on-change="{{toggleAll}}"></x-import></th>
+<th scope="col">Order</th><th scope="col">Customer</th><th scope="col">Delivery</th><th class="is-right" scope="col">Units</th><th scope="col">Zones</th><th class="c-chan" scope="col">Store</th><th scope="col">Waiting</th>
+</tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="12"><tr>
+<td class="c-check"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="{{r.selAria}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import></td>
+<td><span class="o-id">{{r.id}}</span><span class="o-sub">{{r.placed}}</span></td>
+<td><span>{{r.customer}}</span><span class="o-sub">{{r.lines}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.dTone}}">{{r.delivery}}</x-import></td>
+<td class="is-right">{{r.units}}</td>
+<td><span class="pk-zones"><sc-for list="{{r.zones}}" as="z" hint-placeholder-count="2"><span class="pk-zone">{{z}}</span></sc-for></span></td>
+<td class="c-chan">{{r.channel}}</td>
+<td><span class="{{r.ageCls}}">{{r.age}}</span><span class="o-sub">{{r.ageSub}}</span></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Orders to pick"><sc-for list="{{rows}}" as="r" hint-placeholder-count="6"><li class="o-m-card"><div class="o-m-top"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="{{r.selAria}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import><span class="o-id" style="flex: 1">{{r.id}}</span><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.dTone}}">{{r.delivery}}</x-import></div><div class="o-m-mid"><div><span class="td-strong">{{r.customer}}</span><span class="o-sub">{{r.units}} units · <span class="{{r.ageCls}}">{{r.age}}</span></span></div></div></li></sc-for></ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="check-circle" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import></sc-if>
+</sc-if>
+
+<sc-if value="{{isLists}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{hasLists}}" hint-placeholder-val="{{true}}">
+<div class="pk-lists"><sc-for list="{{lists}}" as="l" hint-placeholder-count="6">
+<button class="pk-card" onClick="{{l.open}}">
+<span class="pk-card-top"><strong>{{l.id}}</strong><x-import component-from-global-scope="CommerceOS.Badge" tone="{{l.tone}}">{{l.status}}</x-import></span>
+<span class="pk-who"><span class="pk-av" aria-hidden="true">{{l.initials}}</span><span class="pr-cell-main"><span>{{l.picker}}</span><span class="o-sub">{{l.cart}} · {{l.started}}</span></span></span>
+<span class="pk-prog"><span class="pr-meter"><span style="{{l.w}}"></span></span><span>{{l.progress}}</span></span>
+<span class="o-sub">{{l.sub}}</span>
+<span class="pk-zones"><sc-for list="{{l.zones}}" as="z" hint-placeholder-count="3"><span class="pk-zone">{{z}}</span></sc-for></span>
+</button>
+</sc-for></div>
+</sc-if>
+<sc-if value="{{noLists}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="clipboard-list" title="No pick lists running" description="Create one from the orders waiting to be picked."></x-import></sc-if>
+</sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close pick list" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="pk-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="pk-dp-title">{{dp.id}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close pick list" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<div class="pk-prog"><span class="pr-meter"><span style="{{dp.w}}"></span></span><span>{{dp.progress}}</span></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">{{dp.alert}}</x-import></sc-if>
+<dl class="dp-kv"><dt>Picker</dt><dd>{{dp.picker}}</dd><dt>Cart</dt><dd>{{dp.cart}}</dd><dt>Started</dt><dd>{{dp.started}}</dd><dt>Orders</dt><dd>{{dp.orders}}</dd></dl>
+</section>
+<section class="o-panel-sec"><h3>Route · bin order</h3>
+<ul class="pk-route"><sc-for list="{{dp.lines}}" as="l" hint-placeholder-count="10">
+<sc-if value="{{l.zoneHead}}" hint-placeholder-val="{{false}}"><li class="pk-zone-h">{{l.zoneHead}}</li></sc-if>
+<li class="{{l.cls}}">
+<x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="{{l.aria}}" checked="{{l.done}}" disabled="{{l.short}}" on-change="{{l.toggle}}"></x-import>
+<span class="pk-bin">{{l.bin}}</span>
+<span class="pk-what"><span>{{l.name}}</span><span class="o-sub">{{l.variant}} · <span class="iv-sku">{{l.sku}}</span> · {{l.order}}</span></span>
+<span class="pk-qty"><strong>×{{l.qty}}</strong><sc-if value="{{l.canShort}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" on-click="{{l.markShort}}">Short</x-import></sc-if><sc-if value="{{l.short}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Badge" tone="danger">Short</x-import></sc-if></span>
+</li>
+</sc-for></ul>
+</section>
+</div>
+<div class="o-panel-foot"><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="file-text" on-click="{{dp.print}}">Print list</x-import></div><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check-circle" disabled="{{dp.notDone}}" on-click="{{dp.finish}}">{{dp.finishLabel}}</x-import></div></div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{nlOpen}}" on-close="{{closeNl}}" size="md" title="{{nl.title}}" description="{{nl.desc}}">
+<div class="o-modal-stack">
+<div class="pk-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Picker" options="{{nl.pickerOpts}}" value="{{nl.picker}}" on-value-change="{{nl.setPicker}}" hint="{{nl.pickerHint}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Cart" options="{{nl.cartOpts}}" value="{{nl.cart}}" on-value-change="{{nl.setCart}}"></x-import></div>
+<div class="pk-sum"><span>Orders <strong>{{nl.orders}}</strong></span><span>Lines <strong>{{nl.lines}}</strong></span><span>Units <strong>{{nl.units}}</strong></span><span>Zones <strong>{{nl.zones}}</strong></span><span>About <strong>{{nl.minutes}}</strong></span></div>
+<sc-if value="{{nl.warn}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="info">{{nl.warn}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeNl}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="clipboard-list" on-click="{{nl.save}}">Start pick list</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","list","create"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none', q = new URLSearchParams(window.location.search);
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      wh: X.SITES.indexOf(q.get('wh')) >= 0 ? q.get('wh') : 'dhk', tab: q.get('tab') === 'lists' ? 'lists' : 'queue', query: '', del: '', sel: [],
+      steps: {}, lists: X.LISTS.map((l) => Object.assign({}, l, { orders: l.orders.slice(), lines: l.lines.map((x) => Object.assign({}, x)) })), detail: null, nl: null, seq: 1
+    };
+    if (demo === 'list') { this.state.tab = 'lists'; this.state.detail = this.state.lists.find((l) => l.site === 'dhk').id; }
+    if (demo === 'create') this.state.nl = { ids: X.OPEN.filter((f) => f.site === 'dhk' && f.step === 'pick').slice(0, 8).map((f) => f.id), picker: X.PICKERS.dhk[0], cart: 'Cart 7' };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.nl) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  step(f) { return this.state.steps[f.id] || f.step; }
+  queue(site) { return X.OPEN.filter((f) => f.site === site && this.step(f) === 'pick').sort((a, b) => a.priority - b.priority || a.ts - b.ts); }
+  setLine(listId, idx, patch) { this.setState((s) => ({ lists: s.lists.map((l) => (l.id === listId ? Object.assign({}, l, { lines: l.lines.map((x, i) => (i === idx ? Object.assign({}, x, patch) : x)) }) : l)) })); }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), chan = s.store === 'all' ? null : F.channelOf(s.store).label, w = I.WH[s.wh];
+    const mine = (f) => f.site === s.wh && (!chan || f.channel === chan);
+    const toPick = this.queue(s.wh).filter((f) => !chan || f.channel === chan);
+    const q = s.query.trim().toLowerCase();
+    const list = toPick.filter((f) => (!s.del || f.delivery === s.del) && (!q || f.id.toLowerCase().indexOf(q) >= 0 || f.customer.toLowerCase().indexOf(q) >= 0 || f.lines.some((l) => l.sku.toLowerCase().indexOf(q) >= 0)));
+    const zonesOf = (f) => Array.from(new Set(f.lines.map((l) => X.bin(l.sku, f.site).charAt(0)))).sort();
+    const rows = list.map((f) => { const sel = s.sel.indexOf(f.id) >= 0, h = (F.NOW - f.ts) / 36e5;
+      return { id: f.id, placed: 'Paid ' + F.fmtWhen(f.ts), customer: f.customer, lines: F.plural(f.lines.length, 'line'), delivery: f.delivery, dTone: DEL_TONE[f.delivery], units: F.int(f.units), zones: zonesOf(f), channel: f.channel,
+        age: h < 1 ? Math.round(h * 60) + ' min' : Math.round(h) + ' h', ageSub: f.late ? 'past the 24 h target' : f.delivery === 'Same-day' ? (h > 12 ? 'missed same-day' : 'ships today') : '', ageCls: f.late || (f.delivery === 'Same-day' && h > 12) ? 'pk-late' : '',
+        sel, selAria: 'Select ' + f.id, toggle: () => this.setState((x) => ({ sel: sel ? x.sel.filter((k) => k !== f.id) : x.sel.concat([f.id]) })) }; });
+    const lists = s.lists.filter((l) => l.site === s.wh);
+    const picking = X.OPEN.filter((f) => mine(f) && this.step(f) === 'picking');
+    const linesLeft = lists.reduce((a, l) => a + l.lines.filter((x) => !x.picked && !x.short).length, 0);
+    const hrs = HOURS[s.wh], lh = Number(X.localHour(s.wh, F.NOW).slice(0, 2)), on = lh >= hrs[0] && lh < hrs[1];
+    const kpis = [
+      { label: 'Waiting to be picked', dot: 'cx-dot cx-dot-brand', value: F.int(toPick.length), cmp: F.int(toPick.reduce((a, f) => a + f.units, 0)) + ' units · ' + toPick.filter((f) => f.delivery === 'Same-day' || f.delivery === 'Express').length + ' same-day or express' },
+      { label: 'On pick lists', dot: 'cx-dot cx-dot-info', value: F.int(picking.length), cmp: F.plural(lists.length, 'list') + ' · ' + F.plural(linesLeft, 'line') + ' left to pick' },
+      { label: 'Late, not yet picked', dot: 'cx-dot cx-dot-danger', value: F.int(toPick.filter((f) => f.late).length + picking.filter((f) => f.late).length), cmp: 'past the 24-hour target' },
+      { label: 'Pickers on shift', dot: 'cx-dot cx-dot-success', value: on ? F.int(X.PICKERS[s.wh].length) : '0', cmp: on ? (X.OUT[s.wh] ? X.OUT[s.wh].length + ' out sick: ' + X.OUT[s.wh].join(', ') : 'Shift until ' + hrs[1] + ':00 local') : 'Opens at ' + (hrs[0] < 10 ? '0' : '') + hrs[0] + ':00 local' }
+    ];
+    const sameDay = toPick.filter((f) => f.delivery === 'Same-day'), nextSd = X.PICKUPS[s.wh].map((p) => ({ carrier: p[0], ts: X.localToday(s.wh, p[1]) })).find((p) => p.ts > F.NOW && p.carrier !== 'DHL eCommerce' && p.carrier !== 'FedEx' && p.carrier !== 'PostNL');
+    const alert = sameDay.length && nextSd ? { title: F.plural(sameDay.length, 'same-day order') + ' not picked yet', text: nextSd.carrier + ' collects at ' + X.localHour(s.wh, nextSd.ts) + ' local. Put them on the next pick list so they make it.' } : null;
+    const tabs = [{ id: 'queue', label: 'Ready to pick', count: F.int(toPick.length) }, { id: 'lists', label: 'Pick lists', count: F.int(lists.length) }];
+
+    const listCards = lists.map((l) => { const done = l.lines.filter((x) => x.picked || x.short).length;
+      return { id: l.id, picker: l.picker || 'Next free picker', initials: l.picker ? F.initials(l.picker) : '–', cart: l.cart, started: l.started ? 'started ' + F.timeAgo(l.started) : 'queued', status: !l.picker ? 'Queued' : done === l.lines.length ? 'Ready to finish' : 'Picking', tone: !l.picker ? 'neutral' : done === l.lines.length ? 'success' : 'info',
+        w: 'width: ' + (done / l.lines.length * 100).toFixed(0) + '%', progress: done + ' of ' + l.lines.length + ' lines', sub: F.plural(l.orders.length, 'order') + ' · ' + F.int(l.lines.reduce((a, x) => a + x.qty, 0)) + ' units' + (l.lines.some((x) => x.short) ? ' · ' + l.lines.filter((x) => x.short).length + ' short' : ''),
+        zones: Array.from(new Set(l.lines.map((x) => x.bin.charAt(0)))).sort(), open: () => this.setState({ detail: l.id }) }; });
+
+    let dp = null;
+    if (s.detail) {
+      const l = s.lists.find((x) => x.id === s.detail);
+      if (l) {
+        const done = l.lines.filter((x) => x.picked || x.short).length, shorts = l.lines.filter((x) => x.short);
+        let prevZone = null;
+        dp = { id: l.id, sub: I.WH[l.site].name + ' · ' + F.plural(l.orders.length, 'order') + ' · ' + F.plural(l.lines.length, 'line'), picker: l.picker || 'Not assigned yet; the next picker to finish takes it', cart: l.cart, started: l.started ? F.fmtWhen(l.started) + ' (' + F.timeAgo(l.started) + ')' : 'Not started', orders: l.orders.join(', '),
+          w: 'width: ' + (done / l.lines.length * 100).toFixed(0) + '%', progress: done + ' of ' + l.lines.length + ' lines',
+          alert: shorts.length ? F.plural(shorts.length, 'line') + ' short. ' + Array.from(new Set(shorts.map((x) => x.order))).join(', ') + ' will wait in packing until stock is found or the customer agrees to a partial shipment. A cycle count was requested for ' + shorts.map((x) => x.bin).join(', ') + '.' : null,
+          lines: l.lines.map((x, i) => { const z = x.bin.charAt(0), head = z !== prevZone ? ZONE[z] : null; prevZone = z;
+            return { zoneHead: head, bin: x.bin, name: x.name, variant: x.variant, sku: x.sku, order: x.order, qty: x.qty, done: !!x.picked, short: !!x.short, canShort: !x.picked && !x.short,
+              cls: 'pk-line' + (x.picked ? ' is-done' : '') + (x.short ? ' is-short' : ''), aria: 'Picked ' + x.qty + ' × ' + x.sku + ' from ' + x.bin,
+              toggle: (v) => this.setLine(l.id, i, { picked: v ? x.qty : 0 }), markShort: () => { this.setLine(l.id, i, { short: true }); this.showToast('Marked short: ' + x.sku, 'Bin ' + x.bin + ' at ' + I.WH[l.site].short + ' is flagged for a cycle count.', 'info'); } }; }),
+          notDone: done < l.lines.length, finishLabel: done < l.lines.length ? (l.lines.length - done) + ' lines to go' : 'Finish and send to packing',
+          print: () => this.showToast(l.id + ' sent to the printer', 'Printed in bin order with a barcode per line.'),
+          finish: () => { const shortOrders = new Set(shorts.map((x) => x.order)); const st = Object.assign({}, s.steps); l.orders.forEach((id) => { st[id] = 'pack'; });
+            this.setState((x) => ({ steps: st, lists: x.lists.filter((y) => y.id !== l.id), detail: null }));
+            this.showToast(l.id + ' finished', F.plural(l.orders.length, 'order') + ' moved to packing at ' + I.WH[l.site].short + (shortOrders.size ? '; ' + F.plural(shortOrders.size, 'order') + ' flagged short.' : '.')); } };
+      }
+    }
+
+    let nl = { pickerOpts: [], cartOpts: [] };
+    if (s.nl) {
+      const d = s.nl, fs = d.ids.map((id) => X.OPEN.find((f) => f.id === id)), lines = fs.reduce((a, f) => a + f.lines.length, 0), units = fs.reduce((a, f) => a + f.units, 0);
+      const zones = Array.from(new Set([].concat(...fs.map(zonesOf)))).sort(), busy = lists.filter((l) => l.picker).map((l) => l.picker), carts = lists.map((l) => l.cart);
+      nl = { title: 'New pick list at ' + w.short, desc: 'Lines are sorted into one walk through the warehouse, zone by zone.', picker: d.picker, cart: d.cart,
+        pickerOpts: X.PICKERS[s.wh].map((p) => ({ value: p, label: p + (busy.indexOf(p) >= 0 ? ' · on ' + lists.filter((l) => l.picker === p).length + ' list' : ' · free') })),
+        pickerHint: busy.indexOf(d.picker) >= 0 ? 'Already picking; this list starts after their current one' : 'Free now',
+        cartOpts: Array.from({ length: 10 }, (_, i) => 'Cart ' + (i + 1)).map((c) => ({ value: c, label: c + (carts.indexOf(c) >= 0 ? ' · in use' : ''), disabled: carts.indexOf(c) >= 0 })),
+        orders: F.int(fs.length), lines: F.int(lines), units: F.int(units), zones: zones.join(' '), minutes: Math.round(4 + lines * 1.3 + zones.length * 3) + ' min',
+        warn: fs.some((f) => f.b2b) ? 'Includes a wholesale order. Its cartons go on a pallet, not the cart.' : null,
+        setPicker: (v) => this.setState((x) => ({ nl: Object.assign({}, x.nl, { picker: v }) })), setCart: (v) => this.setState((x) => ({ nl: Object.assign({}, x.nl, { cart: v }) })),
+        save: () => { const id = 'PL-' + s.wh.toUpperCase() + '-' + (2000 + s.seq), lns = [];
+          fs.forEach((f) => f.lines.forEach((l) => lns.push({ order: f.id, sku: l.sku, qty: l.qty, name: l.name, variant: l.variant, bin: X.bin(l.sku, s.wh), picked: 0 })));
+          lns.sort((a, b) => (a.bin < b.bin ? -1 : a.bin > b.bin ? 1 : 0));
+          const st = Object.assign({}, s.steps); fs.forEach((f) => { st[f.id] = 'picking'; });
+          this.setState((x) => ({ lists: [{ id, site: s.wh, picker: d.picker, started: F.NOW, orders: fs.map((f) => f.id), lines: lns, cart: d.cart }].concat(x.lists), steps: st, seq: x.seq + 1, nl: null, sel: [], tab: 'lists', detail: id }));
+          this.showToast(id + ' started', F.plural(fs.length, 'order') + ' assigned to ' + d.picker + ' on ' + d.cart + '.'); } };
+    }
+    const openNl = (ids) => { const free = X.PICKERS[s.wh].find((p) => lists.every((l) => l.picker !== p)) || X.PICKERS[s.wh][0], cart = Array.from({ length: 10 }, (_, i) => 'Cart ' + (i + 1)).find((c) => lists.every((l) => l.cart !== c));
+      this.setState({ nl: { ids, picker: free, cart } }); };
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k, sel: [] }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(toPick.length, 'order') + ' to pick at ' + w.name, localTime: X.localHour(s.wh, F.NOW) + ' local time · ' + (on ? 'open until ' + hrs[1] + ':00' : 'closed, opens at ' + (hrs[0] < 10 ? '0' : '') + hrs[0] + ':00'),
+      whOpts: X.SITES.map((k) => ({ value: k, label: I.WH[k].name })), wh: s.wh, setWh: (v) => this.setState({ wh: v, sel: [], detail: null }),
+      noneToPick: toPick.length === 0, createLabel: 'Pick next ' + Math.min(8, toPick.length || 8), createAuto: () => openNl(toPick.slice(0, 8).map((f) => f.id)),
+      kpis, alert, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), isQueue: s.tab === 'queue', isLists: s.tab === 'lists',
+      query: s.query, setQuery: (v) => this.setState({ query: v }), del: s.del, setDel: (v) => this.setState({ del: v }),
+      delOpts: [{ value: '', label: 'Any delivery' }, { value: 'Same-day', label: 'Same-day' }, { value: 'Express', label: 'Express' }, { value: 'Standard', label: 'Standard' }, { value: 'Store pickup', label: 'Store pickup' }],
+      rows, shown: rows.length > 0, empty: rows.length === 0, emptyTitle: q || s.del ? 'No orders match' : 'Nothing waiting to be picked', emptyDesc: q || s.del ? 'Try another search or delivery type.' : 'New paid orders show up here.',
+      allSel: rows.length > 0 && rows.every((r) => r.sel), someSel: rows.some((r) => r.sel) && !rows.every((r) => r.sel),
+      toggleAll: () => this.setState((x) => ({ sel: rows.every((r) => r.sel) ? [] : list.map((f) => f.id) })),
+      bulk: { show: s.sel.length > 0, count: F.plural(s.sel.length, 'order') + ' selected', clear: () => this.setState({ sel: [] }), create: () => openNl(s.sel.slice()) },
+      lists: listCards, hasLists: listCards.length > 0, noLists: listCards.length === 0,
+      dp, closeDetail: () => this.setState({ detail: null }),
+      nlOpen: !!s.nl, closeNl: () => this.setState({ nl: null }), nl,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- picking: Fernhill orders (orders.js) and fulfillment (fulfillment.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, X = window.FernhillFulfillment, CommerceOS = window.CommerceOS;
+var HOURS = { dhk: [8, 20], ctg: [8, 20], rtm: [7, 22], ewr: [6, 22] };
+var DEL_TONE = { 'Same-day': 'danger', Express: 'warning', Standard: 'neutral', 'Store pickup': 'info' };
+var ZONE = { A: 'Zone A · Tops', B: 'Zone B · Outerwear', C: 'Zone C · Bottoms', D: 'Zone D · Accessories', E: 'Zone E · Overflow and returns' };
+</script>
+</body>
+</html>

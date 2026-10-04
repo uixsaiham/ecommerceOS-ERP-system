@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Goods Received · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./procurement.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Goods received ---------- */
+.gr-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.gr-table td.c-sup{white-space:normal;min-width:180px}
+.gr-diff{color:var(--danger);font-weight:600}
+/* panel */
+.dp-xl{width:720px}
+.gr-match td.is-bad{color:var(--danger);font-weight:600}
+.gr-match td .o-sub{text-align:right}
+.gr-match tfoot td{font-weight:600;background:var(--bg-subtle)}
+.gr-sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.gr-sum > div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);min-width:0}
+.gr-sum strong{font-size:16px;line-height:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.gr-sum .is-bad{border-color:var(--danger)}
+.gr-sum .is-bad strong{color:var(--danger)}
+.gr-sum .is-good strong{color:var(--success)}
+.gr-links{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px}
+.gr-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:1279px){ .c-wh{display:none} }
+@media (max-width:1023px){ .gr-kpis{display:flex} .c-inv{display:none} }
+@media (max-width:767px){ .dp-xl{width:100%} .gr-sum{grid-template-columns:1fr 1fr} .gr-grid2{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="procurement/goods-received" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="procurement/goods-received"></x-import>
+<h1>Goods Received</h1>
+<p class="ph-sub">Every PO delivery counted into stock, matched against the order and the supplier’s invoice before it’s paid.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Today, Oct 1 · 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Warehouse" options="{{whOpts}}" value="{{wh}}" on-value-change="{{setWh}}" width="210px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<section class="o-kpis gr-kpis" aria-label="Goods received summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<sc-if value="{{counting}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.Alert" tone="info" title="{{counting.title}}" actions="{{counting.actions}}">{{counting.text}}</x-import>
+</sc-if>
+
+<section class="o-card" aria-label="Goods received notes">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Match status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by GRN, PO, invoice, supplier or SKU" label="Search goods received" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+</div></div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table gr-table" aria-label="Goods received notes">
+<thead><tr>
+<th scope="col">GRN</th>
+<th scope="col">Supplier</th>
+<th class="c-wh" scope="col">Warehouse</th>
+<th class="is-right" scope="col">Received</th>
+<th class="is-right" scope="col">Value received</th>
+<th class="c-inv" scope="col">Invoice</th>
+<th scope="col">Match</th>
+<th class="c-act" scope="col" style="width: auto"><span class="cx-sr">Action</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="15">
+<tr>
+<td><button class="o-id rc-id" onClick="{{r.open}}">{{r.id}}</button><span class="o-sub">{{r.po}} · {{r.date}}</span></td>
+<td class="c-sup"><span>{{r.supplier}}</span><span class="o-sub">{{r.terms}}</span></td>
+<td class="c-wh">{{r.wh}}</td>
+<td class="is-right"><span class="td-strong">{{r.units}}</span><span class="{{r.discCls}}">{{r.disc}}</span></td>
+<td class="is-right">{{r.value}}</td>
+<td class="c-inv"><span>{{r.inv}}</span><span class="o-sub">{{r.invSub}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import><span class="{{r.diffCls}}">{{r.diff}}</span></td>
+<td class="c-act" style="width: auto; padding-right: 12px"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Goods received notes">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<li class="o-m-card"><div class="o-m-top"><button class="o-id rc-id" onClick="{{r.open}}">{{r.id}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import></div>
+<div class="o-m-mid"><div><span class="td-strong">{{r.supplier}}</span><span class="o-sub">{{r.po}} · {{r.units}} units · {{r.date}}</span></div><span class="o-m-total">{{r.value}}</span></div>
+<div class="o-m-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></div></li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="{{emptyIcon}}" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close goods received note" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-xl" role="dialog" aria-modal="true" aria-labelledby="gr-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="gr-dp-title">{{dp.id}} · {{dp.po}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close goods received note" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec"><div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.statusLabel}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}" title="{{dp.alertTitle}}">{{dp.alert}}</x-import></sc-if>
+<div class="gr-sum"><sc-for list="{{dp.sum}}" as="m" hint-placeholder-count="4"><div class="{{m.cls}}"><span class="o-sub">{{m.label}}</span><strong>{{m.value}}</strong><span class="o-sub">{{m.sub}}</span></div></sc-for></div>
+</section>
+<section class="o-panel-sec"><h3>Three-way match</h3>
+<div class="rc-lines-wrap"><table class="rc-lines gr-match"><thead><tr><th scope="col">SKU</th><th scope="col">Ordered</th><th scope="col">Received</th><th scope="col">Into stock</th><th scope="col">Billed</th><th scope="col">PO price</th><th scope="col">Billed price</th><th scope="col">Difference</th></tr></thead>
+<tbody><sc-for list="{{dp.lines}}" as="l" hint-placeholder-count="3"><tr><td><span>{{l.name}}</span><span class="o-sub">{{l.variant}} · <span class="iv-sku">{{l.sku}}</span></span></td><td>{{l.qty}}</td><td class="{{l.recCls}}">{{l.rec}}</td><td>{{l.acc}}</td><td class="{{l.billCls}}">{{l.billed}}</td><td>{{l.price}}</td><td class="{{l.invPriceCls}}">{{l.invPrice}}</td><td class="{{l.diffCls}}">{{l.diff}}</td></tr></sc-for></tbody>
+<tfoot><tr><td>Total</td><td>{{dp.tQty}}</td><td>{{dp.tRec}}</td><td>{{dp.tAcc}}</td><td>{{dp.tBilled}}</td><td></td><td></td><td class="{{dp.tDiffCls}}">{{dp.tDiff}}</td></tr></tfoot></table></div>
+<p class="o-sub" style="margin: 0">Damaged units go to quality hold and aren’t paid for. Suppliers bill what they shipped, so short or damaged units show up as a difference until a credit note arrives.</p>
+</section>
+<section class="o-panel-sec"><h3>Invoice and payment</h3>
+<dl class="dp-kv"><dt>Invoice</dt><dd>{{dp.inv}}</dd><dt>Invoice date</dt><dd>{{dp.invDate}}</dd><dt>Due</dt><dd>{{dp.due}}</dd><dt>Terms</dt><dd>{{dp.terms}}</dd><dt>Received by</dt><dd>{{dp.by}}</dd></dl>
+<ol class="rc-tl"><sc-for list="{{dp.steps}}" as="t" hint-placeholder-count="4"><li><span class="{{t.dot}}" aria-hidden="true"></span><span class="pr-cell-main"><span class="{{t.cls}}">{{t.label}}</span><span class="o-sub">{{t.when}}</span></span></li></sc-for></ol>
+<div class="gr-links"><sc-for list="{{dp.links}}" as="k" hint-placeholder-count="2"><a href="{{k.href}}">{{k.label}}</a></sc-for></div>
+</section>
+</div>
+<sc-if value="{{dp.hasFoot}}" hint-placeholder-val="{{false}}"><div class="o-panel-foot"><div class="dp-foot-end"><sc-for list="{{dp.secondary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div><div class="dp-foot-end"><sc-for list="{{dp.primary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="{{b.variant}}" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div></div></sc-if>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{ivOpen}}" on-close="{{closeIv}}" size="sm" title="{{iv.title}}" description="{{iv.desc}}">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Input" label="Invoice number" value="{{iv.num}}" on-change="{{iv.setNum}}" error="{{iv.numError}}"></x-import>
+<div class="gr-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Amount" prefix="$" inputmode="decimal" value="{{iv.amount}}" on-change="{{iv.setAmount}}" error="{{iv.amountError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Invoice date" type="date" value="{{iv.date}}" on-change="{{iv.setDate}}"></x-import></div>
+<sc-if value="{{iv.preview}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{iv.previewTone}}">{{iv.preview}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeIv}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="file-text" on-click="{{iv.save}}">Add and match</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","mismatch","invoice"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none', q = new URLSearchParams(window.location.search);
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      grns: P.GRNS.map((g) => Object.assign({}, g, { invoice: g.invoice ? Object.assign({}, g.invoice) : null })), wh: '', tab: 'todo', query: '', detail: q.get('grn') || null, iv: null
+    };
+    if (q.get('grn')) this.state.tab = 'all';
+    if (demo === 'mismatch') this.state.detail = (P.GRNS.find((g) => g.status === 'mismatch') || P.GRNS[0]).id;
+    if (demo === 'invoice') { const g = P.GRNS.find((x) => x.status === 'awaiting'); if (g) this.state.iv = this.ivDraft(g); }
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.iv) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  update(id, patch) { this.setState((s) => ({ grns: s.grns.map((g) => (g.id === id ? Object.assign({}, g, patch) : g)) })); }
+  ivDraft(g) { const p = P.PO[g.po]; return { id: g.id, num: '', amount: p.value.toFixed(2), date: new Date(F.NOW).toISOString().slice(0, 10), touched: false }; }
+  approve(g, amount) {
+    const v = vals(g), sup = P.SUP[g.supplier];
+    this.update(g.id, { status: 'approved', approved: F.NOW, approvedAmount: amount, creditRequested: amount < g.invoice.amount - 0.5 ? g.invoice.amount - amount : 0 });
+    this.showToast(g.invoice.id + ' approved', F.money2(amount) + ' scheduled for ' + F.fmtDate(g.invoice.due) + (amount < g.invoice.amount - 0.5 ? '. A credit note for ' + F.money2(g.invoice.amount - amount) + ' was requested from ' + sup.name + '.' : '.'));
+  }
+  act(g) {
+    if (g.status === 'awaiting') this.setState({ iv: this.ivDraft(g) });
+    else if (g.status === 'ready') this.approve(g, g.invoice.amount);
+    else this.setState({ detail: g.id });
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store);
+    const scoped = s.grns.filter((g) => !s.wh || g.wh === s.wh);
+    const q = s.query.trim().toLowerCase();
+    const searched = scoped.filter((g) => !q || [g.id, g.po, P.SUP[g.supplier].name, g.invoice ? g.invoice.id : ''].some((v) => v.toLowerCase().indexOf(q) >= 0) || P.PO[g.po].lines.some((l) => l.sku.toLowerCase().indexOf(q) >= 0));
+    const inTab = (g, t) => t === 'all' || (t === 'todo' ? g.status === 'mismatch' || g.status === 'ready' : g.status === t);
+    const order = { mismatch: 0, ready: 1, awaiting: 2, approved: 3, paid: 4 };
+    const list = searched.filter((g) => inTab(g, s.tab)).sort((a, b) => order[a.status] - order[b.status] || b.received - a.received);
+    const rows = list.map((g) => {
+      const p = P.PO[g.po], v = vals(g), sv = statusV(g), sup = P.SUP[g.supplier], rec = p.lines.reduce((a, l) => a + (l.rec || 0), 0);
+      return { id: g.id, po: g.po, date: F.fmtDate(g.received).replace(', 2026', ''), supplier: sup.name, terms: sup.terms + ' · ' + sup.currency, wh: I.WH[g.wh].short,
+        units: F.int(rec) + ' of ' + F.int(p.units), disc: discText(p), discCls: discText(p) === 'In full' ? 'o-sub' : 'o-sub iv-neg', value: F.money2(v.accepted),
+        inv: g.invoice ? g.invoice.id : '—', invSub: g.invoice ? F.money2(g.invoice.amount) + ' · due ' + F.fmtDate(g.invoice.due).replace(', 2026', '') : 'Not received yet',
+        tone: sv[0], icon: sv[2], statusLabel: sv[1], diff: g.status === 'mismatch' ? (v.diff > 0 ? '+' : '−') + F.money2(Math.abs(v.diff)) + ' billed' : '', diffCls: g.status === 'mismatch' ? 'o-sub gr-diff' : 'o-sub',
+        btnLabel: g.status === 'mismatch' ? 'Review' : g.status === 'ready' ? 'Approve' : g.status === 'awaiting' ? 'Add invoice' : 'View', btnVariant: g.status === 'mismatch' || g.status === 'ready' ? 'primary' : g.status === 'awaiting' ? 'secondary' : 'ghost',
+        act: () => this.act(g), open: () => this.setState({ detail: g.id }) };
+    });
+
+    // KPIs
+    const month = scoped.filter((g) => F.NOW - g.received <= 30 * F.DAY), mis = scoped.filter((g) => g.status === 'mismatch'), wait = scoped.filter((g) => g.status === 'awaiting');
+    const payable = scoped.filter((g) => (g.status === 'approved' || g.status === 'ready') && g.invoice.due - F.NOW <= 30 * F.DAY);
+    const kpis = [
+      { label: 'Received, 30 days', dot: 'cx-dot cx-dot-brand', value: F.money0(month.reduce((a, g) => a + vals(g).accepted, 0)), cmp: 'into stock at PO price · ' + F.plural(month.length, 'delivery', 'deliveries') },
+      { label: 'Invoice doesn’t match', dot: 'cx-dot cx-dot-danger', value: F.int(mis.length), cmp: mis.length ? F.money2(mis.reduce((a, g) => a + vals(g).diff, 0)) + ' billed above what was received' : 'Every invoice matches' },
+      { label: 'Waiting for an invoice', dot: 'cx-dot cx-dot-warning', value: F.int(wait.length), cmp: F.money0(wait.reduce((a, g) => a + vals(g).accepted, 0)) + ' received, not billed yet' },
+      { label: 'Due in 30 days', dot: 'cx-dot cx-dot-info', value: F.money0(payable.reduce((a, g) => a + (g.approvedAmount || g.invoice.amount), 0)), cmp: F.plural(payable.length, 'invoice') + ' approved or ready to approve' }
+    ];
+    const inDock = P.POS.filter((p) => p.status === 'receiving' && (!s.wh || p.wh === s.wh));
+    const counting = inDock.length ? { title: F.plural(inDock.length, 'delivery', 'deliveries') + ' still being counted', text: inDock.map((p) => p.id + ' from ' + P.SUP[p.supplier].name + ' at ' + I.WH[p.wh].short).join(' and ') + '. Their goods received notes appear here once Receiving completes them.',
+      actions: [h(CommerceOS.Button, { key: 'r', variant: 'secondary', size: 'sm', onClick: () => { window.location.href = 'Receiving.dc.html'; } }, 'Open Receiving')] } : null;
+    const tabs = [{ id: 'todo', label: 'To review' }, { id: 'awaiting', label: 'Waiting for invoice' }, { id: 'approved', label: 'Approved' }, { id: 'paid', label: 'Paid' }, { id: 'all', label: 'All' }].map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((g) => inTab(g, t.id)).length) }));
+
+    let dp = null;
+    if (s.detail) {
+      const g = s.grns.find((x) => x.id === s.detail);
+      if (g) {
+        const p = P.PO[g.po], v = vals(g), sv = statusV(g), sup = P.SUP[g.supplier], w = I.WH[g.wh], bump = g.invoice && g.invoice.bump ? 1.04 : 1;
+        const lines = p.lines.map((l) => {
+          const it = I.BY_SKU[l.sku], acc = (l.rec || 0) - (l.dmg || 0), billed = g.invoice ? l.qty : null, d = g.invoice ? billed * l.cost * bump - acc * l.cost : 0;
+          return { name: it.p.name, variant: it.v.label, sku: l.sku, qty: F.int(l.qty), rec: F.int(l.rec || 0) + (l.dmg ? ' · ' + l.dmg + ' dmg' : ''), recCls: (l.rec || 0) < l.qty || l.dmg ? 'is-bad' : '', acc: F.int(acc),
+            billed: billed == null ? '—' : F.int(billed), billCls: billed != null && billed > acc ? 'is-bad' : '', price: F.money2(l.cost), invPrice: g.invoice ? F.money2(l.cost * bump) : '—', invPriceCls: bump !== 1 ? 'is-bad' : '',
+            diff: !g.invoice ? '—' : Math.abs(d) < 0.005 ? '—' : (d > 0 ? '+' : '−') + F.money2(Math.abs(d)), diffCls: Math.abs(d) >= 0.005 ? 'is-bad' : '' };
+        });
+        const step = (label, ts, st) => ({ label, when: ts ? F.fmtWhen(ts) : '', dot: 'rc-dot is-' + st, cls: st === 'todo' ? 'is-todo' : '' });
+        const steps = [step('Received at ' + w.short + ' by ' + g.by, g.received, 'done'),
+          step(g.invoice ? 'Invoice ' + g.invoice.id + ' received' : 'Waiting for the invoice', g.invoice ? Math.max(g.invoice.date, g.received) : null, g.invoice ? 'done' : 'now'),
+          step(!g.invoice ? 'Match against PO and receipt' : g.status === 'mismatch' ? 'Flagged: ' + (v.priceDiff ? 'price differs from the PO' : 'billed for units not received') + (g.disputed ? ' · credit note requested' : '') : 'Matched', g.invoice ? Math.max(g.invoice.date, g.received) + 36e5 : null, !g.invoice ? 'todo' : g.status === 'mismatch' ? 'bad' : 'done'),
+          step(g.status === 'approved' || g.status === 'paid' ? 'Approved for payment' + (g.approvedAmount && g.approvedAmount < g.invoice.amount - 0.5 ? ' · ' + F.money2(g.approvedAmount) : '') : 'Approve for payment', g.approved || null, g.status === 'approved' || g.status === 'paid' ? 'done' : g.status === 'ready' ? 'now' : 'todo'),
+          step(g.status === 'paid' ? 'Paid' : 'Pay by ' + (g.invoice ? F.fmtDate(g.invoice.due) : 'the due date'), g.paid || null, g.status === 'paid' ? 'done' : 'todo')];
+        const prim = [], sec = [];
+        const rt = P.RETURNS.find((r) => r.grn === g.id), dmg = p.lines.some((l) => l.dmg > 0);
+        if (g.status === 'mismatch') {
+          if (!g.disputed) sec.push({ label: 'Ask for a credit note', icon: 'file-text', go: () => { this.update(g.id, { disputed: F.NOW }); this.showToast('Credit note requested', sup.contact + ' was asked for ' + F.money2(v.diff) + ' against ' + g.invoice.id + ', with this match attached.'); } });
+          sec.push({ label: 'Approve as billed', icon: 'check', go: () => this.approve(g, g.invoice.amount) });
+          prim.push({ label: 'Approve ' + F.money2(v.accepted), variant: 'primary', icon: 'check-circle', go: () => this.approve(g, Math.round(v.accepted * 100) / 100) });
+        }
+        if (g.status === 'ready') prim.push({ label: 'Approve for payment', variant: 'primary', icon: 'check-circle', go: () => this.approve(g, g.invoice.amount) });
+        if (g.status === 'awaiting') { sec.push({ label: 'Chase invoice', icon: 'bell', go: () => this.showToast('Invoice requested', sup.contact + ' was asked to send the invoice for ' + g.po + '.') }); prim.push({ label: 'Add invoice', variant: 'primary', icon: 'file-text', go: () => this.setState({ iv: this.ivDraft(g) }) }); }
+        if (g.status === 'approved') sec.push({ label: 'Undo approval', icon: 'rotate-ccw', go: () => { this.update(g.id, { status: Math.abs(v.diff) < 0.5 ? 'ready' : 'mismatch', approved: null, approvedAmount: null }); this.showToast('Approval undone', g.invoice.id + ' is back in To review.', 'info'); } });
+        if (dmg && !rt) prim.unshift({ label: 'Return damaged units', variant: 'secondary', icon: 'rotate-ccw', go: () => { window.location.href = 'PurchaseReturns.dc.html?grn=' + g.id; } });
+        const links = [{ label: 'Purchase order ' + g.po, href: 'PurchaseOrders.dc.html?po=' + g.po }, { label: 'Receipt ' + g.rcv, href: 'Receiving.dc.html' }];
+        if (rt) links.push({ label: 'Purchase return ' + rt.id, href: 'PurchaseReturns.dc.html?rtv=' + rt.id });
+        const tDiff = g.invoice ? v.diff : 0;
+        dp = { id: g.id, po: g.po, sub: sup.name + ' · ' + w.name + ' · received ' + F.fmtWhen(g.received), tone: sv[0], icon: sv[2], statusLabel: sv[1],
+          statusSub: g.status === 'paid' ? 'Paid ' + F.fmtDate(g.paid) : g.status === 'approved' ? 'Scheduled for ' + F.fmtDate(g.invoice.due) : g.status === 'awaiting' ? 'Received ' + F.timeAgo(g.received) : 'Due ' + F.fmtDate(g.invoice.due),
+          alert: g.status === 'mismatch' ? (v.priceDiff ? sup.name + ' billed ' + F.money2(v.priceDiff) + ' more than the PO prices: a 4% surcharge that isn’t on the order.' : sup.name + ' billed for ' + F.plural(billedNotAccepted(p), 'unit') + ' that didn’t go into stock (' + discText(p).toLowerCase() + ').') + ' Approve the received value and ask for a credit note, or approve as billed if the difference was agreed.'
+            : g.status === 'approved' && g.creditRequested ? 'Approved at the received value. Waiting for a ' + F.money2(g.creditRequested) + ' credit note from ' + sup.name + '.' : null,
+          alertTone: g.status === 'mismatch' ? 'danger' : 'info', alertTitle: g.status === 'mismatch' ? 'The invoice doesn’t match' : 'Credit note pending',
+          sum: [{ label: 'Ordered', value: F.money2(v.ordered), sub: F.int(p.units) + ' units on ' + g.po, cls: '' }, { label: 'Into stock', value: F.money2(v.accepted), sub: 'at PO prices', cls: '' },
+            { label: 'Invoiced', value: g.invoice ? F.money2(g.invoice.amount) : '—', sub: g.invoice ? g.invoice.id : 'No invoice yet', cls: '' },
+            { label: 'Difference', value: g.invoice ? (tDiff > 0.005 ? '+' : tDiff < -0.005 ? '−' : '') + F.money2(Math.abs(tDiff)) : '—', sub: !g.invoice ? 'after the invoice arrives' : Math.abs(tDiff) < 0.5 ? 'Matches' : 'billed above stock received', cls: !g.invoice ? '' : Math.abs(tDiff) < 0.5 ? 'is-good' : 'is-bad' }],
+          lines, tQty: F.int(p.units), tRec: F.int(p.lines.reduce((a, l) => a + (l.rec || 0), 0)), tAcc: F.int(p.lines.reduce((a, l) => a + (l.rec || 0) - (l.dmg || 0), 0)), tBilled: g.invoice ? F.int(p.units) : '—',
+          tDiff: !g.invoice || Math.abs(tDiff) < 0.005 ? '—' : (tDiff > 0 ? '+' : '−') + F.money2(Math.abs(tDiff)), tDiffCls: g.invoice && Math.abs(tDiff) >= 0.005 ? 'is-bad' : '',
+          inv: g.invoice ? g.invoice.id + ' · ' + F.money2(g.invoice.amount) + ' (' + sup.currency + ' converted at the invoice date)' : 'Not received yet', invDate: g.invoice ? F.fmtDate(g.invoice.date) : '—',
+          due: g.invoice ? F.fmtDate(g.invoice.due) + (g.status !== 'paid' ? ' · in ' + Math.max(0, Math.round((g.invoice.due - F.NOW) / F.DAY)) + ' days' : '') : '—', terms: sup.terms + ' from receipt', by: g.by,
+          steps, links, primary: prim, secondary: sec, hasFoot: prim.length + sec.length > 0 };
+      }
+    }
+
+    let iv = { title: '', desc: '' };
+    if (s.iv) {
+      const d = s.iv, g = s.grns.find((x) => x.id === d.id), v = vals(g), sup = P.SUP[g.supplier], amt = Number(d.amount.replace(/[$,]/g, ''));
+      const errs = { num: !d.num.trim() ? 'Enter the supplier’s invoice number' : null, amount: !/^\$?[\d,]+(\.\d{1,2})?$/.test(d.amount.trim()) || amt <= 0 ? 'Enter an amount like 4290.00' : null };
+      const diff = amt - v.accepted, set = (k) => (e) => { const val = e.target.value; this.setState((st) => ({ iv: Object.assign({}, st.iv, { [k]: val }) })); };
+      iv = { title: 'Add invoice for ' + g.po, desc: sup.name + ' · ' + F.money2(v.accepted) + ' went into stock at PO prices', num: d.num, amount: d.amount, date: d.date,
+        numError: d.touched ? errs.num : null, amountError: d.touched ? errs.amount : null, setNum: set('num'), setAmount: set('amount'), setDate: set('date'),
+        preview: errs.amount ? null : Math.abs(diff) < 0.5 ? 'Matches what was received. It’ll be ready to approve.' : diff > 0 ? F.money2(diff) + ' more than what went into stock. It’ll be flagged for review.' : F.money2(-diff) + ' less than what went into stock. Check for a partial invoice.',
+        previewTone: errs.amount ? 'info' : Math.abs(diff) < 0.5 ? 'success' : 'warning',
+        save: () => {
+          if (errs.num || errs.amount) return this.setState({ iv: Object.assign({}, d, { touched: true }) });
+          const date = Date.parse(d.date) || F.NOW, due = g.received + Number(sup.terms.replace(/\D/g, '')) * F.DAY;
+          const st = Math.abs(diff) < 0.5 ? 'ready' : 'mismatch';
+          this.update(g.id, { invoice: { id: d.num.trim(), amount: amt, date, due, bump: false }, status: st });
+          this.setState({ iv: null, detail: g.id, tab: 'todo' });
+          this.showToast('Invoice ' + d.num.trim() + ' added', st === 'ready' ? 'It matches the receipt and is ready to approve.' : 'It doesn’t match the receipt. Review the difference before approving.', st === 'ready' ? 'success' : 'info');
+        } };
+    }
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(scoped.filter((g) => g.status === 'mismatch' || g.status === 'ready').length, 'invoice') + ' to review' + (s.wh ? ' at ' + I.WH[s.wh].name : ''),
+      whOpts: [{ value: '', label: 'All warehouses' }].concat(I.WAREHOUSES.map((w) => ({ value: w.key, label: w.name }))), wh: s.wh, setWh: (v) => this.setState({ wh: v }),
+      kpis, counting, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      rows, shown: rows.length > 0, empty: rows.length === 0,
+      emptyIcon: s.tab === 'todo' && !q ? 'check-circle' : 'search', emptyTitle: s.tab === 'todo' && !q ? 'Nothing to review' : 'No goods received notes match', emptyDesc: s.tab === 'todo' && !q ? 'Invoices that match their receipt, or don’t, show up here.' : 'Try another warehouse or search.',
+      dp, closeDetail: () => this.setState({ detail: null }),
+      ivOpen: !!s.iv, closeIv: () => this.setState({ iv: null }), iv,
+      exportView: () => this.showToast('Exporting ' + F.plural(rows.length, 'goods received note'), 'CSV with ordered, received, billed and the difference per line, ready for the accounting import.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- goods received: Fernhill procurement (procurement.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, P = window.FernhillProcurement, h = window.React.createElement, CommerceOS = window.CommerceOS;
+var STATUS_V = { awaiting: ['neutral', 'No invoice yet', 'clock'], mismatch: ['danger', 'Doesn’t match', 'alert-triangle'], ready: ['info', 'Matched', 'check'], approved: ['brand', 'Approved', 'check-circle'], paid: ['success', 'Paid', 'check-circle'] };
+function statusV(g) { return STATUS_V[g.status]; }
+/* values from the GRN's current invoice (which the page can change) */
+function vals(g) { var v = P.grnValues(Object.assign({}, g, { invoice: null })); var inv = g.invoice ? g.invoice.amount : null; return Object.assign(v, { invoiced: inv, diff: inv == null ? 0 : inv - v.accepted, priceDiff: g.invoice && g.invoice.bump ? inv - v.ordered : 0 }); }
+function discText(p) { var s = p.lines.reduce(function (a, l) { return a + Math.max(0, l.qty - (l.rec || 0)); }, 0), d = p.lines.reduce(function (a, l) { return a + (l.dmg || 0); }, 0); return s || d ? [s ? s + ' short' : '', d ? d + ' damaged' : ''].filter(Boolean).join(', ') : 'In full'; }
+function billedNotAccepted(p) { return p.lines.reduce(function (a, l) { return a + l.qty - (l.rec || 0) + (l.dmg || 0); }, 0); }
+</script>
+</body>
+</html>

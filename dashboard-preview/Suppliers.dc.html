@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Suppliers · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./procurement.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Suppliers ---------- */
+.sp-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.sp-table td.c-sup{white-space:normal;min-width:220px;max-width:320px}
+.sp-score{display:flex;flex-direction:column;gap:4px;min-width:84px}
+.sp-score .pr-meter{width:72px}
+.sp-score span.is-warn{color:var(--warning);font-weight:600}
+.sp-score span.is-bad{color:var(--danger);font-weight:600}
+.sp-none{color:var(--text-muted)}
+/* panel */
+.sp-perf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.sp-perf > div{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.sp-perf strong{font-size:18px;line-height:24px;font-weight:600}
+.sp-perf .pr-meter{margin-top:2px}
+.sp-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.sp-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:20px}
+.sp-list li:last-child{border-bottom:0}
+.sp-list .pr-cell-main{min-width:0}
+.sp-list .sp-side{text-align:right;white-space:nowrap}
+.sp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:1279px){ .c-spend{display:none} }
+@media (max-width:1023px){ .sp-kpis{display:flex} .c-fill{display:none} }
+@media (max-width:767px){ .sp-perf,.sp-grid2{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="procurement/suppliers" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="procurement/suppliers"></x-import>
+<h1>Suppliers</h1>
+<p class="ph-sub">The mills and factories that make Fernhill’s products: terms, contacts, and how reliably they deliver.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Scorecards cover the last 90 days</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openAdd}}">Add supplier</x-import>
+</div>
+</div>
+
+<section class="o-kpis sp-kpis" aria-label="Supplier summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<sc-for list="{{alerts}}" as="a" hint-placeholder-count="1">
+<x-import component-from-global-scope="CommerceOS.Alert" tone="warning" title="{{a.title}}" actions="{{a.actions}}">{{a.text}}</x-import>
+</sc-for>
+
+<section class="o-card" aria-label="Suppliers">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Supplier status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by supplier, city, contact or what they make" label="Search suppliers" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Sort suppliers" options="{{sortOpts}}" value="{{sort}}" on-value-change="{{setSort}}" width="200px"></x-import>
+</div></div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table sp-table" aria-label="Suppliers">
+<thead><tr>
+<th scope="col">Supplier</th>
+<th class="is-right" scope="col">Lead time</th>
+<th scope="col">On time</th>
+<th class="c-fill" scope="col">Fill rate</th>
+<th scope="col">Defects</th>
+<th class="is-right" scope="col">On order</th>
+<th class="is-right c-spend" scope="col">Spend, 12 mo</th>
+<th scope="col">Status</th>
+<th class="c-act" scope="col" style="width: auto"><span class="cx-sr">Action</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="9">
+<tr>
+<td class="c-sup"><button class="o-id rc-id" style="font-family: inherit" onClick="{{r.open}}">{{r.name}}</button><span class="o-sub">{{r.city}}</span><span class="o-sub">{{r.makes}} · {{r.skus}}</span></td>
+<td class="is-right"><span class="td-strong">{{r.lead}}</span><span class="o-sub">{{r.leadSub}}</span></td>
+<td><span class="sp-score"><span class="{{r.onTimeCls}}">{{r.onTime}}</span><span class="{{r.onTimeMeter}}"><span style="{{r.onTimeW}}"></span></span></span></td>
+<td class="c-fill"><span class="sp-score"><span class="{{r.fillCls}}">{{r.fill}}</span><span class="{{r.fillMeter}}"><span style="{{r.fillW}}"></span></span></span></td>
+<td><span class="{{r.defectCls}}">{{r.defect}}</span><span class="o-sub">{{r.defectSub}}</span></td>
+<td class="is-right"><span class="td-strong">{{r.openValue}}</span><span class="o-sub">{{r.openSub}}</span></td>
+<td class="is-right c-spend">{{r.spend}}</td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import></td>
+<td class="c-act" style="width: auto; padding-right: 12px"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="plus" disabled="{{r.held}}" on-click="{{r.newPo}}">PO</x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Suppliers">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<li class="o-m-card"><div class="o-m-top"><button class="o-id rc-id" style="font-family: inherit" onClick="{{r.open}}">{{r.name}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import></div>
+<div class="o-m-mid"><div><span class="o-sub">{{r.city}} · {{r.lead}} lead time</span><span class="o-sub">On time {{r.onTime}} · defects {{r.defect}}</span></div><span class="o-m-total">{{r.openValue}}</span></div></li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="search" title="No suppliers match" description="Try another name, city or product."></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close supplier" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="sp-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="sp-dp-title">{{dp.name}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close supplier" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec"><div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.statusLabel}}</x-import><span class="o-sub">{{dp.since}}</span></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}">{{dp.alert}}</x-import></sc-if>
+<dl class="dp-kv"><dt>Contact</dt><dd>{{dp.contact}}</dd><dt>Email</dt><dd><a href="{{dp.mailto}}">{{dp.email}}</a></dd><dt>Phone</dt><dd>{{dp.phone}}</dd><dt>Payment</dt><dd>{{dp.terms}}</dd><dt>Shipping</dt><dd>{{dp.incoterm}}</dd><dt>Minimum</dt><dd>{{dp.moq}}</dd></dl>
+</section>
+<section class="o-panel-sec"><h3>Performance · last 90 days</h3>
+<div class="sp-perf"><sc-for list="{{dp.perf}}" as="m" hint-placeholder-count="4"><div><span class="o-sub">{{m.label}}</span><strong class="{{m.cls}}">{{m.value}}</strong><span class="{{m.meter}}"><span style="{{m.w}}"></span></span><span class="o-sub">{{m.sub}}</span></div></sc-for></div>
+</section>
+<section class="o-panel-sec"><h3>Open purchase orders · {{dp.openLabel}}</h3>
+<sc-if value="{{dp.hasOpen}}" hint-placeholder-val="{{true}}"><ul class="sp-list"><sc-for list="{{dp.open}}" as="o" hint-placeholder-count="2"><li><span class="pr-cell-main"><a href="{{o.href}}">{{o.id}}</a><span class="o-sub">{{o.sub}}</span></span><span class="sp-side"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{o.tone}}">{{o.status}}</x-import><span class="o-sub">{{o.value}}</span></span></li></sc-for></ul></sc-if>
+<sc-if value="{{dp.noOpen}}" hint-placeholder-val="{{false}}"><p class="o-sub" style="margin: 0">Nothing on order right now.</p></sc-if>
+</section>
+<section class="o-panel-sec"><h3>Best sellers they make</h3>
+<ul class="sp-list"><sc-for list="{{dp.top}}" as="t" hint-placeholder-count="4"><li><span class="pr-cell-main"><span>{{t.name}}</span><span class="o-sub">{{t.variant}} · <span class="iv-sku">{{t.sku}}</span></span></span><span class="sp-side"><span>{{t.cost}}</span><span class="o-sub">{{t.sold}}</span></span></li></sc-for></ul>
+</section>
+<sc-if value="{{dp.hasReturns}}" hint-placeholder-val="{{false}}">
+<section class="o-panel-sec"><h3>Returns to this supplier</h3>
+<ul class="sp-list"><sc-for list="{{dp.returns}}" as="t" hint-placeholder-count="2"><li><span class="pr-cell-main"><a href="{{t.href}}">{{t.id}}</a><span class="o-sub">{{t.sub}}</span></span><span class="sp-side"><span>{{t.value}}</span><span class="o-sub">{{t.status}}</span></span></li></sc-for></ul>
+</section>
+</sc-if>
+</div>
+<div class="o-panel-foot"><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="{{dp.holdIcon}}" on-click="{{dp.hold}}">{{dp.holdLabel}}</x-import></div><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="edit" on-click="{{dp.edit}}">Edit</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" disabled="{{dp.held}}" on-click="{{dp.newPo}}">New purchase order</x-import></div></div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{edOpen}}" on-close="{{closeEd}}" size="md" title="{{ed.title}}" description="{{ed.desc}}">
+<div class="o-modal-stack">
+<div class="sp-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Company name" value="{{ed.name}}" on-change="{{ed.setName}}" error="{{ed.nameError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="City and country" value="{{ed.city}}" on-change="{{ed.setCity}}" error="{{ed.cityError}}"></x-import></div>
+<div class="sp-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Contact name" value="{{ed.contact}}" on-change="{{ed.setContact}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Contact email" type="email" value="{{ed.email}}" on-change="{{ed.setEmail}}" error="{{ed.emailError}}"></x-import></div>
+<div class="sp-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Payment terms" options="{{ed.termOpts}}" value="{{ed.terms}}" on-value-change="{{ed.setTerms}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Invoice currency" options="{{ed.curOpts}}" value="{{ed.currency}}" on-value-change="{{ed.setCurrency}}"></x-import></div>
+<div class="sp-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Lead time" suffix="days" inputmode="numeric" value="{{ed.lead}}" on-change="{{ed.setLead}}" error="{{ed.leadError}}" hint="Order to arrival at our warehouse"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Minimum order" suffix="units" inputmode="numeric" value="{{ed.moq}}" on-change="{{ed.setMoq}}" error="{{ed.moqError}}"></x-import></div>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeEd}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{ed.save}}">{{ed.cta}}</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","detail","add"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none', q = new URLSearchParams(window.location.search);
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      sups: P.SUPPLIERS.map((x) => Object.assign({}, x)), tab: 'all', query: '', sort: 'spend', detail: q.get('supplier') || null, ed: null, seq: 1
+    };
+    if (demo === 'detail') this.state.detail = 'sgo';
+    if (demo === 'add') this.state.ed = this.blank();
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.ed) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  update(key, patch) { this.setState((s) => ({ sups: s.sups.map((x) => (x.key === key ? Object.assign({}, x, patch) : x)) })); }
+  blank() { return { key: null, name: '', city: '', contact: '', email: '', terms: 'Net 30', currency: 'USD', lead: '30', moq: '100', touched: false }; }
+  setHold(x) {
+    const held = x.status === 'hold';
+    this.update(x.key, { status: held ? 'active' : 'hold' });
+    this.showToast(held ? x.name + ' is active again' : x.name + ' is on hold', held ? 'New purchase orders can be raised.' : 'No new POs can be raised. Open POs stay as they are.', held ? 'success' : 'info');
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store);
+    const q = s.query.trim().toLowerCase();
+    const cards = s.sups.map((x) => ({ x, c: x.virtual ? { pos: 0, onTime: null, fill: null, defect: null, lead: x.lead, open: [], openValue: 0, spend: 0, returns: [] } : P.scorecard(x.key) }));
+    const searched = cards.filter(({ x }) => !q || [x.name, x.city, x.contact, x.makes || ''].some((v) => v.toLowerCase().indexOf(q) >= 0));
+    const inTab = (x, t) => t === 'all' || x.status === t;
+    const sorters = { spend: (a, b) => b.c.spend - a.c.spend, open: (a, b) => b.c.openValue - a.c.openValue, ontime: (a, b) => (a.c.onTime == null ? 2 : a.c.onTime) - (b.c.onTime == null ? 2 : b.c.onTime), lead: (a, b) => a.c.lead - b.c.lead, name: (a, b) => a.x.name.localeCompare(b.x.name) };
+    const list = searched.filter(({ x }) => inTab(x, s.tab)).sort(sorters[s.sort]);
+    const meter = (v, warnAt, badAt) => 'pr-meter' + (v == null ? '' : v < badAt ? ' is-bad' : v < warnAt ? ' is-warn' : '');
+    const tone = (v, warnAt, badAt) => (v == null ? 'sp-none' : v < badAt ? 'is-bad' : v < warnAt ? 'is-warn' : '');
+    const rows = list.map(({ x, c }) => {
+      const sv = STATUS_V[x.status];
+      return { name: x.name, city: x.city, makes: x.makes || '—', skus: x.skus ? F.plural(x.skus, 'active SKU') : 'No SKUs linked yet',
+        lead: x.lead + ' days', leadSub: c.pos ? 'actual ' + Math.round(c.lead) + ' days' : 'quoted',
+        onTime: c.onTime == null ? 'No deliveries' : Math.round(c.onTime * 100) + '%', onTimeCls: tone(c.onTime, 0.9, 0.75), onTimeMeter: meter(c.onTime, 0.9, 0.75), onTimeW: 'width: ' + Math.round((c.onTime || 0) * 100) + '%',
+        fill: c.fill == null ? '—' : (c.fill * 100).toFixed(1) + '%', fillCls: tone(c.fill, 0.98, 0.95), fillMeter: meter(c.fill, 0.98, 0.95), fillW: 'width: ' + Math.round((c.fill || 0) * 100) + '%',
+        defect: c.defect == null ? '—' : (c.defect * 100).toFixed(1) + '%', defectCls: c.defect > 0.01 ? 'iv-neg' : '', defectSub: c.pos ? F.plural(c.pos, 'delivery', 'deliveries') : '',
+        openValue: c.openValue ? F.money0(c.openValue) : '—', openSub: c.open.length ? F.plural(c.open.length, 'PO') : 'nothing open', spend: F.money0(c.spend),
+        tone: sv[0], icon: sv[2], statusLabel: sv[1], held: x.status === 'hold',
+        open: () => this.setState({ detail: x.key }), newPo: () => { window.location.href = 'PurchaseOrders.dc.html?new=' + x.key; } };
+    });
+
+    // KPIs across real suppliers
+    const real = cards.filter(({ x }) => !x.virtual), done = P.POS.filter((p) => p.status === 'received' && F.NOW - p.received <= 90 * F.DAY);
+    const onTime = done.filter((p) => p.arrived <= p.eta + F.DAY).length, rec = done.reduce((a, p) => a + p.lines.reduce((b, l) => b + (l.rec || 0), 0), 0), dmg = done.reduce((a, p) => a + p.lines.reduce((b, l) => b + (l.dmg || 0), 0), 0);
+    const spend = real.reduce((a, r) => a + r.c.spend, 0), top = real.slice().sort((a, b) => b.c.spend - a.c.spend)[0];
+    const kpis = [
+      { label: 'Active suppliers', dot: 'cx-dot cx-dot-brand', value: F.int(s.sups.filter((x) => x.status !== 'hold').length), cmp: [s.sups.filter((x) => x.status === 'review').length ? s.sups.filter((x) => x.status === 'review').length + ' under review' : '', s.sups.filter((x) => x.status === 'hold').length ? s.sups.filter((x) => x.status === 'hold').length + ' on hold' : ''].filter(Boolean).join(' · ') || 'All in good standing' },
+      { label: 'Spend, 12 months', dot: 'cx-dot cx-dot-info', value: F.money0(spend), cmp: top.x.name.replace(/ (Ltd\.|Lda\.|Co\.|UAB)$/, '') + ' is ' + Math.round(top.c.spend / spend * 100) + '% of it' },
+      { label: 'On time, 90 days', dot: 'cx-dot cx-dot-success', value: done.length ? Math.round(onTime / done.length * 100) + '%' : '—', cmp: F.int(onTime) + ' of ' + F.plural(done.length, 'delivery', 'deliveries') + ' · target 90%' },
+      { label: 'Damaged on arrival', dot: 'cx-dot cx-dot-danger', value: rec ? (dmg / rec * 100).toFixed(2) + '%' : '—', cmp: F.int(dmg) + ' of ' + F.int(rec) + ' units received' }
+    ];
+    const alerts = s.sups.filter((x) => x.status === 'review' && x.statusNote).map((x) => ({ title: x.name + ' is under review', text: x.statusNote,
+      actions: [h(CommerceOS.Button, { key: 'o', variant: 'secondary', size: 'sm', onClick: () => this.setState({ detail: x.key }) }, 'Open scorecard'), h(CommerceOS.Button, { key: 'r', variant: 'ghost', size: 'sm', onClick: () => { this.update(x.key, { status: 'active', statusNote: null }); this.showToast(x.name + ' review closed', 'Marked as active. The scorecard keeps the history.'); } }, 'Close review')] }));
+    const tabs = [{ id: 'all', label: 'All' }, { id: 'active', label: 'Active' }, { id: 'review', label: 'Under review' }, { id: 'hold', label: 'On hold' }].map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter(({ x }) => inTab(x, t.id)).length) }));
+
+    let dp = null;
+    if (s.detail) {
+      const x = s.sups.find((y) => y.key === s.detail);
+      if (x) {
+        const c = x.virtual ? { pos: 0, onTime: null, fill: null, defect: null, lead: x.lead, open: [], openValue: 0, spend: 0, returns: [] } : P.scorecard(x.key), sv = STATUS_V[x.status];
+        const cat = x.virtual ? [] : P.catalogOf(x.key).slice().sort((a, b) => b.v30 - a.v30).slice(0, 5);
+        const pct = (v, d) => (v == null ? '—' : (v * 100).toFixed(d) + '%');
+        const recent = P.POS.filter((p) => p.supplier === x.key && p.status === 'received' && F.NOW - p.received <= 90 * F.DAY);
+        const late = recent.filter((p) => p.arrived > p.eta + F.DAY);
+        dp = { name: x.name, sub: x.city + (x.makes ? ' · ' + x.makes : ''), tone: sv[0], icon: sv[2], statusLabel: sv[1], since: 'Supplier since ' + x.since,
+          alert: x.status === 'hold' ? 'On hold: no new purchase orders can be raised until it’s lifted.' : x.statusNote || null, alertTone: x.status === 'hold' ? 'info' : 'warning',
+          contact: x.contact ? x.contact + (x.role ? ', ' + x.role : '') : '—', email: x.email || '—', mailto: x.email ? 'mailto:' + x.email : '#', phone: x.phone || '—',
+          terms: x.terms + ' · invoiced in ' + x.currency, incoterm: x.incoterm || '—', moq: F.int(x.moq) + ' units per order',
+          perf: [
+            { label: 'On time', value: pct(c.onTime, 0), cls: tone(c.onTime, 0.9, 0.75), meter: meter(c.onTime, 0.9, 0.75), w: 'width: ' + Math.round((c.onTime || 0) * 100) + '%', sub: late.length ? F.plural(late.length, 'late delivery', 'late deliveries') + ', up to ' + Math.max.apply(null, late.map((p) => Math.round((p.arrived - p.eta) / F.DAY))) + ' days' : c.pos ? 'Every delivery by the expected date' : 'No deliveries yet' },
+            { label: 'Fill rate', value: pct(c.fill, 1), cls: tone(c.fill, 0.98, 0.95), meter: meter(c.fill, 0.98, 0.95), w: 'width: ' + Math.round((c.fill || 0) * 100) + '%', sub: 'Units received of units ordered' },
+            { label: 'Lead time', value: Math.round(c.lead) + ' days', cls: c.lead > x.lead + 2 ? 'is-warn' : '', meter: 'pr-meter' + (c.lead > x.lead + 2 ? ' is-warn' : ''), w: 'width: ' + Math.min(100, Math.round(x.lead / c.lead * 100)) + '%', sub: 'Quoted ' + x.lead + ' days, order to arrival' },
+            { label: 'Damaged on arrival', value: pct(c.defect, 2), cls: c.defect > 0.01 ? 'is-bad' : '', meter: 'pr-meter' + (c.defect > 0.01 ? ' is-bad' : ''), w: 'width: ' + Math.round((1 - (c.defect || 0) * 20) * 100) + '%', sub: c.returns.length ? F.plural(c.returns.length, 'return') + ' raised' : 'No returns raised' }],
+          openLabel: c.open.length ? F.money0(c.openValue) : 'none', hasOpen: c.open.length > 0, noOpen: c.open.length === 0,
+          open: c.open.map((p) => ({ id: p.id, href: 'PurchaseOrders.dc.html?po=' + p.id, sub: F.int(p.units) + ' units to ' + I.WH[p.wh].short + (p.status === 'receiving' ? ' · at the dock' : ' · due ' + F.fmtDate(p.eta).replace(', 2026', '')), status: PO_V[p.status][1], tone: PO_V[p.status][0], value: F.money0(p.value) })),
+          top: cat.length ? cat.map((it) => ({ name: it.p.name, variant: it.v.label, sku: it.sku, cost: F.money2(it.p.cost) + ' cost', sold: F.int(it.v30) + ' sold in 30 days' })) : [{ name: 'No SKUs linked yet', variant: 'Link products to this supplier from All Products', sku: '', cost: '', sold: '' }],
+          hasReturns: c.returns.length > 0, returns: c.returns.slice(0, 4).map((r) => ({ id: r.id, href: 'PurchaseReturns.dc.html?rtv=' + r.id, sub: P.REASONS[r.reason] + ' · ' + F.plural(r.units, 'unit'), value: F.money0(r.value), status: RT_LABEL[r.status] })),
+          held: x.status === 'hold', holdLabel: x.status === 'hold' ? 'Lift hold' : 'Put on hold', holdIcon: x.status === 'hold' ? 'check' : 'lock', hold: () => this.setHold(x),
+          edit: () => this.setState({ ed: { key: x.key, name: x.name, city: x.city, contact: x.contact || '', email: x.email || '', terms: x.terms, currency: x.currency, lead: String(x.lead), moq: String(x.moq), touched: false } }),
+          newPo: () => { window.location.href = 'PurchaseOrders.dc.html?new=' + x.key; } };
+      }
+    }
+
+    let ed = { title: '', desc: '', termOpts: [], curOpts: [] };
+    if (s.ed) {
+      const d = s.ed, set = (k) => (e) => { const v = e.target.value; this.setState((st) => ({ ed: Object.assign({}, st.ed, { [k]: v }) })); };
+      const dupe = s.sups.some((x) => x.key !== d.key && x.name.toLowerCase() === d.name.trim().toLowerCase());
+      const errs = { name: !d.name.trim() ? 'Enter the company name' : dupe ? 'A supplier with this name already exists' : null, city: !d.city.trim() ? 'Enter where they’re based' : null,
+        email: d.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email) ? 'Enter a valid email' : null, lead: !/^\d+$/.test(d.lead) || +d.lead < 1 || +d.lead > 180 ? 'Between 1 and 180 days' : null, moq: !/^\d+$/.test(d.moq) ? 'Enter a whole number' : null };
+      const bad = Object.keys(errs).some((k) => errs[k]);
+      ed = { title: d.key ? 'Edit ' + d.name : 'Add supplier', desc: d.key ? 'Changes apply to new purchase orders. Open POs keep their terms.' : 'You can link products to them afterwards from All Products.',
+        name: d.name, city: d.city, contact: d.contact, email: d.email, terms: d.terms, currency: d.currency, lead: d.lead, moq: d.moq,
+        nameError: d.touched ? errs.name : null, cityError: d.touched ? errs.city : null, emailError: d.touched ? errs.email : null, leadError: d.touched ? errs.lead : null, moqError: d.touched ? errs.moq : null,
+        setName: set('name'), setCity: set('city'), setContact: set('contact'), setEmail: set('email'), setLead: set('lead'), setMoq: set('moq'),
+        termOpts: ['Prepaid', 'Net 15', 'Net 30', 'Net 45', 'Net 60'], curOpts: ['USD', 'EUR', 'GBP', 'BDT', 'INR', 'VND', 'TRY'],
+        setTerms: (v) => this.setState((st) => ({ ed: Object.assign({}, st.ed, { terms: v }) })), setCurrency: (v) => this.setState((st) => ({ ed: Object.assign({}, st.ed, { currency: v }) })),
+        cta: d.key ? 'Save changes' : 'Add supplier',
+        save: () => {
+          if (bad) return this.setState({ ed: Object.assign({}, d, { touched: true }) });
+          const fields = { name: d.name.trim(), city: d.city.trim(), contact: d.contact.trim(), email: d.email.trim(), terms: d.terms, currency: d.currency, lead: +d.lead, moq: +d.moq };
+          if (d.key) { this.update(d.key, fields); this.setState({ ed: null }); this.showToast(fields.name + ' updated', 'New purchase orders use these terms.'); return; }
+          const key = 'new' + s.seq;
+          this.setState((st) => ({ sups: st.sups.concat([Object.assign({ key, virtual: true, role: '', phone: '', incoterm: 'DAP', since: 2026, status: 'active', skus: 0, makes: '' }, fields)]), seq: st.seq + 1, ed: null, detail: key, tab: 'all' }));
+          this.showToast(fields.name + ' added', 'Link their products from All Products before raising a purchase order.');
+        } };
+    }
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(s.sups.length, 'supplier') + ' in ' + new Set(s.sups.map((x) => x.city.split(', ').pop())).size + ' countries',
+      kpis, alerts, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      sortOpts: [{ value: 'spend', label: 'Sort: spend' }, { value: 'open', label: 'Sort: on order' }, { value: 'ontime', label: 'Sort: least on time' }, { value: 'lead', label: 'Sort: shortest lead time' }, { value: 'name', label: 'Sort: name' }],
+      sort: s.sort, setSort: (v) => this.setState({ sort: v }),
+      rows, shown: rows.length > 0, empty: rows.length === 0,
+      dp, closeDetail: () => this.setState({ detail: null }),
+      edOpen: !!s.ed, openAdd: () => this.setState({ ed: this.blank() }), closeEd: () => this.setState({ ed: null }), ed,
+      exportView: () => this.showToast('Exporting ' + F.plural(rows.length, 'supplier'), 'CSV with contacts, terms and 90-day scorecards.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- suppliers: Fernhill procurement (procurement.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, P = window.FernhillProcurement, h = window.React.createElement, CommerceOS = window.CommerceOS;
+var STATUS_V = { active: ['success', 'Active', 'check-circle'], review: ['warning', 'Under review', 'alert-triangle'], hold: ['neutral', 'On hold', 'lock'] };
+var PO_V = { sent: ['warning', 'Awaiting confirmation'], confirmed: ['info', 'Confirmed'], production: ['info', 'In production'], ready: ['info', 'Ready to ship'], shipped: ['brand', 'Shipped'], receiving: ['warning', 'At the dock'] };
+var RT_LABEL = { draft: 'Draft', requested: 'Waiting for RMA', approved: 'RMA issued', shipped: 'Shipped back', credited: 'Credited', replaced: 'Replaced', rejected: 'Rejected' };
+</script>
+</body>
+</html>

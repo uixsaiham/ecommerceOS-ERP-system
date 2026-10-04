@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>All Customers · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./customers.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- All customers ---------- */
+.cu-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.cu-table td.c-name{min-width:240px}
+.cu-av{border-radius:var(--radius-full)}
+.cu-av-lg{width:44px;height:44px;font-size:14px}
+.cu-tags{display:flex;flex-wrap:wrap;gap:4px}
+.cu-muted{color:var(--text-muted)}
+.cu-chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:0 16px 12px}
+/* panel */
+.cu-head{display:flex;align-items:center;gap:12px;min-width:0}
+.cu-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.cu-stats > div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);min-width:0}
+.cu-stats strong{font-size:16px;line-height:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.cu-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.cu-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:20px}
+.cu-list li:last-child{border-bottom:0}
+.cu-list .pr-cell-main{min-width:0}
+.cu-list .o-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cu-side{display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap;text-align:right}
+.cu-ta{width:100%;box-sizing:border-box;min-height:64px;padding:8px 12px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-surface);color:var(--text-primary);font:inherit;font-size:14px;line-height:20px;resize:vertical}
+.cu-ta:focus{outline:2px solid var(--focus-ring);outline-offset:-1px}
+.cu-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cu-segs{display:flex;flex-wrap:wrap;gap:6px}
+.cu-segs a{font-size:12px;line-height:18px;padding:1px 8px;border:1px solid var(--border);border-radius:var(--radius-full);color:var(--text-secondary);text-decoration:none}
+.cu-segs a:hover{border-color:var(--border-strong);color:var(--text-primary)}
+@media (max-width:1279px){ .c-src,.c-aov{display:none} }
+@media (max-width:1023px){ .cu-kpis{display:flex} .c-loc{display:none} }
+@media (max-width:767px){ .cu-stats{grid-template-columns:1fr 1fr} .cu-grid2{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="customers/all" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="customers/all"></x-import>
+<h1>All Customers</h1>
+<p class="ph-sub">Everyone who has ordered from Fernhill, across all four stores.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Today, Oct 1 · 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openAdd}}">Add customer</x-import>
+</div>
+</div>
+
+<section class="o-kpis cu-kpis" aria-label="Customer summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section class="o-card" aria-label="Customers">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Customer view" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by name, email, phone or city" label="Search customers" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Country" options="{{countryOpts}}" value="{{country}}" on-value-change="{{setCountry}}" width="180px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Email marketing" options="{{consentOpts}}" value="{{consent}}" on-value-change="{{setConsent}}" width="190px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Sort" options="{{sortOpts}}" value="{{sort}}" on-value-change="{{setSort}}" width="190px"></x-import>
+</div></div>
+<sc-if value="{{hasChips}}" hint-placeholder-val="{{false}}"><div class="cu-chips"><sc-for list="{{chips}}" as="c" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="x" on-click="{{c.clear}}">{{c.label}}</x-import></sc-for></div></sc-if>
+
+<div class="o-bulkwrap">
+<sc-if value="{{bulk.show}}" hint-placeholder-val="{{false}}">
+<div class="o-bulk" role="region" aria-label="Bulk actions">
+<span class="o-bulk-count">{{bulk.count}}</span>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="users" on-click="{{bulk.group}}"><span class="o-bulk-label">Change group</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="megaphone" on-click="{{bulk.email}}"><span class="o-bulk-label">Email</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="download" on-click="{{bulk.exportSel}}"><span class="o-bulk-label">Export</span></x-import>
+<div class="o-bulk-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" on-click="{{bulk.clear}}">Clear selection</x-import></div>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table cu-table" aria-label="Customers">
+<thead><tr>
+<th class="c-check" scope="col"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="Select all customers on this page" checked="{{pageAll}}" indeterminate="{{pageSome}}" on-change="{{togglePage}}"></x-import></th>
+<th scope="col">Customer</th>
+<th class="c-loc" scope="col">Location</th>
+<th class="is-right" scope="col">Orders</th>
+<th class="is-right" scope="col">Spent</th>
+<th class="is-right c-aov" scope="col">Avg order</th>
+<th scope="col">Last order</th>
+<th class="c-src" scope="col">Store</th>
+<th scope="col">Group</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="25">
+<tr>
+<td class="c-check"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="{{r.selAria}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import></td>
+<td class="c-name"><div class="pr-cell"><span class="{{r.avCls}}" aria-hidden="true">{{r.initials}}</span><span class="pr-cell-main"><button class="pr-name" onClick="{{r.open}}">{{r.name}}</button><span class="o-sub">{{r.email}}</span></span></div></td>
+<td class="c-loc"><span>{{r.city}}</span><span class="o-sub">{{r.country}}</span></td>
+<td class="is-right"><span class="td-strong">{{r.orders}}</span><span class="o-sub">{{r.returns}}</span></td>
+<td class="is-right">{{r.spent}}</td>
+<td class="is-right c-aov">{{r.aov}}</td>
+<td><span>{{r.last}}</span><span class="o-sub">{{r.lastSub}}</span></td>
+<td class="c-src"><span>{{r.channel}}</span><span class="o-sub">{{r.consentLabel}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.gTone}}">{{r.group}}</x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Customers">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<li class="o-m-card"><div class="o-m-top"><x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="{{r.selAria}}" checked="{{r.sel}}" on-change="{{r.toggle}}"></x-import><span class="{{r.avCls}}" aria-hidden="true">{{r.initials}}</span><button class="pr-name" style="flex: 1" onClick="{{r.open}}">{{r.name}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.gTone}}">{{r.group}}</x-import></div>
+<div class="o-m-mid"><div><span class="o-sub">{{r.city}}, {{r.country}}</span><span class="o-sub">{{r.orders}} orders · last {{r.last}}</span></div><span class="o-m-total">{{r.spent}}</span></div></li>
+</sc-for>
+</ul>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="customers" on-page-change="{{setPage}}" on-page-size-change="{{setPageSize}}"></x-import></div>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="search" title="No customers match" description="Try another name, country or tab."></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close customer" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="cu-dp-title">
+<div class="o-panel-head"><div class="cu-head"><span class="{{dp.avCls}}" aria-hidden="true">{{dp.initials}}</span><div class="pr-cell-main"><h2 class="o-panel-title" id="cu-dp-title">{{dp.name}}</h2><span class="o-sub">{{dp.sub}}</span></div></div><button class="icon-btn" aria-label="Close customer" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<div class="cu-tags"><sc-for list="{{dp.badges}}" as="b" hint-placeholder-count="2"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{b.tone}}" icon="{{b.icon}}">{{b.label}}</x-import></sc-for></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}" title="{{dp.alertTitle}}">{{dp.alert}}</x-import></sc-if>
+<div class="cu-stats"><sc-for list="{{dp.stats}}" as="m" hint-placeholder-count="4"><div><span class="o-sub">{{m.label}}</span><strong>{{m.value}}</strong><span class="o-sub">{{m.sub}}</span></div></sc-for></div>
+</section>
+<section class="o-panel-sec"><h3>Orders · {{dp.ordersLabel}}</h3>
+<ul class="cu-list"><sc-for list="{{dp.orders}}" as="o" hint-placeholder-count="5"><li><span class="pr-cell-main"><span class="td-strong">{{o.id}}</span><span class="o-sub">{{o.when}} · {{o.what}}</span></span><span class="cu-side"><span>{{o.total}}</span><x-import component-from-global-scope="CommerceOS.Badge" tone="{{o.tone}}">{{o.status}}</x-import></span></li></sc-for></ul>
+<sc-if value="{{dp.more}}" hint-placeholder-val="{{false}}"><a href="Orders.dc.html" style="font-size: 13px">{{dp.more}}</a></sc-if>
+</section>
+<sc-if value="{{dp.hasActivity}}" hint-placeholder-val="{{false}}">
+<section class="o-panel-sec"><h3>Activity · last 7 days</h3>
+<ol class="rc-tl"><sc-for list="{{dp.activity}}" as="t" hint-placeholder-count="3"><li><span class="rc-dot is-done" aria-hidden="true"></span><span class="pr-cell-main"><span>{{t.label}}</span><span class="o-sub">{{t.when}}</span></span></li></sc-for></ol>
+</section>
+</sc-if>
+<section class="o-panel-sec"><h3>Details</h3>
+<dl class="dp-kv"><sc-for list="{{dp.kv}}" as="k" hint-placeholder-count="6"><dt>{{k.k}}</dt><dd>{{k.v}}</dd></sc-for></dl>
+<div><span class="o-sub" style="display: block; margin-bottom: 6px">In segments</span><div class="cu-segs"><sc-for list="{{dp.segs}}" as="g" hint-placeholder-count="3"><a href="{{g.href}}">{{g.name}}</a></sc-for></div></div>
+</section>
+<section class="o-panel-sec"><h3>Internal note</h3>
+<textarea class="cu-ta" aria-label="Internal note" placeholder="Only your team sees this" value="{{dp.note}}" onChange="{{dp.setNote}}"></textarea>
+<div style="display: flex; justify-content: flex-end"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" disabled="{{dp.noteSaved}}" on-click="{{dp.saveNote}}">Save note</x-import></div>
+</section>
+</div>
+<div class="o-panel-foot"><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="users" on-click="{{dp.changeGroup}}">Change group</x-import></div><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="edit" on-click="{{dp.edit}}">Edit</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="megaphone" disabled="{{dp.noEmail}}" on-click="{{dp.email}}">Send email</x-import></div></div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{edOpen}}" on-close="{{closeEd}}" size="md" title="{{ed.title}}" description="{{ed.desc}}">
+<div class="o-modal-stack">
+<div class="cu-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="First name" value="{{ed.first}}" on-change="{{ed.setFirst}}" error="{{ed.firstError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Last name" value="{{ed.last}}" on-change="{{ed.setLast}}"></x-import></div>
+<div class="cu-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Email" type="email" value="{{ed.email}}" on-change="{{ed.setEmail}}" error="{{ed.emailError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Phone" optional="{{yes}}" value="{{ed.phone}}" on-change="{{ed.setPhone}}"></x-import></div>
+<div class="cu-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="City" value="{{ed.city}}" on-change="{{ed.setCity}}" error="{{ed.cityError}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Country" options="{{ed.ccOpts}}" value="{{ed.cc}}" on-value-change="{{ed.setCc}}"></x-import></div>
+<div class="cu-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Store" options="{{ed.chOpts}}" value="{{ed.channel}}" on-value-change="{{ed.setChannel}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Group" options="{{ed.gOpts}}" value="{{ed.group}}" on-value-change="{{ed.setGroup}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="{{ed.consentLabel}}" checked="{{ed.consent}}" on-change="{{ed.setConsent}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeEd}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{ed.save}}">{{ed.cta}}</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{grOpen}}" on-close="{{closeGr}}" size="sm" title="{{gr.title}}" description="{{gr.desc}}">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Select" label="Group" options="{{gr.opts}}" value="{{gr.value}}" on-value-change="{{gr.set}}" hint="{{gr.hint}}"></x-import>
+<sc-if value="{{gr.warn}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">{{gr.warn}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeGr}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{gr.save}}">Move</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","detail","add"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none', q = new URLSearchParams(window.location.search);
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      edits: {}, added: [], tab: 'all', query: '', country: '', consent: '', sort: 'last', page: 1, pageSize: 25, sel: [],
+      segment: q.get('segment') || null, group: q.get('group') || null, detail: q.get('c') || null, ed: null, gr: null, noteDraft: null
+    };
+    if (demo === 'detail') this.state.detail = C.CUSTOMERS.find((c) => c.name === 'Lena Okafor').id;
+    if (demo === 'add') this.state.ed = this.blank();
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.ed && !this.state.gr) { if (this.state.detail) this.setState({ detail: null, noteDraft: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  /* customers with this session's edits applied; the 18k base list is shared and never copied */
+  get(id) { const base = C.BY_ID[id] || this.state.added.find((c) => c.id === id); const e = this.state.edits[id]; return e ? Object.assign({}, base, e) : base; }
+  all() { const ed = this.state.edits; const list = this.state.added.concat(C.CUSTOMERS); return Object.keys(ed).length ? list.map((c) => (ed[c.id] ? Object.assign({}, c, ed[c.id]) : c)) : list; }
+  edit(id, patch) { this.setState((s) => ({ edits: Object.assign({}, s.edits, { [id]: Object.assign({}, s.edits[id], patch) }) })); }
+  blank() { return { id: null, first: '', last: '', email: '', phone: '', city: '', cc: 'US', channel: 'us', group: 'retail', consent: false, touched: false }; }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), chan = s.store === 'all' ? null : F.channelOf(s.store).key;
+    const list = this.all(), scoped = chan ? list.filter((c) => c.channel === chan) : list;
+    const seg = s.segment ? C.SEGMENTS.find((x) => x.key === s.segment) : null, segSet = seg ? new Set(C.segmentMembers(seg, scoped).map((c) => c.id)) : null;
+    const q = s.query.trim().toLowerCase(), qd = q.replace(/[^0-9]/g, '');
+    const filtered = scoped.filter((c) => (!segSet || segSet.has(c.id)) && (!s.group || c.group === s.group) && (!s.country || c.country === s.country) && (!s.consent || (s.consent === 'yes') === !!c.consent.email)
+      && (!q || c.nameLower.indexOf(q) >= 0 || c.emailLower.indexOf(q) >= 0 || (c.city || '').toLowerCase().indexOf(q) >= 0 || (qd.length >= 4 && (c.phone || '').replace(/[^0-9]/g, '').indexOf(qd) >= 0)));
+    const inTab = (c, t) => t === 'all' || (t === 'new' ? c.firstTs >= C.WIN : t === 'returning' ? c.orders >= 2 : t === 'vip' ? c.group === 'vip' : t === 'risk' ? c.orders >= 2 && F.NOW - c.lastTs > 90 * F.DAY && F.NOW - c.lastTs <= 365 * F.DAY : c.b2b || c.group === 'ws1' || c.group === 'ws2');
+    const counts = {}; TABS.forEach((t) => { counts[t.id] = 0; }); filtered.forEach((c) => TABS.forEach((t) => { if (inTab(c, t.id)) counts[t.id]++; }));
+    const sorter = { last: (a, b) => b.lastTs - a.lastTs, spent: (a, b) => b.spent - a.spent, orders: (a, b) => b.orders - a.orders || b.spent - a.spent, newest: (a, b) => b.firstTs - a.firstTs, name: (a, b) => a.name.localeCompare(b.name) }[s.sort];
+    const tabbed = filtered.filter((c) => inTab(c, s.tab)).sort(sorter);
+    const pages = Math.max(1, Math.ceil(tabbed.length / s.pageSize)), page = Math.min(s.page, pages);
+    const pageList = tabbed.slice((page - 1) * s.pageSize, page * s.pageSize);
+    const rows = pageList.map((c) => {
+      const g = C.GROUP[c.group], sel = s.sel.indexOf(c.id) >= 0;
+      return { name: c.name, email: c.channel === 'amz' ? 'Amazon buyer · no email shared' : c.email, initials: F.initials(c.name), avCls: avCls(c), city: c.city + (c.st ? ', ' + c.st : ''), country: c.country,
+        orders: F.int(c.orders), returns: c.returns ? F.plural(c.returns, 'return') : '', spent: F.money2(c.spent), aov: F.money2(c.aov),
+        last: F.NOW - c.lastTs < 2 * F.DAY ? F.fmtWhen(c.lastTs) : F.fmtDate(c.lastTs), lastSub: F.timeAgo(c.lastTs), channel: C.CHANNEL_LABEL[c.channel],
+        consentLabel: c.channel === 'amz' ? 'No marketing' : c.consent.email ? 'Subscribed' : 'Not subscribed', group: g.name, gTone: g.tone, sel, selAria: 'Select ' + c.name,
+        toggle: () => this.setState((x) => ({ sel: sel ? x.sel.filter((k) => k !== c.id) : x.sel.concat([c.id]) })), open: () => this.setState({ detail: c.id, noteDraft: null }) };
+    });
+    const pageIds = pageList.map((c) => c.id), onPage = pageIds.filter((id) => s.sel.indexOf(id) >= 0).length;
+
+    // KPIs (store-scoped)
+    const new30 = scoped.filter((c) => c.firstTs >= C.WIN).length, ord30 = scoped.reduce((a, c) => a + c.ord30, 0), firstOrders = scoped.filter((c) => c.firstTs >= C.WIN).length;
+    const repeat = scoped.filter((c) => c.orders >= 2).length, ltv = scoped.reduce((a, c) => a + c.spent, 0) / Math.max(1, scoped.length);
+    const vip = scoped.filter((c) => c.group === 'vip');
+    const kpis = [
+      { label: 'Customers', dot: 'cx-dot cx-dot-brand', value: F.int(scoped.length), cmp: '+' + F.int(new30) + ' new in the last 30 days' },
+      { label: 'Orders from returning customers', dot: 'cx-dot cx-dot-success', value: ord30 ? Math.round((ord30 - firstOrders) / ord30 * 100) + '%' : '—', cmp: F.int(ord30 - firstOrders) + ' of ' + F.int(ord30) + ' orders in 30 days' },
+      { label: 'Repeat purchase rate', dot: 'cx-dot cx-dot-info', value: (repeat / Math.max(1, scoped.length) * 100).toFixed(1) + '%', cmp: F.int(repeat) + ' customers with 2 or more orders' },
+      { label: 'Average lifetime spend', dot: 'cx-dot cx-dot-warning', value: F.money0(ltv), cmp: vip.length ? 'VIPs average ' + F.money0(vip.reduce((a, c) => a + c.spent, 0) / vip.length) : 'No VIPs in this store' }
+    ];
+    const tabs = TABS.map((t) => ({ id: t.id, label: t.label, count: F.int(counts[t.id]) }));
+    const countries = Array.from(new Set(scoped.map((c) => c.country))).sort();
+    const chips = [];
+    if (seg) chips.push({ label: 'Segment: ' + seg.name, clear: () => this.setState({ segment: null, page: 1 }) });
+    if (s.group) chips.push({ label: 'Group: ' + C.GROUP[s.group].name, clear: () => this.setState({ group: null, page: 1 }) });
+
+    // detail
+    let dp = null;
+    if (s.detail) {
+      const c = this.get(s.detail);
+      if (c) {
+        const g = C.GROUP[c.group], orders = c.isAdded ? [] : C.ordersOf(c), acts = C.ACTIVITY.filter((e) => e.cid === c.id).slice(0, 6);
+        const segs = C.SEGMENTS.filter((x) => C.segmentMembers(x, [c]).length);
+        const failed = orders[0] && orders[0].status === 'payment_failed', risk = c.orders >= 2 && F.NOW - c.lastTs > 90 * F.DAY && F.NOW - c.lastTs <= 365 * F.DAY;
+        const badges = [{ label: g.name, tone: g.tone, icon: c.group === 'vip' ? 'shield-check' : null }];
+        if (c.firstTs >= C.WIN) badges.push({ label: 'New customer', tone: 'info', icon: null });
+        if (c.channel === 'amz') badges.push({ label: 'Amazon buyer', tone: 'neutral', icon: 'tag' }); else badges.push(c.consent.email ? { label: 'Subscribed to email', tone: 'success', icon: 'check' } : { label: 'Not subscribed', tone: 'neutral', icon: null });
+        c.tags.filter((t) => t !== 'VIP' && t !== 'Wholesale' && t !== 'Staff' && t !== 'Press').forEach((t) => badges.push({ label: t, tone: t === 'Frequent returner' ? 'warning' : 'neutral', icon: null }));
+        const note = s.noteDraft != null ? s.noteDraft : c.note || '';
+        dp = { name: c.name, initials: F.initials(c.name), avCls: avCls(c) + ' cu-av-lg', sub: (c.channel === 'amz' ? 'Amazon buyer' : c.email) + ' · ' + c.city + ', ' + c.country, badges,
+          alert: c.channel === 'amz' ? 'Amazon doesn’t share contact details. You can’t email this customer or add them to campaigns; messages go through Seller Central.' : failed ? 'Payment failed on ' + orders[0].id + ' (' + F.money2(orders[0].total) + '). The order is on hold until they update their card.' : risk ? 'No order in ' + Math.round((F.NOW - c.lastTs) / F.DAY) + ' days after ' + F.plural(c.orders, 'order') + '. They’re in the At risk segment.' : c.b2b ? 'Wholesale account on ' + c.terms + '. Orders come through the B2B portal; ' + c.contact + ' places them.' : null,
+          alertTone: failed ? 'danger' : risk ? 'warning' : 'info', alertTitle: c.channel === 'amz' ? 'Marketplace customer' : failed ? 'Payment failed' : risk ? 'At risk' : c.b2b ? 'Wholesale' : null,
+          stats: [{ label: 'Total spent', value: F.money2(c.spent), sub: g.discount ? g.discount + '% group discount' : 'retail prices' }, { label: 'Orders', value: F.int(c.orders), sub: c.returns ? F.plural(c.returns, 'return') : 'no returns' },
+            { label: 'Average order', value: F.money2(c.aov), sub: c.orders > 1 ? 'every ' + Math.max(1, Math.round((c.lastTs - c.firstTs) / F.DAY / (c.orders - 1))) + ' days' : 'one order so far' }, { label: 'Customer since', value: F.fmtDate(c.firstTs).replace(/^(\w+) \d+, /, '$1 '), sub: F.timeAgo(c.firstTs) }],
+          ordersLabel: F.int(c.orders), more: orders.length > 6 ? 'View all ' + F.int(orders.length) + ' orders in Orders' : null,
+          orders: orders.slice(0, 6).map((o) => { const st = ORDER_ST[o.status] || ORDER_ST.delivered; return { id: o.id, when: F.NOW - o.ts < 2 * F.DAY ? F.fmtWhen(o.ts) : F.fmtDate(o.ts), what: F.plural(o.items, 'item') + ' · ' + o.products.slice(0, 2).join(', '), total: F.money2(o.total), status: st[1], tone: st[0] }; }),
+          hasActivity: acts.length > 0, activity: acts.map((e) => ({ label: C.ACT_TYPES[e.type].label + (e.detail ? ': ' + e.detail : '') + (e.value ? ' · ' + F.money2(e.value) : ''), when: F.fmtWhen(e.ts) })),
+          kv: [{ k: 'Email', v: c.channel === 'amz' ? 'Not shared by Amazon' : c.email }, { k: 'Phone', v: c.phone || '—' }, { k: 'Location', v: c.city + (c.st ? ', ' + c.st : '') + ', ' + c.country }, { k: 'Store', v: C.CHANNEL_LABEL[c.channel] },
+            { k: 'Account', v: c.b2b ? 'B2B portal · ' + c.contact : c.guest ? 'Guest checkout, no account' : c.channel === 'amz' ? 'Amazon' : 'Registered ' + F.fmtDate(c.created) }, { k: 'Found us', v: c.source },
+            { k: 'Group', v: g.name + (g.discount ? ' · ' + (g.discount === 100 ? 'free on approval' : g.discount + '% off') : '') + (g.terms !== 'Pay at checkout' ? ' · ' + g.terms : '') }, { k: 'SMS', v: c.consent.sms ? 'Subscribed' : 'Not subscribed' }],
+          segs: segs.length ? segs.map((x) => ({ name: x.name, href: 'Segments.dc.html?segment=' + x.key })) : [{ name: 'None', href: 'Segments.dc.html' }],
+          note, noteSaved: note === (c.note || ''), setNote: (e) => this.setState({ noteDraft: e.target.value }),
+          saveNote: () => { this.edit(c.id, { note: note.trim() }); this.setState({ noteDraft: null }); this.showToast('Note saved', 'Visible to everyone on the team on this customer.'); },
+          changeGroup: () => this.setState({ gr: { ids: [c.id], value: c.group } }),
+          edit: () => { const p = c.name.split(' '); this.setState({ ed: { id: c.id, first: c.b2b ? c.name : p[0], last: c.b2b ? '' : p.slice(1).join(' '), email: c.email, phone: c.phone || '', city: c.city, cc: c.cc, channel: c.channel, group: c.group, consent: !!c.consent.email, touched: false } }); },
+          noEmail: c.channel === 'amz' || !c.consent.email,
+          email: () => this.showToast('Email draft opened', 'To ' + c.email + '. Marketing campaigns live in Marketing, which isn’t built yet.', 'info') };
+      }
+    }
+
+    // add / edit
+    let ed = { title: '', desc: '', ccOpts: [], chOpts: [], gOpts: [] };
+    if (s.ed) {
+      const d = s.ed, set = (k) => (e) => { const v = e.target.value; this.setState((x) => ({ ed: Object.assign({}, x.ed, { [k]: v }) })); }, pick = (k) => (v) => this.setState((x) => ({ ed: Object.assign({}, x.ed, { [k]: v }) }));
+      const em = d.email.trim().toLowerCase(), dupe = em && list.some((c) => c.id !== d.id && c.emailLower === em);
+      const errs = { first: !d.first.trim() ? 'Enter a name' : null, email: !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em) ? 'Enter a valid email' : dupe ? 'Another customer already uses this email' : null, city: !d.city.trim() ? 'Enter a city' : null };
+      const bad = errs.first || errs.email || errs.city;
+      ed = { title: d.id ? 'Edit ' + this.get(d.id).name : 'Add customer', desc: d.id ? 'Changes sync to the store the customer shops in.' : 'For phone or in-person orders. Customers who check out online are added automatically.',
+        first: d.first, last: d.last, email: d.email, phone: d.phone, city: d.city, cc: d.cc, channel: d.channel, group: d.group, consent: d.consent,
+        firstError: d.touched ? errs.first : null, emailError: d.touched ? errs.email : null, cityError: d.touched ? errs.city : null,
+        setFirst: set('first'), setLast: set('last'), setEmail: set('email'), setPhone: set('phone'), setCity: set('city'), setCc: pick('cc'), setChannel: pick('channel'), setGroup: pick('group'), setConsent: (v) => this.setState((x) => ({ ed: Object.assign({}, x.ed, { consent: v }) })),
+        ccOpts: Object.keys(C.PLACES).map((k) => ({ value: k, label: C.PLACES[k].country })).sort((a, b) => a.label.localeCompare(b.label)),
+        chOpts: [{ value: 'us', label: 'Fernhill US' }, { value: 'eu', label: 'Fernhill EU' }], gOpts: C.GROUPS.map((g) => ({ value: g.key, label: g.name })),
+        consentLabel: 'They agreed to receive marketing emails', cta: d.id ? 'Save changes' : 'Add customer',
+        save: () => {
+          if (bad) return this.setState({ ed: Object.assign({}, d, { touched: true }) });
+          const name = (d.first.trim() + ' ' + d.last.trim()).trim(), place = C.PLACES[d.cc];
+          const fields = { name, nameLower: name.toLowerCase(), email: em, emailLower: em, phone: d.phone.trim(), city: d.city.trim(), st: null, cc: d.cc, country: place.country, channel: d.channel, group: d.group, consent: { email: d.consent, sms: false } };
+          if (d.id) { this.edit(d.id, fields); this.setState({ ed: null }); this.showToast(name + ' updated', 'Saved to their profile.'); return; }
+          const id = 'CUS-' + (100001 + C.CUSTOMERS.length + s.added.length);
+          const c = Object.assign({ id, isAdded: true, created: F.NOW, firstTs: F.NOW, lastTs: F.NOW, orders: 0, spent: 0, aov: 0, ord30: 0, rev30: 0, returns: 0, tags: [], source: 'Added by staff' }, fields);
+          this.setState((x) => ({ added: [c].concat(x.added), ed: null, detail: id, sort: 'newest', tab: 'all', page: 1 }));
+          this.showToast(name + ' added', 'They’ll count as a customer once their first order is placed.');
+        } };
+    }
+
+    // group change
+    let gr = { title: '', desc: '', opts: [] };
+    if (s.gr) {
+      const d = s.gr, n = d.ids.length, one = n === 1 ? this.get(d.ids[0]) : null, g = C.GROUP[d.value];
+      const autoVip = d.ids.some((id) => this.get(id).spent >= 1000) && d.value === 'retail';
+      gr = { title: one ? 'Change ' + one.name + '’s group' : 'Change group for ' + F.plural(n, 'customer'), desc: 'Groups set prices, payment terms and perks at checkout.', value: d.value,
+        opts: C.GROUPS.map((x) => ({ value: x.key, label: x.name + (x.discount ? ' · ' + (x.discount === 100 ? 'free on approval' : x.discount + '% off') : '') })),
+        set: (v) => this.setState((x) => ({ gr: Object.assign({}, x.gr, { value: v }) })), hint: g.desc,
+        warn: autoVip ? 'Customers who’ve spent $1,000 or more move back to VIP Club automatically. Remove the auto rule in Customer Groups to keep them in Retail.' : (d.value === 'ws1' || d.value === 'ws2') && d.ids.some((id) => !this.get(id).b2b) ? 'Wholesale pricing needs a B2B portal account. They’ll get an invite to set one up.' : null,
+        save: () => { d.ids.forEach((id) => this.edit(id, { group: d.value })); this.setState({ gr: null, sel: [] }); this.showToast(one ? one.name + ' moved to ' + g.name : F.plural(n, 'customer') + ' moved to ' + g.name, g.discount ? 'Their next order gets ' + (g.discount === 100 ? 'free product on approval' : g.discount + '% off') + '.' : 'Standard retail prices apply.'); } };
+    }
+
+    const selected = s.sel.map((id) => this.get(id)).filter(Boolean);
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k, page: 1, sel: [] }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.int(scoped.length) + ' customers' + (chan ? ' in ' + store.label : ' in ' + new Set(scoped.map((c) => c.country)).size + ' countries'),
+      kpis, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id, page: 1 }), query: s.query, setQuery: (v) => this.setState({ query: v, page: 1 }),
+      countryOpts: [{ value: '', label: 'All countries' }].concat(countries.map((x) => ({ value: x, label: x }))), country: s.country, setCountry: (v) => this.setState({ country: v, page: 1 }),
+      consentOpts: [{ value: '', label: 'Any email status' }, { value: 'yes', label: 'Subscribed to email' }, { value: 'no', label: 'Not subscribed' }], consent: s.consent, setConsent: (v) => this.setState({ consent: v, page: 1 }),
+      sortOpts: [{ value: 'last', label: 'Sort: last order' }, { value: 'spent', label: 'Sort: total spent' }, { value: 'orders', label: 'Sort: most orders' }, { value: 'newest', label: 'Sort: newest customers' }, { value: 'name', label: 'Sort: name' }],
+      sort: s.sort, setSort: (v) => this.setState({ sort: v, page: 1 }),
+      chips, hasChips: chips.length > 0,
+      bulk: { show: s.sel.length > 0, count: F.plural(s.sel.length, 'customer') + ' selected', clear: () => this.setState({ sel: [] }),
+        group: () => this.setState({ gr: { ids: s.sel.slice(), value: 'vip' } }),
+        email: () => { const ok = selected.filter((c) => c.consent.email && c.channel !== 'amz').length; this.showToast(ok ? 'Email draft for ' + F.plural(ok, 'customer') : 'No one to email', ok < selected.length ? F.int(selected.length - ok) + ' aren’t subscribed or are Amazon buyers and were left out.' : 'Everyone selected is subscribed.', ok ? 'success' : 'info'); },
+        exportSel: () => this.showToast('Exporting ' + F.plural(s.sel.length, 'customer'), 'CSV with contact details, orders, spend and group.') },
+      pageAll: pageIds.length > 0 && onPage === pageIds.length, pageSome: onPage > 0 && onPage < pageIds.length,
+      togglePage: () => this.setState((x) => ({ sel: onPage === pageIds.length ? x.sel.filter((id) => pageIds.indexOf(id) < 0) : Array.from(new Set(x.sel.concat(pageIds))) })),
+      rows, shown: rows.length > 0, empty: rows.length === 0, page, pageSize: s.pageSize, total: tabbed.length,
+      setPage: (p) => this.setState({ page: p }), setPageSize: (n) => this.setState({ pageSize: Number(n), page: 1 }),
+      dp, closeDetail: () => this.setState({ detail: null, noteDraft: null }),
+      edOpen: !!s.ed, openAdd: () => this.setState({ ed: this.blank() }), closeEd: () => this.setState({ ed: null }), ed,
+      grOpen: !!s.gr, closeGr: () => this.setState({ gr: null }), gr,
+      exportView: () => this.showToast('Exporting ' + F.plural(tabbed.length, 'customer'), 'CSV of this view. Amazon buyers are included without contact details.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- customers: Fernhill customers (customers.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, C = window.FernhillCustomers, CommerceOS = window.CommerceOS;
+var TABS = [{ id: 'all', label: 'All' }, { id: 'new', label: 'New' }, { id: 'returning', label: 'Returning' }, { id: 'vip', label: 'VIP' }, { id: 'risk', label: 'At risk' }, { id: 'wholesale', label: 'Wholesale' }];
+var ORDER_ST = { confirmed: ['info', 'Confirmed'], processing: ['info', 'Processing'], ready_to_ship: ['brand', 'Ready to ship'], shipped: ['brand', 'Shipped'], delivered: ['success', 'Delivered'],
+  returned: ['neutral', 'Returned'], cancelled: ['neutral', 'Cancelled'], payment_failed: ['danger', 'Payment failed'] };
+function avCls(c) { return 'pr-thumb cu-av th-' + (c.b2b ? 2 : c.group === 'vip' ? 0 : Number(c.id.slice(-1)) % 5); }
+</script>
+</body>
+</html>

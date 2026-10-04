@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fulfillment · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./orders.js?v=1"></script>
+<script src="./fulfillment.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Fulfillment overview ---------- */
+.fo-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.fo-flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.fo-stage{position:relative;display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text-primary);text-decoration:none;min-width:0}
+.fo-stage:hover{border-color:var(--border-strong)}
+.fo-stage:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.fo-stage strong{font-size:22px;line-height:28px;font-weight:600}
+.fo-stage .fo-late{color:var(--danger);font-weight:500}
+.fo-stage-top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--text-secondary)}
+.fo-stage-top .cx-icon{width:14px;height:14px;color:var(--text-muted)}
+.fo-row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+.fo-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.fo-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px;min-width:0}
+.fo-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.fo-head h2{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.fo-head p{margin:2px 0 0;font-size:12px;line-height:16px;color:var(--text-muted)}
+.fo-head a{font-size:13px;white-space:nowrap}
+.fo-sites{width:100%;border-collapse:collapse;font-size:13px;line-height:20px;font-variant-numeric:tabular-nums}
+.fo-sites th{padding:6px 8px;font-size:12px;font-weight:500;color:var(--text-secondary);text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+.fo-sites th:first-child,.fo-sites td:first-child{text-align:left;padding-left:0}
+.fo-sites td{padding:10px 8px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;vertical-align:top}
+.fo-sites tr:last-child td{border-bottom:0}
+.fo-sites td a{color:var(--text-primary);text-decoration:none}
+.fo-sites td a:hover{text-decoration:underline}
+.fo-sites .is-late{color:var(--danger);font-weight:600}
+.fo-sites .is-ext td{color:var(--text-muted)}
+.fo-site{display:flex;flex-direction:column}
+.fo-site strong{font-weight:500;color:var(--text-primary)}
+.fo-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.fo-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:20px}
+.fo-list li:last-child{border-bottom:0}
+.fo-list .pr-cell-main{min-width:0}
+.fo-list .o-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fo-side{display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap}
+.fo-bad{color:var(--danger);font-weight:500}
+.fo-tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.fo-tl li{display:grid;grid-template-columns:52px 10px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 0;font-size:13px;line-height:18px}
+.fo-tl .fo-t{font-variant-numeric:tabular-nums;color:var(--text-secondary)}
+.fo-tl .is-done{color:var(--text-muted)}
+.fo-dot{width:9px;height:9px;border-radius:var(--radius-full);background:var(--border-strong)}
+.fo-dot.is-done{background:var(--success)}
+.fo-dot.is-next{background:var(--brand);box-shadow:0 0 0 3px var(--brand-subtle)}
+@media (max-width:1279px){ .fo-row{grid-template-columns:minmax(0,1fr)} .fo-flow{grid-template-columns:repeat(3,minmax(0,1fr))} .c-hide{display:none} }
+@media (max-width:1023px){ .fo-kpis{display:flex} }
+@media (max-width:767px){ .fo-flow{grid-template-columns:repeat(2,minmax(0,1fr))} .fo-card{padding:12px 14px;overflow-x:auto} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="fulfillment/overview" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="fulfillment/overview"></x-import>
+<h1>Fulfillment overview</h1>
+<p class="ph-sub">Every paid order from the pick list to the carrier, across the four warehouses we run.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Today, Oct 1 · 09:42 UTC</span></p>
+</div>
+</div>
+
+<section class="o-kpis fo-kpis" aria-label="Fulfillment summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section class="fo-flow" aria-label="Pipeline">
+<sc-for list="{{flow}}" as="f" hint-placeholder-count="5">
+<a class="fo-stage" href="{{f.href}}"><span class="fo-stage-top"><span>{{f.label}}</span><x-import component-from-global-scope="CommerceOS.Icon" name="arrow-right"></x-import></span><strong>{{f.count}}</strong><span class="o-sub">{{f.sub}}</span><span class="{{f.lateCls}}">{{f.late}}</span></a>
+</sc-for>
+</section>
+
+<section class="fo-card" aria-label="Warehouses">
+<div class="fo-head"><div><h2>By warehouse</h2><p>Open orders at each step, and the next carrier pickup in local time</p></div><a href="Warehouses.dc.html">All warehouses</a></div>
+<div style="overflow-x: auto">
+<table class="fo-sites">
+<thead><tr><th scope="col">Warehouse</th><th scope="col">To pick</th><th scope="col">Picking</th><th scope="col">Packing</th><th scope="col">Ready</th><th scope="col">Late</th><th class="c-hide" scope="col">Shipped today</th><th scope="col">Next pickup</th></tr></thead>
+<tbody><sc-for list="{{sites}}" as="w" hint-placeholder-count="5"><tr class="{{w.cls}}">
+<td><span class="fo-site"><strong>{{w.name}}</strong><span class="o-sub">{{w.local}}</span></span></td>
+<td><a href="{{w.pickHref}}">{{w.pick}}</a></td><td><a href="{{w.pickHref}}">{{w.picking}}</a></td><td><a href="{{w.packHref}}">{{w.pack}}</a></td><td><a href="{{w.shipHref}}">{{w.ship}}</a></td>
+<td><span class="{{w.lateCls}}">{{w.late}}</span></td><td class="c-hide">{{w.shipped}}</td>
+<td><span class="fo-site" style="align-items: flex-end"><span>{{w.next}}</span><span class="o-sub">{{w.nextSub}}</span></span></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+</section>
+
+<div class="fo-row">
+<div class="fo-col">
+
+
+<section class="fo-card" aria-label="Oldest late orders">
+<div class="fo-head"><div><h2>Oldest late orders</h2><p>{{lateSub}}</p></div><a href="{{lateHref}}">See all in Orders</a></div>
+<ul class="fo-list"><sc-for list="{{late}}" as="o" hint-placeholder-count="8"><li><span class="pr-cell-main"><span><span class="td-strong">{{o.id}}</span> · {{o.customer}}</span><span class="o-sub">{{o.sub}}</span></span><span class="fo-side"><a href="{{o.href}}">{{o.step}}</a><span class="fo-bad">{{o.age}}</span></span></li></sc-for></ul>
+</section>
+</div>
+
+<div class="fo-col">
+<section class="fo-card" aria-label="Carrier pickups today">
+<div class="fo-head"><div><h2>Carrier pickups today</h2><p>Local time at each warehouse · parcels ready now</p></div><a href="Shipping.dc.html">Shipping</a></div>
+<ol class="fo-tl"><sc-for list="{{pickups}}" as="p" hint-placeholder-count="10"><li><span class="{{p.tCls}}">{{p.time}}</span><span class="{{p.dot}}" aria-hidden="true"></span><span class="pr-cell-main"><span class="{{p.labelCls}}">{{p.carrier}}</span><span class="o-sub">{{p.site}}</span></span><span class="o-sub">{{p.count}}</span></li></sc-for></ol>
+</section>
+
+<section class="fo-card" aria-label="Delivery exceptions">
+<div class="fo-head"><div><h2>Delivery exceptions</h2><p>{{exSub}}</p></div><a href="DeliveryTracking.dc.html">Delivery tracking</a></div>
+<ul class="fo-list"><sc-for list="{{exceptions}}" as="e" hint-placeholder-count="5"><li><span class="pr-cell-main"><a href="{{e.href}}" style="color: var(--text-primary); font-weight: 500">{{e.id}} · {{e.customer}}</a><span class="o-sub">{{e.sub}}</span></span><span class="fo-side"><x-import component-from-global-scope="CommerceOS.Badge" tone="danger">{{e.label}}</x-import><span class="o-sub">{{e.when}}</span></span></li></sc-for></ul>
+</section>
+
+<section class="fo-card" aria-label="Team on shift">
+<div class="fo-head"><div><h2>On shift</h2><p>Pickers and packers clocked in right now</p></div></div>
+<ul class="fo-list"><sc-for list="{{crew}}" as="c" hint-placeholder-count="4"><li><span class="pr-cell-main"><span class="td-strong">{{c.site}}</span><span class="o-sub">{{c.names}}</span></span><span class="fo-side"><span>{{c.count}}</span><span class="{{c.noteCls}}">{{c.note}}</span></span></li></sc-for></ul>
+</section>
+</div>
+</div>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), chan = s.store === 'all' ? null : F.channelOf(s.store).label;
+    const open = X.OPEN.filter((f) => !chan || f.channel === chan), ships = X.SHIPMENTS.filter((x) => !chan || x.channel === chan);
+    const by = (step) => open.filter((f) => f.step === step), late = open.filter((f) => f.late);
+    const today = ships.filter((x) => x.shipped >= F.DAY0), ex = ships.filter((x) => x.status === 'exception');
+    const units = (l) => F.int(l.reduce((a, f) => a + f.units, 0)) + ' units';
+
+    // next pickup anywhere
+    const slots = [];
+    X.SITES.forEach((site) => X.PICKUPS[site].forEach((p) => slots.push({ site, carrier: p[0], ts: X.localToday(site, p[1]) })));
+    slots.sort((a, b) => a.ts - b.ts);
+    const next = slots.find((p) => p.ts > F.NOW);
+    const inH = (ts) => { const m = Math.round((ts - F.NOW) / 6e4); return m < 60 ? 'in ' + m + ' min' : 'in ' + Math.floor(m / 60) + ' h ' + (m % 60) + ' min'; };
+    const ready = (site, carrier) => open.filter((f) => f.site === site && f.step === 'ship' && f.carrier === carrier).length;
+
+    const kpis = [
+      { label: 'Orders to ship', dot: 'cx-dot cx-dot-brand', value: F.int(open.length), cmp: units(open) + ' across ' + X.SITES.length + ' warehouses' },
+      { label: 'Past the 24-hour target', dot: 'cx-dot cx-dot-danger', value: F.int(late.length), cmp: Math.round(late.length / Math.max(1, open.length) * 100) + '% of open orders · oldest ' + (late.length ? Math.round((F.NOW - Math.min(...late.map((f) => f.ts))) / 36e5) + ' h' : '—') },
+      { label: 'Shipped today', dot: 'cx-dot cx-dot-success', value: F.int(today.length), cmp: next ? 'Next pickup ' + next.carrier + ' at ' + I.WH[next.site].short + ' ' + inH(next.ts) : 'No more pickups today' },
+      { label: 'Delivery exceptions', dot: 'cx-dot cx-dot-warning', value: F.int(ex.length), cmp: F.int(ships.filter((x) => x.status === 'late').length) + ' more parcels past their delivery date' }
+    ];
+    const lateOf = (l) => l.filter((f) => f.late).length;
+    const flow = [
+      { label: 'To pick', list: by('pick'), href: 'Picking.dc.html', sub: 'not on a pick list yet' },
+      { label: 'Picking', list: by('picking'), href: 'Picking.dc.html?tab=lists', sub: F.plural(X.LISTS.length, 'pick list') + ' in progress' },
+      { label: 'Packing', list: by('pack'), href: 'Packing.dc.html', sub: 'picked, at the pack stations' },
+      { label: 'Ready to ship', list: by('ship'), href: 'Shipping.dc.html', sub: 'packed, waiting for the carrier' }
+    ].map((f) => ({ label: f.label, count: F.int(f.list.length), href: f.href, sub: f.sub + ' · ' + units(f.list), late: lateOf(f.list) ? F.int(lateOf(f.list)) + ' late' : 'none late', lateCls: lateOf(f.list) ? 'o-sub fo-late' : 'o-sub' }))
+      .concat([{ label: 'Shipped today', count: F.int(today.length), href: 'DeliveryTracking.dc.html', sub: 'handed to carriers since midnight UTC', late: F.int(ships.filter((x) => x.status === 'transit' || x.status === 'out' || x.status === 'label').length) + ' in transit', lateCls: 'o-sub' }]);
+
+    const sites = X.SITES.map((site) => {
+      const w = I.WH[site], o = open.filter((f) => f.site === site), hrs = HOURS[site], lh = Number(X.localHour(site, F.NOW).slice(0, 2));
+      const nx = slots.find((p) => p.site === site && p.ts > F.NOW), l = lateOf(o);
+      return { name: w.name, local: X.localHour(site, F.NOW) + ' local · ' + (lh >= hrs[0] && lh < hrs[1] ? 'open until ' + hrs[1] + ':00' : 'opens at ' + (hrs[0] < 10 ? '0' : '') + hrs[0] + ':00'), cls: '',
+        pick: F.int(o.filter((f) => f.step === 'pick').length), picking: F.int(o.filter((f) => f.step === 'picking').length), pack: F.int(o.filter((f) => f.step === 'pack').length), ship: F.int(o.filter((f) => f.step === 'ship').length),
+        late: l ? F.int(l) : '—', lateCls: l ? 'is-late' : '', shipped: F.int(today.filter((x) => x.site === site).length),
+        next: nx ? nx.carrier + ' · ' + X.localHour(site, nx.ts) : 'Done for today', nextSub: nx ? inH(nx.ts) + ' · ' + F.plural(ready(site, nx.carrier), 'parcel') + ' ready' : '',
+        pickHref: 'Picking.dc.html?wh=' + site, packHref: 'Packing.dc.html?wh=' + site, shipHref: 'Shipping.dc.html?wh=' + site };
+    }).concat([{ name: 'Sydney 3PL', local: X.localHour('ewr', F.NOW + 14 * 36e5) + ' local · Harbour Logistics', cls: 'is-ext', pick: '—', picking: '—', pack: '—', ship: F.int(I.WH.syd.toShip), late: '—', lateCls: '',
+      shipped: F.int(I.WH.syd.shippedToday), next: 'Ships from the 3PL’s system', nextSub: 'not in these queues', pickHref: 'Warehouses.dc.html', packHref: 'Warehouses.dc.html', shipHref: 'Warehouses.dc.html' }]);
+
+    const lateList = late.slice().sort((a, b) => a.ts - b.ts).slice(0, 8).map((f) => ({ id: f.id, customer: f.customer, sub: I.WH[f.site].short + ' · ' + f.delivery + ' · ' + (f.lateNote || 'past 24 h'),
+      step: STEP_LABEL[f.step], href: STEP_HREF[f.step] + '?wh=' + f.site, age: Math.round((F.NOW - f.ts) / 36e5) + ' h old' }));
+
+    const pickups = slots.map((p) => { const done = p.ts <= F.NOW, isNext = next && p === next, n = done ? today.filter((x) => x.site === p.site && x.carrier === p.carrier && Math.abs(x.shipped - p.ts) < 6e4).length : ready(p.site, p.carrier);
+      return { time: new Date(p.ts).toISOString().slice(11, 16), tCls: 'fo-t' + (done ? ' is-done' : ''), dot: 'fo-dot' + (done ? ' is-done' : isNext ? ' is-next' : ''), carrier: p.carrier, labelCls: done ? 'is-done' : '',
+        site: I.WH[p.site].short + ' · ' + X.localHour(p.site, p.ts) + ' local' + (isNext ? ' · next' : ''), count: done ? (n ? F.plural(n, 'parcel') + ' collected' : 'nothing to collect') : n ? F.plural(n, 'parcel') + ' ready' : 'nothing ready yet' }; });
+
+    const exceptions = ex.slice().sort((a, b) => b.exAt - a.exAt).slice(0, 5).map((x) => ({ id: x.id, customer: x.customer, href: 'DeliveryTracking.dc.html?t=' + encodeURIComponent(x.id), sub: x.carrier + ' · ' + x.exNote, label: x.exception, when: F.timeAgo(x.exAt) }));
+
+    const crew = X.SITES.map((site) => { const lh = Number(X.localHour(site, F.NOW).slice(0, 2)), on = lh >= HOURS[site][0] && lh < HOURS[site][1], ppl = X.PICKERS[site].concat(X.PACKERS[site]);
+      return { site: I.WH[site].name, names: on ? ppl.join(', ') : 'Shift starts at ' + (HOURS[site][0] < 10 ? '0' : '') + HOURS[site][0] + ':00 local', count: on ? F.plural(ppl.length, 'person', 'people') : 'Closed',
+        note: X.OUT[site] ? X.OUT[site].length + ' out sick' : on ? X.STATIONS[site] + ' pack stations' : '', noteCls: X.OUT[site] ? 'o-sub fo-bad' : 'o-sub' }; });
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(open.length, 'order') + ' to ship' + (chan ? ' for ' + store.label : '') + ' · ' + F.int(late.length) + ' late',
+      kpis, flow, sites, late: lateList, lateSub: F.plural(late.length, 'order') + ' past the 24-hour processing target', lateHref: 'Orders.dc.html',
+      pickups, exceptions, exSub: F.plural(ex.length, 'parcel') + ' the carrier couldn’t deliver', crew,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- fulfillment overview: Fernhill orders (orders.js) and fulfillment (fulfillment.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, X = window.FernhillFulfillment, CommerceOS = window.CommerceOS;
+var HOURS = { dhk: [8, 20], ctg: [8, 20], rtm: [7, 22], ewr: [6, 22] };
+var STEP_LABEL = { pick: 'To pick', picking: 'Picking', pack: 'Packing', ship: 'Ready to ship' };
+var STEP_HREF = { pick: 'Picking.dc.html', picking: 'Picking.dc.html', pack: 'Packing.dc.html', ship: 'Shipping.dc.html' };
+</script>
+</body>
+</html>

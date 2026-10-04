@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Customer Activity · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./customers.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Customer activity ---------- */
+.ca-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ca-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:start}
+.ca-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.ca-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px;min-width:0}
+.ca-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
+.ca-head h2{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.ca-head p{margin:2px 0 0;font-size:12px;line-height:16px;color:var(--text-muted)}
+.ca-feed{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+.ca-tools{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.ca-tools .o-search{flex:1;min-width:200px}
+.ca-day{position:sticky;top:0;z-index:1;padding:6px 16px;background:var(--bg-subtle);border-bottom:1px solid var(--border);font-size:12px;line-height:18px;font-weight:600;color:var(--text-secondary)}
+.ca-list{list-style:none;margin:0;padding:0}
+.ca-ev{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border)}
+.ca-ico{flex:none;width:32px;height:32px;border-radius:var(--radius-full);display:inline-flex;align-items:center;justify-content:center}
+.ca-ico .cx-icon{width:16px;height:16px}
+.t-danger{background:var(--danger-subtle);color:var(--danger)}
+.t-warning{background:var(--warning-subtle);color:var(--warning)}
+.t-info{background:var(--info-subtle);color:var(--info)}
+.t-brand{background:var(--brand-subtle);color:var(--brand)}
+.t-success{background:var(--success-subtle);color:var(--success)}
+.t-neutral{background:var(--bg-muted);color:var(--text-secondary)}
+.ca-main{flex:1;min-width:0;display:flex;flex-direction:column;font-size:13px;line-height:20px}
+.ca-main a{color:var(--text-primary);font-weight:600;text-decoration:none}
+.ca-main a:hover{text-decoration:underline}
+.ca-main .o-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ca-val{font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13px}
+.ca-time{width:44px;flex:none;text-align:right;font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.ca-more{display:flex;justify-content:center;padding:12px}
+.ca-live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--success);font-weight:500}
+.ca-mini{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ca-mini li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:20px}
+.ca-mini li:last-child{border-bottom:0}
+.ca-mini a{color:var(--text-primary);font-weight:500;text-decoration:none}
+.ca-mini a:hover{text-decoration:underline}
+.ca-mini .pr-cell-main{min-width:0}
+.ca-mini .o-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ca-old{color:var(--danger);font-weight:500}
+.ca-types{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.ca-types li{display:grid;grid-template-columns:130px minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:13px;line-height:18px}
+.ca-types button{border:0;background:none;padding:0;font:inherit;color:var(--text-primary);text-align:left;cursor:pointer}
+.ca-types button:hover{text-decoration:underline}
+.ca-types li span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.ca-types .pr-meter > span{background:var(--brand)}
+@media (max-width:1279px){ .ca-row{grid-template-columns:minmax(0,1fr)} .ca-side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:1023px){ .ca-kpis{display:flex} }
+@media (max-width:767px){ .ca-side{grid-template-columns:minmax(0,1fr)} .ca-time{display:none} .ca-val{display:none} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="customers/activity" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="customers/activity"></x-import>
+<h1>Customer Activity</h1>
+<p class="ph-sub">What customers are doing across the stores: orders, sign-ups, carts, reviews, returns and support.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span class="ca-live"><span class="cx-dot cx-dot-success cx-dot-pulse"></span>Live · updated 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<section class="o-kpis ca-kpis" aria-label="Today so far">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<div class="ca-row">
+<section class="ca-feed" aria-label="Activity feed">
+<div class="ca-tools">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by customer, order or product" label="Search activity" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Activity type" options="{{typeOpts}}" value="{{type}}" on-value-change="{{setType}}" width="190px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Period" options="{{dayOpts}}" value="{{day}}" on-value-change="{{setDay}}" width="150px"></x-import>
+</div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+<div class="ca-day">{{g.label}}</div>
+<ul class="ca-list"><sc-for list="{{g.events}}" as="e" hint-placeholder-count="10"><li class="ca-ev">
+<span class="{{e.ico}}" aria-hidden="true"><x-import component-from-global-scope="CommerceOS.Icon" name="{{e.icon}}"></x-import></span>
+<span class="ca-main"><span><a href="{{e.href}}">{{e.name}}</a> {{e.verb}}</span><span class="o-sub">{{e.sub}}</span></span>
+<span class="ca-val">{{e.value}}</span>
+<sc-if value="{{e.hasAct}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="{{e.actVariant}}" size="sm" disabled="{{e.actDone}}" on-click="{{e.act}}">{{e.actLabel}}</x-import></sc-if>
+<span class="ca-time">{{e.time}}</span>
+</li></sc-for></ul>
+</sc-for>
+<sc-if value="{{hasMore}}" hint-placeholder-val="{{false}}"><div class="ca-more"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" on-click="{{showMore}}">{{moreLabel}}</x-import></div></sc-if>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="search" title="No activity matches" description="Try another type, day or customer."></x-import></sc-if>
+</section>
+
+<div class="ca-side">
+<section class="ca-card" aria-label="Needs a reply">
+<div class="ca-head"><div><h2>Needs a reply</h2><p>{{supportSub}}</p></div></div>
+<sc-if value="{{hasSupport}}" hint-placeholder-val="{{true}}"><ul class="ca-mini"><sc-for list="{{support}}" as="t" hint-placeholder-count="4"><li><span class="pr-cell-main"><a href="{{t.href}}">{{t.name}}</a><span class="o-sub">{{t.topic}}</span></span><span class="{{t.ageCls}}">{{t.age}}</span></li></sc-for></ul></sc-if>
+<sc-if value="{{noSupport}}" hint-placeholder-val="{{false}}"><p class="o-sub" style="margin: 0">All caught up.</p></sc-if>
+</section>
+<section class="ca-card" aria-label="Most active this week">
+<div class="ca-head"><div><h2>Most active this week</h2><p>Customers with the most activity in 7 days</p></div></div>
+<ul class="ca-mini"><sc-for list="{{top}}" as="t" hint-placeholder-count="5"><li><span class="pr-cell-main"><a href="{{t.href}}">{{t.name}}</a><span class="o-sub">{{t.sub}}</span></span><span class="o-sub">{{t.count}}</span></li></sc-for></ul>
+</section>
+<section class="ca-card" aria-label="Activity by type">
+<div class="ca-head"><div><h2>By type, last 7 days</h2><p>{{typeSub}}</p></div></div>
+<ul class="ca-types"><sc-for list="{{byType}}" as="t" hint-placeholder-count="9"><li><button onClick="{{t.pick}}">{{t.label}}</button><span class="pr-meter"><span style="{{t.w}}"></span></span><span>{{t.count}}</span></li></sc-for></ul>
+</section>
+</div>
+</div>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, type: '', day: '7d', query: '', limit: 40, done: {} };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  markDone(id) { this.setState((s) => ({ done: Object.assign({}, s.done, { [id]: true }) })); }
+  action(e, c) {
+    const done = !!this.state.done[e.id];
+    if (e.type === 'cart' && !e.recovered && c.consent.email && c.channel !== 'amz') return { label: done ? 'Reminder sent' : 'Send reminder', variant: 'secondary', done, go: () => { this.markDone(e.id); this.showToast('Cart reminder sent to ' + c.name, 'With the ' + F.money2(e.value) + ' cart and a link back to checkout. Track it in Abandoned Carts.'); } };
+    if (e.type === 'support' && e.open) return { label: done ? 'Replied' : 'Reply', variant: 'primary', done, go: () => { this.markDone(e.id); this.showToast('Reply sent to ' + c.name, '“' + e.detail + '” is marked as answered.'); } };
+    if (e.type === 'review' && e.rating <= 3) return { label: done ? 'Responded' : 'Respond', variant: 'secondary', done, go: () => { this.markDone(e.id); this.showToast('Response posted', 'Your reply shows under ' + c.name + '’s review on the product page.'); } };
+    if (e.type === 'return') return { label: 'Open', variant: 'ghost', done: false, go: () => { window.location.href = 'Returns.dc.html'; } };
+    if (e.type === 'order' && /payment failed/.test(e.detail || '')) return { label: done ? 'Link sent' : 'Send payment link', variant: 'secondary', done, go: () => { this.markDone(e.id); this.showToast('Payment link sent to ' + c.name, 'The order stays on hold until they pay.'); } };
+    return null;
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), chan = s.store === 'all' ? null : F.channelOf(s.store).key;
+    const evs = chan ? C.ACTIVITY.filter((e) => C.BY_ID[e.cid].channel === chan) : C.ACTIVITY;
+    const from = s.day === 'today' ? F.DAY0 : s.day === 'yesterday' ? F.DAY0 - F.DAY : F.NOW - 7 * F.DAY, to = s.day === 'yesterday' ? F.DAY0 : F.NOW + 1;
+    const q = s.query.trim().toLowerCase();
+    const list = evs.filter((e) => e.ts >= from && e.ts < to && (!s.type || e.type === s.type) && (!q || C.BY_ID[e.cid].nameLower.indexOf(q) >= 0 || (e.detail || '').toLowerCase().indexOf(q) >= 0));
+    const shown = list.slice(0, s.limit), groups = [];
+    shown.forEach((e) => {
+      const d = Math.floor((e.ts - F.DAY0) / F.DAY), label = d >= 0 ? 'Today' : d === -1 ? 'Yesterday' : F.fmtDate(e.ts).replace(', 2026', '');
+      let g = groups[groups.length - 1];
+      if (!g || g.label !== label) { g = { label, events: [] }; groups.push(g); }
+      const c = C.BY_ID[e.cid], t = C.ACT_TYPES[e.type], a = this.action(e, c);
+      g.events.push({ name: c.name, href: 'Customers.dc.html?c=' + c.id, verb: VERB[e.type](e), sub: [C.CHANNEL_LABEL[c.channel], c.city + ', ' + c.country, c.orders > 1 ? F.plural(c.orders, 'order') + ' so far' : c.firstTs >= C.WIN ? 'new customer' : 'first-time buyer'].join(' · '),
+        value: e.value ? F.money2(e.value) : e.rating ? '★'.repeat(e.rating) + '☆'.repeat(5 - e.rating) : '', icon: t.icon, ico: 'ca-ico ' + (e.type === 'order' && /failed/.test(e.detail || '') ? 't-danger' : e.type === 'review' && e.rating <= 3 ? 't-warning' : t.tone),
+        time: new Date(e.ts).toISOString().slice(11, 16), hasAct: !!a, actLabel: a ? a.label : '', actVariant: a ? a.variant : 'ghost', actDone: a ? a.done : false, act: a ? a.go : null });
+    });
+
+    // KPIs: today so far
+    const today = evs.filter((e) => e.ts >= F.DAY0), yday = evs.filter((e) => e.ts >= F.DAY0 - F.DAY && e.ts < F.DAY0 - F.DAY + (F.NOW - F.DAY0));
+    const uniq = (a) => new Set(a.map((e) => e.cid)).size;
+    const ordT = today.filter((e) => e.type === 'order'), ordY = yday.filter((e) => e.type === 'order'), cartT = today.filter((e) => e.type === 'cart');
+    const newT = (chan ? C.CUSTOMERS.filter((c) => c.channel === chan) : C.CUSTOMERS).filter((c) => c.firstTs >= F.DAY0);
+    const delta = (a, b) => (b ? (a >= b ? '+' : '−') + Math.abs(Math.round((a - b) / b * 100)) + '% vs yesterday at this time' : 'nothing yesterday at this time');
+    const kpis = [
+      { label: 'Active customers today', dot: 'cx-dot cx-dot-brand', value: F.int(uniq(today)), cmp: delta(uniq(today), uniq(yday)) },
+      { label: 'Orders today', dot: 'cx-dot cx-dot-success', value: F.int(ordT.length), cmp: F.money0(ordT.reduce((a, e) => a + (e.value || 0), 0)) + ' · ' + delta(ordT.length, ordY.length) },
+      { label: 'New customers today', dot: 'cx-dot cx-dot-info', value: F.int(newT.length), cmp: F.plural(today.filter((e) => e.type === 'signup').length, 'account') + ' created' },
+      { label: 'Carts abandoned today', dot: 'cx-dot cx-dot-warning', value: F.int(cartT.length), cmp: F.money0(cartT.reduce((a, e) => a + e.value, 0)) + ' left in carts · ' + cartT.filter((e) => e.recovered).length + ' recovered' }
+    ];
+
+    // side: open support, most active, by type
+    const open = evs.filter((e) => e.type === 'support' && e.open && !s.done[e.id]).sort((a, b) => a.ts - b.ts);
+    const support = open.slice(0, 5).map((e) => { const c = C.BY_ID[e.cid], h = (F.NOW - e.ts) / 36e5; return { name: c.name, href: 'Customers.dc.html?c=' + c.id, topic: e.detail, age: h < 1 ? Math.round(h * 60) + ' min' : Math.round(h) + ' h', ageCls: h > 24 ? 'ca-old' : 'o-sub' }; });
+    const cnt = {}; evs.forEach((e) => { cnt[e.cid] = (cnt[e.cid] || 0) + 1; });
+    const top = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a] || C.BY_ID[b].spent - C.BY_ID[a].spent).slice(0, 5).map((id) => { const c = C.BY_ID[id], kinds = Array.from(new Set(evs.filter((e) => e.cid === id).map((e) => SHORT[e.type]))); return { name: c.name, href: 'Customers.dc.html?c=' + id, sub: kinds.slice(0, 3).join(', '), count: F.plural(cnt[id], 'event') }; });
+    const tc = {}; evs.forEach((e) => { tc[e.type] = (tc[e.type] || 0) + 1; });
+    const maxT = Math.max(1, ...Object.values(tc));
+    const byType = Object.keys(C.ACT_TYPES).sort((a, b) => (tc[b] || 0) - (tc[a] || 0)).map((k) => ({ label: SHORT[k], count: F.int(tc[k] || 0), w: 'width: ' + ((tc[k] || 0) / maxT * 100).toFixed(1) + '%', pick: () => this.setState({ type: k, day: '7d', limit: 40 }) }));
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k, limit: 40 }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.int(evs.length) + ' events from ' + F.int(uniq(evs)) + ' customers in 7 days' + (chan ? ' · ' + store.label : ''),
+      kpis, query: s.query, setQuery: (v) => this.setState({ query: v, limit: 40 }),
+      typeOpts: [{ value: '', label: 'All activity' }].concat(Object.keys(C.ACT_TYPES).map((k) => ({ value: k, label: SHORT[k] }))), type: s.type, setType: (v) => this.setState({ type: v, limit: 40 }),
+      dayOpts: [{ value: 'today', label: 'Today' }, { value: 'yesterday', label: 'Yesterday' }, { value: '7d', label: 'Last 7 days' }], day: s.day, setDay: (v) => this.setState({ day: v, limit: 40 }),
+      groups, shown: shown.length > 0, empty: shown.length === 0, hasMore: list.length > shown.length,
+      moreLabel: 'Show ' + F.int(Math.min(40, list.length - shown.length)) + ' more of ' + F.int(list.length - shown.length), showMore: () => this.setState((x) => ({ limit: x.limit + 40 })),
+      supportSub: open.length ? F.plural(open.length, 'open request') + ' · reply within 24 hours' : 'Support requests from the last 2 days', support, hasSupport: support.length > 0, noSupport: support.length === 0,
+      top, byType, typeSub: F.int(evs.length) + ' events · click a type to filter',
+      exportView: () => this.showToast('Exporting ' + F.plural(list.length, 'event'), 'CSV with customer, type, detail and time (UTC).'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- activity: Fernhill customers (customers.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, C = window.FernhillCustomers, CommerceOS = window.CommerceOS;
+var SHORT = { order: 'Orders', signup: 'New accounts', cart: 'Abandoned carts', review: 'Reviews', return: 'Return requests', support: 'Support requests', email: 'Email clicks', unsub: 'Unsubscribes', profile: 'Profile updates' };
+var VERB = {
+  order: function (e) { return 'placed order ' + e.detail; },
+  signup: function (e) { return 'created an account ' + e.detail; },
+  cart: function (e) { return (e.recovered ? 'came back and checked out: ' : 'left items in their cart: ') + e.detail; },
+  review: function (e) { return 'reviewed ' + e.detail; },
+  return: function (e) { return 'asked to return an item: ' + e.detail.toLowerCase(); },
+  support: function (e) { return 'contacted support: ' + e.detail; },
+  email: function (e) { return 'clicked “' + e.detail + '”'; },
+  unsub: function (e) { return 'unsubscribed from email: ' + e.detail.toLowerCase(); },
+  profile: function (e) { return e.detail.charAt(0).toLowerCase() + e.detail.slice(1); }
+};
+</script>
+</body>
+</html>

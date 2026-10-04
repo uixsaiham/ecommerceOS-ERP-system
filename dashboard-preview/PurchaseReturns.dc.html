@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Purchase Returns · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./procurement.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Purchase returns ---------- */
+.pt-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pt-table td.c-sup{white-space:normal;min-width:180px}
+.pt-table td.c-reason{white-space:normal;min-width:150px}
+.pt-old{color:var(--warning);font-weight:500}
+.pt-note{margin:0;font-size:13px;line-height:20px;color:var(--text-secondary)}
+.pt-links{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px}
+.pt-lines tfoot td{font-weight:600;background:var(--bg-subtle)}
+.pt-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pt-ta{width:100%;box-sizing:border-box;min-height:56px;padding:8px 12px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-surface);color:var(--text-primary);font:inherit;font-size:14px;line-height:20px;resize:vertical}
+.pt-ta:focus{outline:2px solid var(--focus-ring);outline-offset:-1px}
+.pt-lbl{display:block;margin-bottom:6px;font-size:13px;font-weight:500;color:var(--text-primary)}
+@media (max-width:1279px){ .c-src{display:none} }
+@media (max-width:1023px){ .pt-kpis{display:flex} .c-res{display:none} }
+@media (max-width:767px){ .o-head-actions{flex-wrap:wrap} .o-head-actions > :first-child{flex:1 1 100%} .pt-grid2{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="procurement/purchase-returns" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="procurement/purchase-returns"></x-import>
+<h1>Purchase Returns</h1>
+<p class="ph-sub">Stock going back to suppliers, and the credit or replacement owed for each.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Today, Oct 1 · 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Supplier" options="{{supOpts}}" value="{{sup}}" on-value-change="{{setSup}}" width="230px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{newReturn}}">New return</x-import>
+</div>
+</div>
+
+<section class="o-kpis pt-kpis" aria-label="Returns summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section class="o-card" aria-label="Purchase returns">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Return status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by return, RMA, PO, supplier or SKU" label="Search purchase returns" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+</div></div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table pt-table" aria-label="Purchase returns">
+<thead><tr>
+<th scope="col">Return</th>
+<th scope="col">Supplier</th>
+<th class="c-src" scope="col">From</th>
+<th scope="col">Reason</th>
+<th class="is-right" scope="col">Units</th>
+<th class="is-right" scope="col">Value</th>
+<th class="c-res" scope="col">Asking for</th>
+<th scope="col">Status</th>
+<th class="c-act" scope="col" style="width: auto"><span class="cx-sr">Action</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<tr>
+<td><button class="o-id rc-id" onClick="{{r.open}}">{{r.id}}</button><span class="o-sub">{{r.created}}</span></td>
+<td class="c-sup"><span>{{r.supplier}}</span><span class="o-sub">{{r.rma}}</span></td>
+<td class="c-src"><span>{{r.src}}</span><span class="o-sub">{{r.wh}}</span></td>
+<td class="c-reason">{{r.reason}}</td>
+<td class="is-right">{{r.units}}</td>
+<td class="is-right">{{r.value}}</td>
+<td class="c-res">{{r.res}}</td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import><span class="{{r.ageCls}}">{{r.age}}</span></td>
+<td class="c-act" style="width: auto; padding-right: 12px"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Purchase returns">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<li class="o-m-card"><div class="o-m-top"><button class="o-id rc-id" onClick="{{r.open}}">{{r.id}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import></div>
+<div class="o-m-mid"><div><span class="td-strong">{{r.supplier}}</span><span class="o-sub">{{r.reason}} · {{r.units}} units</span></div><span class="o-m-total">{{r.value}}</span></div>
+<div class="o-m-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></div></li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="{{emptyIcon}}" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close return" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="pt-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="pt-dp-title">{{dp.id}} · {{dp.supplier}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close return" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec"><div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.statusLabel}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}" title="{{dp.alertTitle}}">{{dp.alert}}</x-import></sc-if>
+<dl class="dp-kv"><dt>Reason</dt><dd>{{dp.reason}}</dd><dt>Asking for</dt><dd>{{dp.res}}</dd><dt>Ship from</dt><dd>{{dp.wh}}</dd><dt>RMA</dt><dd>{{dp.rma}}</dd><dt>Shipment</dt><dd>{{dp.ship}}</dd><dt>Credit note</dt><dd>{{dp.credit}}</dd><dt>Raised by</dt><dd>{{dp.by}}</dd></dl>
+<sc-if value="{{dp.note}}" hint-placeholder-val="{{false}}"><p class="pt-note">“{{dp.note}}”</p></sc-if>
+</section>
+<section class="o-panel-sec"><h3>Lines · {{dp.unitsLabel}}</h3>
+<div class="rc-lines-wrap"><table class="rc-lines pt-lines"><thead><tr><th scope="col">SKU</th><th scope="col">Units</th><th scope="col">Unit cost</th><th scope="col">Value</th></tr></thead>
+<tbody><sc-for list="{{dp.lines}}" as="l" hint-placeholder-count="2"><tr><td><span>{{l.name}}</span><span class="o-sub">{{l.variant}} · <span class="iv-sku">{{l.sku}}</span></span></td><td>{{l.qty}}</td><td>{{l.cost}}</td><td>{{l.value}}</td></tr></sc-for></tbody>
+<tfoot><tr><td>Total</td><td>{{dp.units}}</td><td></td><td>{{dp.value}}</td></tr></tfoot></table></div>
+</section>
+<section class="o-panel-sec"><h3>Progress</h3>
+<ol class="rc-tl"><sc-for list="{{dp.steps}}" as="t" hint-placeholder-count="5"><li><span class="{{t.dot}}" aria-hidden="true"></span><span class="pr-cell-main"><span class="{{t.cls}}">{{t.label}}</span><span class="o-sub">{{t.when}}</span></span></li></sc-for></ol>
+<div class="pt-links"><sc-for list="{{dp.links}}" as="k" hint-placeholder-count="2"><a href="{{k.href}}">{{k.label}}</a></sc-for></div>
+</section>
+</div>
+<sc-if value="{{dp.hasFoot}}" hint-placeholder-val="{{false}}"><div class="o-panel-foot"><div class="dp-foot-end"><sc-for list="{{dp.secondary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div><div class="dp-foot-end"><sc-for list="{{dp.primary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="{{b.variant}}" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div></div></sc-if>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{stOpen}}" on-close="{{closeSt}}" size="sm" title="{{st.title}}" description="{{st.desc}}">
+<div class="o-modal-stack">
+<sc-if value="{{st.isRma}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Input" label="RMA number from the supplier" value="{{st.a}}" on-change="{{st.setA}}" error="{{st.aError}}"></x-import></sc-if>
+<sc-if value="{{st.isShip}}" hint-placeholder-val="{{false}}"><div class="pt-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Carrier" options="{{st.carriers}}" value="{{st.b}}" on-value-change="{{st.setB}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Tracking number" value="{{st.a}}" on-change="{{st.setA}}" error="{{st.aError}}"></x-import></div></sc-if>
+<sc-if value="{{st.isCredit}}" hint-placeholder-val="{{false}}"><div class="pt-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Credit note number" value="{{st.a}}" on-change="{{st.setA}}" error="{{st.aError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Amount" prefix="$" inputmode="decimal" value="{{st.b}}" on-change="{{st.setBe}}" error="{{st.bError}}" hint="{{st.bHint}}"></x-import></div></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeSt}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="{{st.icon}}" on-click="{{st.save}}">{{st.cta}}</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{nwOpen}}" on-close="{{closeNw}}" size="lg" title="New purchase return" description="Pick the delivery the units came in on, then how many of each are going back.">
+<div class="o-modal-stack">
+<div class="pt-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Delivery" options="{{nw.poOpts}}" value="{{nw.po}}" on-value-change="{{nw.setPo}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Reason" options="{{nw.reasonOpts}}" value="{{nw.reason}}" on-value-change="{{nw.setReason}}"></x-import></div>
+<div class="rc-lines-wrap"><table class="rc-lines"><thead><tr><th scope="col">SKU</th><th scope="col">Received</th><th scope="col">Damaged</th><th scope="col">Return</th><th scope="col">Value</th></tr></thead>
+<tbody><sc-for list="{{nw.lines}}" as="l" hint-placeholder-count="3"><tr><td><span>{{l.name}}</span><span class="o-sub">{{l.variant}} · <span class="iv-sku">{{l.sku}}</span></span></td><td>{{l.rec}}</td><td>{{l.dmg}}</td>
+<td><input class="{{l.cls}}" inputmode="numeric" aria-label="Units to return, {{l.sku}}" value="{{l.qty}}" onChange="{{l.setQty}}"></td><td>{{l.value}}</td></tr></sc-for></tbody></table></div>
+<div class="pt-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Ask the supplier for" options="{{nw.resOpts}}" value="{{nw.res}}" on-value-change="{{nw.setRes}}"></x-import><div><span class="pt-lbl">Ship from</span><span class="o-sub" style="font-size: 14px; line-height: 36px">{{nw.wh}}</span></div></div>
+<div><label class="pt-lbl" for="pt-nw-note">What’s wrong with them</label><textarea id="pt-nw-note" class="pt-ta" value="{{nw.note}}" onChange="{{nw.setNote}}"></textarea></div>
+<sc-if value="{{nw.warn}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{nw.warnTone}}">{{nw.warn}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeNw}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" disabled="{{nw.blocked}}" on-click="{{nw.saveDraft}}">Save as draft</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="arrow-right" disabled="{{nw.blocked}}" on-click="{{nw.send}}">{{nw.cta}}</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","detail","new"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none', q = new URLSearchParams(window.location.search);
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      rts: P.RETURNS.map((r) => Object.assign({}, r, { lines: r.lines.map((l) => Object.assign({}, l)) })), sup: '', tab: 'open', query: '', detail: q.get('rtv') || null, st: null, nw: null, seq: 1188
+    };
+    if (q.get('rtv')) this.state.tab = 'all';
+    if (q.get('grn')) { const g = P.GRNS.find((x) => x.id === q.get('grn')); if (g) this.state.nw = this.nwDraft(g.po); }
+    if (demo === 'detail') this.state.detail = (P.RETURNS.find((r) => r.status === 'shipped') || P.RETURNS[0]).id;
+    if (demo === 'new') this.state.nw = this.nwDraft(null);
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.st && !this.state.nw) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  update(id, patch) { this.setState((s) => ({ rts: s.rts.map((r) => (r.id === id ? Object.assign({}, r, patch) : r)) })); }
+  /* deliveries a return can come from: received POs, damaged ones first */
+  deliveries() { return P.POS.filter((p) => p.status === 'received' && F.NOW - p.received <= 120 * F.DAY).sort((a, b) => (dmgOf(b) > 0) - (dmgOf(a) > 0) || b.received - a.received); }
+  nwDraft(po) {
+    const taken = (this.state ? this.state.rts : P.RETURNS).filter((r) => OPEN.indexOf(r.status) >= 0).map((r) => r.po);
+    const p = po ? P.PO[po] : this.deliveries().find((x) => taken.indexOf(x.id) < 0) || this.deliveries()[0];
+    return { po: p.id, reason: dmgOf(p) ? 'damaged' : 'defect', res: 'credit', note: '', qty: p.lines.map((l) => String(l.dmg || 0)) };
+  }
+  sendRequest(r) {
+    this.update(r.id, { status: 'requested', requested: F.NOW });
+    this.showToast(r.id + ' sent to ' + P.SUP[r.supplier].name, 'Photos and the line list went to ' + P.SUP[r.supplier].contact + '. Suppliers usually issue an RMA within 3 business days.');
+  }
+  act(r) {
+    if (r.status === 'draft') this.sendRequest(r);
+    else if (r.status === 'requested') this.setState({ st: { id: r.id, kind: 'rma', a: '', b: '', touched: false } });
+    else if (r.status === 'approved') this.setState({ st: { id: r.id, kind: 'ship', a: '', b: 'DHL Express', touched: false } });
+    else if (r.status === 'shipped' && r.resolution === 'credit') this.setState({ st: { id: r.id, kind: 'credit', a: '', b: r.value.toFixed(2), touched: false } });
+    else if (r.status === 'shipped') { this.update(r.id, { status: 'replaced', closed: F.NOW }); this.showToast(r.id + ' closed', 'Replacement units are booked on ' + (r.po || 'the next PO') + ' and will arrive through Receiving.'); }
+    else this.setState({ detail: r.id });
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store);
+    const scoped = s.rts.filter((r) => !s.sup || r.supplier === s.sup);
+    const q = s.query.trim().toLowerCase();
+    const searched = scoped.filter((r) => !q || [r.id, r.rma || '', r.po || '', r.adj || '', P.SUP[r.supplier].name].some((v) => v.toLowerCase().indexOf(q) >= 0) || r.lines.some((l) => l.sku.toLowerCase().indexOf(q) >= 0));
+    const inTab = (r, t) => t === 'all' || (t === 'open' ? OPEN.indexOf(r.status) >= 0 : t === 'with' ? r.status === 'requested' || r.status === 'approved' : t === 'closed' ? OPEN.indexOf(r.status) < 0 : r.status === t);
+    const order = ['draft', 'requested', 'approved', 'shipped', 'rejected', 'credited', 'replaced'];
+    const list = searched.filter((r) => inTab(r, s.tab)).sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status) || b.created - a.created);
+    const rows = list.map((r) => {
+      const sv = STATUS_V[r.status], sup = P.SUP[r.supplier], since = sinceOf(r), slow = r.status === 'requested' && F.NOW - r.requested > 3 * F.DAY;
+      return { id: r.id, created: 'Raised ' + F.fmtDate(r.created).replace(', 2026', ''), supplier: sup.name, rma: r.rma || 'No RMA yet', src: r.po || r.adj || 'Stock', wh: I.WH[r.wh].short,
+        reason: P.REASONS[r.reason], units: F.int(r.units), value: F.money0(r.value), res: r.resolution === 'credit' ? 'Credit' : 'Replacement',
+        tone: sv[0], icon: sv[2], statusLabel: sv[1], age: OPEN.indexOf(r.status) >= 0 && since ? F.timeAgo(since).replace(' ago', '') + ' in this step' : '', ageCls: slow ? 'o-sub pt-old' : 'o-sub',
+        btnLabel: { draft: 'Send', requested: 'Add RMA', approved: 'Ship back', shipped: r.resolution === 'credit' ? 'Record credit' : 'Close' }[r.status] || 'View',
+        btnVariant: r.status === 'draft' || r.status === 'approved' ? 'primary' : OPEN.indexOf(r.status) >= 0 ? 'secondary' : 'ghost',
+        act: () => this.act(r), open: () => this.setState({ detail: r.id }) };
+    });
+
+    // KPIs
+    const open = scoped.filter((r) => OPEN.indexOf(r.status) >= 0), waiting = scoped.filter((r) => r.status === 'requested');
+    const owed = scoped.filter((r) => (r.status === 'approved' || r.status === 'shipped') && r.resolution === 'credit');
+    const rec = scoped.filter((r) => (r.status === 'credited' || r.status === 'replaced') && F.NOW - r.closed <= 90 * F.DAY), lost = scoped.filter((r) => r.status === 'rejected');
+    const kpis = [
+      { label: 'Open returns', dot: 'cx-dot cx-dot-brand', value: F.int(open.length), cmp: F.money0(open.reduce((a, r) => a + r.value, 0)) + ' at cost · ' + F.int(open.reduce((a, r) => a + r.units, 0)) + ' units' },
+      { label: 'Waiting for an RMA', dot: 'cx-dot cx-dot-warning', value: F.int(waiting.length), cmp: waiting.length ? 'Oldest asked ' + F.timeAgo(Math.min.apply(null, waiting.map((r) => r.requested))) : 'Every request has an RMA' },
+      { label: 'Credit owed', dot: 'cx-dot cx-dot-info', value: F.money0(owed.reduce((a, r) => a + r.value, 0)), cmp: F.plural(owed.length, 'return') + ' approved or shipped back' },
+      { label: 'Recovered, 90 days', dot: 'cx-dot cx-dot-success', value: F.money0(rec.reduce((a, r) => a + (r.creditAmount || r.value), 0)), cmp: lost.length ? F.money0(lost.reduce((a, r) => a + r.value, 0)) + ' declined by suppliers' : 'Nothing declined' }
+    ];
+    const tabs = [{ id: 'open', label: 'Open' }, { id: 'draft', label: 'To send' }, { id: 'with', label: 'With supplier' }, { id: 'shipped', label: 'Shipped back' }, { id: 'closed', label: 'Closed' }, { id: 'all', label: 'All' }].map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((r) => inTab(r, t.id)).length) }));
+
+    let dp = null;
+    if (s.detail) {
+      const r = s.rts.find((x) => x.id === s.detail);
+      if (r) {
+        const sv = STATUS_V[r.status], sup = P.SUP[r.supplier], w = I.WH[r.wh], g = r.grn ? P.GRNS.find((x) => x.id === r.grn) : null;
+        const step = (label, ts, st) => ({ label, when: ts ? F.fmtWhen(ts) : '', dot: 'rc-dot is-' + st, cls: st === 'todo' ? 'is-todo' : '' });
+        const at = order.indexOf(r.status), done = (k) => at > order.indexOf(k) || OPEN.indexOf(r.status) < 0;
+        const steps = [step('Raised by ' + r.by, r.created, 'done'),
+          step(r.requested ? 'Sent to ' + sup.contact : 'Send the request', r.requested, r.requested ? 'done' : 'now'),
+          r.status === 'rejected' ? step('Declined by ' + sup.name, r.closed, 'bad') : step(r.rma ? r.rma + ' issued' : 'Supplier issues an RMA', r.approved, r.rma ? 'done' : r.status === 'requested' ? 'now' : 'todo')];
+        if (r.status !== 'rejected') steps.push(step(r.shipped ? 'Shipped back with ' + r.carrier : 'Ship the units back from ' + w.short, r.shipped, r.shipped ? 'done' : r.status === 'approved' ? 'now' : 'todo'),
+          step(r.status === 'credited' ? 'Credit note ' + r.credit + ' received' : r.status === 'replaced' ? 'Replacement booked' : r.resolution === 'credit' ? 'Credit note received' : 'Replacement units arrive', r.closed, r.status === 'credited' || r.status === 'replaced' ? 'done' : r.status === 'shipped' ? 'now' : 'todo'));
+        const prim = [], sec = [];
+        if (r.status === 'draft') { sec.push({ label: 'Delete', icon: 'trash', go: () => { this.setState((st) => ({ rts: st.rts.filter((x) => x.id !== r.id), detail: null })); this.showToast(r.id + ' deleted', 'The units stay on quality hold at ' + w.short + '.', 'info'); } }); prim.push({ label: 'Send to supplier', variant: 'primary', icon: 'arrow-right', go: () => this.sendRequest(r) }); }
+        if (r.status === 'requested') { sec.push({ label: 'Send reminder', icon: 'bell', go: () => this.showToast('Reminder sent', sup.contact + ' was asked for an RMA for ' + r.id + '.') }); prim.push({ label: 'Add RMA', variant: 'primary', icon: 'check', go: () => this.act(r) }); }
+        if (r.status === 'approved') prim.push({ label: 'Ship back', variant: 'primary', icon: 'truck', go: () => this.act(r) });
+        if (r.status === 'shipped') prim.push({ label: r.resolution === 'credit' ? 'Record credit note' : 'Mark replaced', variant: 'primary', icon: r.resolution === 'credit' ? 'file-text' : 'check-circle', go: () => this.act(r) });
+        if (r.status === 'rejected') prim.push({ label: 'Write off ' + F.money0(r.value), variant: 'secondary', icon: 'trash', go: () => { window.location.href = 'StockAdjustments.dc.html'; } });
+        const links = [];
+        if (r.po) links.push({ label: 'Purchase order ' + r.po, href: 'PurchaseOrders.dc.html?po=' + r.po });
+        if (g) links.push({ label: 'Goods received note ' + g.id, href: 'GoodsReceived.dc.html?grn=' + g.id });
+        if (r.adj) links.push({ label: 'Stock adjustment ' + r.adj, href: 'StockAdjustments.dc.html' });
+        links.push({ label: 'Supplier scorecard', href: 'Suppliers.dc.html?supplier=' + sup.key });
+        dp = { id: r.id, supplier: sup.name, sub: F.plural(r.lines.length, 'line') + ' · ' + F.int(r.units) + ' units · ' + F.money0(r.value) + ' at cost', tone: sv[0], icon: sv[2], statusLabel: sv[1],
+          statusSub: r.closed ? 'Closed ' + F.fmtDate(r.closed) : sinceOf(r) ? 'Since ' + F.fmtWhen(sinceOf(r)) : '',
+          alert: r.status === 'rejected' ? r.rejectNote : r.status === 'requested' && F.NOW - r.requested > 3 * F.DAY ? 'No RMA after ' + Math.round((F.NOW - r.requested) / F.DAY) + ' days. ' + sup.name + '’s terms say 3 business days.' : r.status === 'approved' ? 'Ship within 14 days of the RMA or ' + sup.name + ' can refuse the return.' : null,
+          alertTone: r.status === 'rejected' ? 'danger' : 'warning', alertTitle: r.status === 'rejected' ? 'Declined' : r.status === 'approved' ? 'Ship by ' + F.fmtDate(r.approved + 14 * F.DAY) : 'Waiting on the supplier',
+          reason: P.REASONS[r.reason], res: r.resolution === 'credit' ? 'Credit note for ' + F.money0(r.value) : 'Replacement units', wh: w.name, rma: r.rma || '—',
+          ship: r.tracking ? r.carrier + ' · ' + r.tracking : '—', credit: r.credit ? r.credit + ' · ' + F.money2(r.creditAmount || r.value) : r.resolution === 'credit' ? 'Not received yet' : 'Not needed', by: r.by, note: r.note,
+          unitsLabel: F.int(r.units) + ' units', units: F.int(r.units), value: F.money0(r.value),
+          lines: r.lines.map((l) => { const it = I.BY_SKU[l.sku]; return { name: it.p.name, variant: it.v.label, sku: l.sku, qty: F.int(l.qty), cost: F.money2(it.p.cost), value: F.money0(l.qty * it.p.cost) }; }),
+          steps, links, primary: prim, secondary: sec, hasFoot: prim.length + sec.length > 0 };
+      }
+    }
+
+    // step modal: RMA, shipment, credit note
+    let st = { title: '', desc: '', carriers: [] };
+    if (s.st) {
+      const d = s.st, r = s.rts.find((x) => x.id === d.id), sup = P.SUP[r.supplier], amt = Number(d.b.replace(/[$,]/g, ''));
+      const aErr = !d.a.trim() ? { rma: 'Enter the RMA number', ship: 'Enter the tracking number', credit: 'Enter the credit note number' }[d.kind] : null;
+      const bErr = d.kind === 'credit' && (!/^\$?[\d,]+(\.\d{1,2})?$/.test(d.b.trim()) || amt <= 0) ? 'Enter an amount like 120.00' : null;
+      const set = (k) => (e) => { const v = e.target.value; this.setState((x) => ({ st: Object.assign({}, x.st, { [k]: v }) })); };
+      st = { isRma: d.kind === 'rma', isShip: d.kind === 'ship', isCredit: d.kind === 'credit', a: d.a, b: d.b, aError: d.touched ? aErr : null, bError: d.touched ? bErr : null,
+        bHint: d.kind === 'credit' && !bErr && Math.abs(amt - r.value) > 0.5 ? (amt < r.value ? F.money2(r.value - amt) + ' less than the return value' : 'More than the return value') : 'Return value ' + F.money2(r.value),
+        setA: set('a'), setB: (v) => this.setState((x) => ({ st: Object.assign({}, x.st, { b: v }) })), setBe: set('b'), carriers: ['DHL Express', 'DFDS Logistics', 'Maersk LCL', 'PostNL', 'Pathao Freight'],
+        title: { rma: 'Add RMA for ', ship: 'Ship ', credit: 'Record credit for ' }[d.kind] + r.id,
+        desc: { rma: sup.name + ' approved the return. Copy the RMA from their email; it goes on the shipping label.', ship: F.plural(r.units, 'unit') + ' from ' + I.WH[r.wh].name + ' to ' + sup.name + ', ' + sup.city + '.', credit: 'From ' + sup.name + '. It’s offset against their next invoice.' }[d.kind],
+        icon: { rma: 'check', ship: 'truck', credit: 'file-text' }[d.kind], cta: { rma: 'Save RMA', ship: 'Mark shipped', credit: 'Record and close' }[d.kind],
+        save: () => {
+          if (aErr || bErr) return this.setState({ st: Object.assign({}, d, { touched: true }) });
+          if (d.kind === 'rma') { this.update(r.id, { status: 'approved', approved: F.NOW, rma: d.a.trim() }); this.showToast('RMA ' + d.a.trim() + ' added', 'Ship it back from ' + I.WH[r.wh].short + ' by ' + F.fmtDate(F.NOW + 14 * F.DAY) + '.'); }
+          if (d.kind === 'ship') { this.update(r.id, { status: 'shipped', shipped: F.NOW, carrier: d.b, tracking: d.a.trim() }); this.showToast(r.id + ' shipped back', F.plural(r.units, 'unit') + ' left quality hold at ' + I.WH[r.wh].short + '. ' + (r.resolution === 'credit' ? 'Record the credit note when it arrives.' : 'Replacements come in on the next delivery.')); }
+          if (d.kind === 'credit') { this.update(r.id, { status: 'credited', closed: F.NOW, credit: d.a.trim(), creditAmount: amt }); this.showToast(r.id + ' credited', F.money2(amt) + ' will be offset against ' + sup.name + '’s next invoice.'); }
+          this.setState({ st: null });
+        } };
+    }
+
+    // new return
+    let nw = { poOpts: [], reasonOpts: [], resOpts: [], lines: [] };
+    if (s.nw) {
+      const d = s.nw, p = P.PO[d.po], sup = P.SUP[p.supplier];
+      const parsed = p.lines.map((l, i) => { const raw = d.qty[i], n = Number(raw), ok = /^\d+$/.test(raw) && n <= (l.rec || 0); return { l, i, n: ok ? n : 0, ok }; });
+      const units = parsed.reduce((a, x) => a + x.n, 0), value = parsed.reduce((a, x) => a + x.n * x.l.cost, 0), bad = parsed.some((x) => !x.ok);
+      const already = s.rts.find((r) => r.po === p.id && OPEN.indexOf(r.status) >= 0);
+      const setQ = (i) => (e) => { const v = e.target.value; this.setState((x) => ({ nw: Object.assign({}, x.nw, { qty: x.nw.qty.map((y, j) => (j === i ? v : y)) }) })); };
+      nw = { po: d.po, reason: d.reason, res: d.res, note: d.note, wh: I.WH[p.wh].name,
+        poOpts: this.deliveries().filter((x) => !s.sup || x.supplier === s.sup).map((x) => ({ value: x.id, label: x.id + ' · ' + P.SUP[x.supplier].name + ' · ' + F.fmtDate(x.received).replace(', 2026', '') + (dmgOf(x) ? ' · ' + dmgOf(x) + ' damaged' : '') })),
+        reasonOpts: Object.keys(P.REASONS).map((k) => ({ value: k, label: P.REASONS[k] })), resOpts: [{ value: 'credit', label: 'A credit note' }, { value: 'replace', label: 'Replacement units' }],
+        setPo: (v) => this.setState({ nw: this.nwDraft(v) }), setReason: (v) => this.setState((x) => ({ nw: Object.assign({}, x.nw, { reason: v }) })), setRes: (v) => this.setState((x) => ({ nw: Object.assign({}, x.nw, { res: v }) })),
+        setNote: (e) => { const v = e.target.value; this.setState((x) => ({ nw: Object.assign({}, x.nw, { note: v }) })); },
+        lines: parsed.map((x) => { const it = I.BY_SKU[x.l.sku]; return { name: it.p.name, variant: it.v.label, sku: x.l.sku, rec: F.int(x.l.rec || 0), dmg: x.l.dmg ? F.int(x.l.dmg) : '—', qty: d.qty[x.i], cls: 'rc-in' + (x.ok ? '' : ' is-bad'), value: x.n ? F.money0(x.n * x.l.cost) : '—', setQty: setQ(x.i) }; }),
+        warn: bad ? 'Each quantity must be a whole number no larger than what was received.' : !units ? 'Enter how many units are going back.' : already ? already.id + ' is already open for this delivery. Add to it instead if it hasn’t shipped.' : sup.status === 'review' ? sup.statusNote : null,
+        warnTone: bad || !units ? 'danger' : 'warning', blocked: bad || !units,
+        cta: 'Send to ' + sup.name.replace(/ (Ltd\.|Lda\.|Co\.|UAB)$/, '') + ' · ' + F.money0(value),
+        saveDraft: () => this.saveNw('draft', parsed), send: () => this.saveNw('requested', parsed) };
+    }
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(open.length, 'open return') + (s.sup ? ' with ' + P.SUP[s.sup].name : ' with ' + F.plural(new Set(open.map((r) => r.supplier)).size, 'supplier')),
+      supOpts: [{ value: '', label: 'All suppliers' }].concat(P.SUPPLIERS.map((x) => ({ value: x.key, label: x.name }))), sup: s.sup, setSup: (v) => this.setState({ sup: v }),
+      kpis, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      rows, shown: rows.length > 0, empty: rows.length === 0,
+      emptyIcon: q ? 'search' : 'check-circle', emptyTitle: q ? 'No returns match' : 'Nothing here', emptyDesc: q ? 'Try another supplier or search.' : 'Returns show up here as they move along.',
+      dp, closeDetail: () => this.setState({ detail: null }),
+      stOpen: !!s.st, closeSt: () => this.setState({ st: null }), st,
+      nwOpen: !!s.nw, newReturn: () => this.setState({ nw: this.nwDraft(null) }), closeNw: () => this.setState({ nw: null }), nw,
+      exportView: () => this.showToast('Exporting ' + F.plural(rows.length, 'return'), 'CSV with lines, RMA, tracking and credit note per return.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+  saveNw(status, parsed) {
+    const d = this.state.nw, p = P.PO[d.po], sup = P.SUP[p.supplier], id = 'RTV-' + this.state.seq;
+    const lines = parsed.filter((x) => x.n > 0).map((x) => ({ sku: x.l.sku, qty: x.n }));
+    const r = { id, supplier: p.supplier, po: p.id, grn: (P.GRN_BY_PO[p.id] || {}).id, wh: p.wh, reason: d.reason, resolution: d.res, status, created: F.NOW, requested: status === 'requested' ? F.NOW : null, by: F.USER.name,
+      note: d.note.trim() || null, lines, units: lines.reduce((a, l) => a + l.qty, 0), value: lines.reduce((a, l) => a + l.qty * I.BY_SKU[l.sku].p.cost, 0) };
+    this.setState((st) => ({ rts: [r].concat(st.rts), seq: st.seq + 1, nw: null, detail: id, tab: 'open' }));
+    this.showToast(status === 'requested' ? id + ' sent to ' + sup.name : 'Draft ' + id + ' saved', F.plural(r.units, 'unit') + ' (' + F.money0(r.value) + ') moved to quality hold at ' + I.WH[p.wh].short + ' until they ship back.');
+  }
+}
+
+/* ---------- purchase returns: Fernhill procurement (procurement.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, P = window.FernhillProcurement, h = window.React.createElement, CommerceOS = window.CommerceOS;
+var OPEN = ['draft', 'requested', 'approved', 'shipped'];
+var STATUS_V = { draft: ['neutral', 'Draft', 'edit'], requested: ['warning', 'Waiting for RMA', 'clock'], approved: ['info', 'RMA issued', 'check'], shipped: ['brand', 'Shipped back', 'truck'],
+  credited: ['success', 'Credited', 'check-circle'], replaced: ['success', 'Replaced', 'refresh'], rejected: ['danger', 'Declined', 'x'] };
+function sinceOf(r) { return { draft: r.created, requested: r.requested, approved: r.approved, shipped: r.shipped }[r.status] || null; }
+function dmgOf(p) { return p.lines.reduce(function (a, l) { return a + (l.dmg || 0); }, 0); }
+</script>
+</body>
+</html>

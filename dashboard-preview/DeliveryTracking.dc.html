@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Delivery Tracking · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./orders.js?v=1"></script>
+<script src="./fulfillment.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Delivery tracking ---------- */
+.dt-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.dt-trk{font-family:var(--font-mono);font-size:12px}
+.dt-bad{color:var(--danger);font-weight:500}
+.dt-tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.dt-tl li{position:relative;display:flex;gap:12px;padding:0 0 14px}
+.dt-tl li::before{content:"";position:absolute;left:4px;top:14px;bottom:0;width:1px;background:var(--border)}
+.dt-tl li:last-child{padding-bottom:0}
+.dt-tl li:last-child::before{display:none}
+.dt-dot{flex:none;width:9px;height:9px;margin-top:6px;border-radius:var(--radius-full);background:var(--border-strong)}
+.dt-dot.is-first{background:var(--brand);box-shadow:0 0 0 3px var(--brand-subtle)}
+.dt-dot.is-good{background:var(--success);box-shadow:0 0 0 3px var(--success-subtle)}
+.dt-dot.is-bad{background:var(--danger);box-shadow:0 0 0 3px var(--danger-subtle)}
+.dt-tl .pr-cell-main{font-size:13px;line-height:20px}
+.dt-eta{display:flex;align-items:baseline;gap:8px}
+.dt-eta strong{font-size:20px;line-height:26px}
+@media (max-width:1279px){ .c-from{display:none} }
+@media (max-width:1023px){ .dt-kpis{display:flex} .c-ship{display:none} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="fulfillment/tracking" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="fulfillment/tracking"></x-import>
+<h1>Delivery Tracking</h1>
+<p class="ph-sub">Every parcel with a carrier, from pickup to the customer’s door. Scans update every 15 minutes.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Last carrier sync 09:30 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<section class="o-kpis dt-kpis" aria-label="Delivery summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<sc-if value="{{sync}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="info" title="{{sync.title}}" actions="{{sync.actions}}">{{sync.text}}</x-import></sc-if>
+
+<section class="o-card" aria-label="Parcels">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Delivery status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by order, tracking number or customer" label="Search parcels" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Carrier" options="{{carrierOpts}}" value="{{carrier}}" on-value-change="{{setCarrier}}" width="180px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Shipped from" options="{{whOpts}}" value="{{wh}}" on-value-change="{{setWh}}" width="190px"></x-import>
+</div></div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Parcels">
+<thead><tr><th scope="col">Order</th><th scope="col">Customer</th><th scope="col">Carrier</th><th class="c-from" scope="col">From</th><th class="c-ship" scope="col">Shipped</th><th scope="col">Delivery</th><th scope="col">Status</th><th class="c-act" scope="col" style="width: auto"><span class="cx-sr">Action</span></th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="15"><tr>
+<td><button class="o-id rc-id" onClick="{{r.open}}">{{r.id}}</button><span class="o-sub">{{r.service}}</span></td>
+<td><span>{{r.customer}}</span><span class="o-sub">{{r.channel}}</span></td>
+<td><span>{{r.carrier}}</span><span class="o-sub dt-trk">{{r.tracking}}</span></td>
+<td class="c-from">{{r.from}}</td>
+<td class="c-ship"><span>{{r.shipped}}</span><span class="o-sub">{{r.shippedAgo}}</span></td>
+<td><span class="{{r.etaCls}}">{{r.eta}}</span><span class="o-sub">{{r.etaSub}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.status}}</x-import><span class="o-sub">{{r.last}}</span></td>
+<td class="c-act" style="width: auto; padding-right: 12px"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.open}}">{{r.btnLabel}}</x-import></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Parcels"><sc-for list="{{rows}}" as="r" hint-placeholder-count="8"><li class="o-m-card"><div class="o-m-top"><button class="o-id rc-id" onClick="{{r.open}}">{{r.id}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}">{{r.status}}</x-import></div><div class="o-m-mid"><div><span class="td-strong">{{r.customer}}</span><span class="o-sub">{{r.carrier}} · <span class="{{r.etaCls}}">{{r.eta}}</span></span></div></div></li></sc-for></ul>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="parcels" on-page-change="{{setPage}}" on-page-size-change="{{setPageSize}}"></x-import></div>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="{{emptyIcon}}" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close tracking" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="dt-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="dt-dp-title">{{dp.id}} · {{dp.customer}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close tracking" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.status}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<div class="dt-eta"><strong>{{dp.big}}</strong><span class="o-sub">{{dp.bigSub}}</span></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}" title="{{dp.alertTitle}}">{{dp.alert}}</x-import></sc-if>
+<dl class="dp-kv"><dt>Carrier</dt><dd>{{dp.carrier}}</dd><dt>Tracking</dt><dd class="dt-trk">{{dp.tracking}}</dd><dt>Service</dt><dd>{{dp.service}}</dd><dt>Shipped from</dt><dd>{{dp.from}}</dd><dt>Shipped</dt><dd>{{dp.shipped}}</dd><dt>Order</dt><dd>{{dp.order}}</dd></dl>
+</section>
+<section class="o-panel-sec"><h3>Carrier scans</h3>
+<ol class="dt-tl"><sc-for list="{{dp.scans}}" as="t" hint-placeholder-count="5"><li><span class="{{t.dot}}" aria-hidden="true"></span><span class="pr-cell-main"><span>{{t.label}}</span><span class="o-sub">{{t.when}} · {{t.place}}</span></span></li></sc-for></ol>
+</section>
+</div>
+<sc-if value="{{dp.hasFoot}}" hint-placeholder-val="{{false}}"><div class="o-panel-foot"><div class="dp-foot-end"><sc-for list="{{dp.secondary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div><div class="dp-foot-end"><sc-for list="{{dp.primary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="{{b.variant}}" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div></div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","exception"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none', q = new URLSearchParams(window.location.search);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      tab: 'attention', query: '', carrier: '', wh: '', page: 1, pageSize: 25, synced: false, resolved: {}, detail: q.get('t') || null };
+    if (q.get('t')) this.state.tab = 'all';
+    if (demo === 'exception') this.state.detail = X.SHIPMENTS.find((x) => x.status === 'exception').id;
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape') { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  status(x) { return this.state.resolved[x.id] || x.status; }
+  resolve(x, st, title, msg) { this.setState((s) => ({ resolved: Object.assign({}, s.resolved, { [x.id]: st }) })); this.showToast(title, msg); }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), chan = s.store === 'all' ? null : F.channelOf(s.store).label;
+    const all = X.SHIPMENTS.filter((x) => !chan || x.channel === chan);
+    const q = s.query.trim().toLowerCase();
+    const filtered = all.filter((x) => (!s.carrier || x.carrier === s.carrier) && (!s.wh || x.site === s.wh) && (!q || x.id.toLowerCase().indexOf(q) >= 0 || x.customer.toLowerCase().indexOf(q) >= 0 || (x.tracking || '').toLowerCase().indexOf(q) >= 0));
+    const inTab = (x, t) => { const st = this.status(x); return t === 'all' || (t === 'attention' ? st === 'exception' || st === 'late' : t === 'transit' ? st === 'label' || st === 'transit' || st === 'out' : t === 'out' ? st === 'out' : st === 'delivered' || st === 'reshipped' || st === 'returning'); };
+    const order = { exception: 0, late: 1, out: 2, transit: 3, label: 4, returning: 5, reshipped: 6, delivered: 7 };
+    const list = filtered.filter((x) => inTab(x, s.tab)).sort((a, b) => order[this.status(a)] - order[this.status(b)] || (this.status(a) === 'delivered' ? (b.delivered || 0) - (a.delivered || 0) : a.eta - b.eta));
+    const pages = Math.max(1, Math.ceil(list.length / s.pageSize)), page = Math.min(s.page, pages), pageList = list.slice((page - 1) * s.pageSize, page * s.pageSize);
+    const day = (ts) => (ts >= F.DAY0 && ts < F.DAY0 + F.DAY ? 'Today' : ts >= F.DAY0 + F.DAY && ts < F.DAY0 + 2 * F.DAY ? 'Tomorrow' : F.fmtDate(ts).replace(', 2026', ''));
+    const rows = pageList.map((x) => { const st = this.status(x), sv = ST[st], sc = X.scans(x)[0], lateD = Math.round((F.NOW - x.eta) / F.DAY);
+      return { id: x.id, service: x.delivery + (x.intl ? ' · international' : ''), customer: x.customer, channel: x.channel, carrier: x.carrier === 'Collection' ? 'Customer collection' : x.carrier, tracking: x.tracking || 'at the ' + I.WH[x.site].short + ' desk',
+        from: I.WH[x.site].short, shipped: F.fmtDate(x.shipped).replace(', 2026', ''), shippedAgo: F.timeAgo(x.shipped),
+        eta: st === 'delivered' ? 'Delivered ' + day(x.delivered) : st === 'exception' ? 'On hold' : st === 'late' ? 'Due ' + day(x.eta) : st === 'reshipped' ? 'Replacement sent' : st === 'returning' ? 'Returning to us' : 'Due ' + day(x.eta),
+        etaSub: st === 'delivered' ? (x.delivered <= x.eta + F.DAY ? 'on time' : Math.round((x.delivered - x.eta) / F.DAY) + ' days late') : st === 'late' ? lateD + ' days late' : st === 'exception' ? x.exception.toLowerCase() : '',
+        etaCls: st === 'late' || st === 'exception' ? 'dt-bad' : '', status: sv[1], tone: sv[0], icon: sv[2], last: sc ? sc.label + ' · ' + F.timeAgo(sc.ts) : '',
+        btnLabel: st === 'exception' ? 'Resolve' : st === 'late' ? 'Chase' : 'Track', btnVariant: st === 'exception' || st === 'late' ? 'primary' : 'ghost', open: () => this.setState({ detail: x.id }) }; });
+
+    // KPIs
+    const moving = all.filter((x) => ['label', 'transit', 'out'].indexOf(this.status(x)) >= 0), out = all.filter((x) => this.status(x) === 'out');
+    const ex = all.filter((x) => this.status(x) === 'exception'), late = all.filter((x) => this.status(x) === 'late');
+    const del30 = all.filter((x) => x.status === 'delivered' && F.NOW - x.delivered <= 30 * F.DAY), onTime = del30.filter((x) => x.delivered <= x.eta + F.DAY).length;
+    const transitDays = del30.filter((x) => x.carrier !== 'Collection').reduce((a, x) => a + (x.delivered - x.shipped) / F.DAY, 0) / Math.max(1, del30.filter((x) => x.carrier !== 'Collection').length);
+    const kpis = [
+      { label: 'On the way', dot: 'cx-dot cx-dot-brand', value: F.int(moving.length), cmp: F.int(out.length) + ' out for delivery today' },
+      { label: 'Need attention', dot: 'cx-dot cx-dot-danger', value: F.int(ex.length + late.length), cmp: F.plural(ex.length, 'exception') + ' · ' + F.int(late.length) + ' past their delivery date' },
+      { label: 'Delivered on time, 30 days', dot: 'cx-dot cx-dot-success', value: del30.length ? (onTime / del30.length * 100).toFixed(1) + '%' : '—', cmp: F.int(onTime) + ' of ' + F.int(del30.length) + ' parcels by the promised date' },
+      { label: 'Average time in transit', dot: 'cx-dot cx-dot-info', value: transitDays.toFixed(1) + ' days', cmp: 'pickup to doorstep, all carriers' }
+    ];
+    const unsynced = all.filter((x) => x.unsynced).length;
+    const sync = !s.synced && unsynced ? { title: F.int(unsynced) + ' delivered parcels still show as Shipped in Orders', text: 'Carriers confirmed delivery, but the orders weren’t updated: delivery scans only sync overnight for DHL eCommerce and FedEx. Update them now so customers get their review requests and returns windows start.',
+      actions: [h(CommerceOS.Button, { key: 'u', variant: 'secondary', size: 'sm', onClick: () => { this.setState({ synced: true }); this.showToast(F.int(unsynced) + ' orders marked delivered', 'Delivery dates come from the carrier scans. Review requests go out tomorrow morning.'); } }, 'Update orders')] } : null;
+    const tabs = [{ id: 'attention', label: 'Needs attention' }, { id: 'transit', label: 'On the way' }, { id: 'out', label: 'Out for delivery' }, { id: 'delivered', label: 'Delivered' }, { id: 'all', label: 'All' }].map((t) => ({ id: t.id, label: t.label, count: F.int(filtered.filter((x) => inTab(x, t.id)).length) }));
+
+    let dp = null;
+    if (s.detail) {
+      const x = X.SHIPMENTS.find((y) => y.id === s.detail);
+      if (x) {
+        const st = this.status(x), sv = ST[st], scans = X.scans(x), o = x.order, w = I.WH[x.site];
+        const prim = [], sec = [];
+        if (st === 'exception') {
+          if (x.exception === 'Address problem') { sec.push({ label: 'Email the customer', icon: 'user', go: () => this.showToast('Email sent to ' + x.customer, 'Asked them to confirm the street number. The carrier holds the parcel for 5 days.') }); prim.push({ label: 'Update address', variant: 'primary', icon: 'edit', go: () => this.resolve(x, 'transit', 'Address sent to ' + x.carrier, 'Redelivery is booked for tomorrow.') }); }
+          else if (x.exception === 'Delivery attempt failed') { sec.push({ label: 'Return to us', icon: 'rotate-ccw', go: () => this.resolve(x, 'returning', 'Return requested', x.carrier + ' sends it back to ' + w.short + '. The order is refunded when it arrives.') }); prim.push({ label: 'Book redelivery', variant: 'primary', icon: 'truck', go: () => this.resolve(x, 'out', 'Redelivery booked', 'Tomorrow, with an SMS to ' + x.customer + ' 1 hour before.') }); }
+          else if (x.exception === 'Not collected') { sec.push({ label: 'Cancel and refund', icon: 'rotate-ccw', go: () => this.resolve(x, 'returning', 'Order cancelled', 'The parcel goes back to stock at ' + w.short + ' and ' + x.customer + ' is refunded ' + F.money2(x.total) + '.') }); prim.push({ label: 'Send a reminder', variant: 'primary', icon: 'bell', go: () => this.showToast('Reminder sent to ' + x.customer, 'Email and SMS with the pickup desk hours: ' + w.hours + '.') }); }
+          else if (x.exception === 'Held at customs') { sec.push({ label: 'Email the customer', icon: 'user', go: () => this.showToast('Email sent to ' + x.customer, 'With the duty amount and the link to pay it.') }); prim.push({ label: 'Pay duties for them', variant: 'primary', icon: 'credit-card', go: () => this.resolve(x, 'transit', 'Duties paid', 'Charged to the ' + x.carrier + ' account; customs releases it within a day.') }); }
+          else { sec.push({ label: 'File carrier claim', icon: 'file-text', go: () => this.showToast('Claim filed with ' + x.carrier, 'For ' + F.money2(x.total) + ' with the damage photos from the hub.') }); prim.push({ label: 'Send a replacement', variant: 'primary', icon: 'package', go: () => this.resolve(x, 'reshipped', 'Replacement created', 'A new order for the same items goes to ' + w.short + '’s pick queue at the top.') }); }
+        }
+        if (st === 'late') { sec.push({ label: 'Email the customer', icon: 'user', go: () => this.showToast('Update sent to ' + x.customer, 'Apologised for the delay, with the live tracking link.') }); prim.push({ label: 'Open a carrier trace', variant: 'primary', icon: 'search', go: () => this.showToast('Trace opened with ' + x.carrier, 'They reply within 2 business days. If it’s lost, we reship.') }); }
+        if (x.unsynced && !s.synced && st === 'delivered') prim.push({ label: 'Mark order delivered', variant: 'secondary', icon: 'check', go: () => this.showToast(x.id + ' marked delivered', 'Orders now shows it as delivered on ' + F.fmtDate(x.delivered) + '.') });
+        const big = st === 'delivered' ? day(x.delivered) : st === 'exception' ? x.exception : st === 'reshipped' ? 'Replacement on its way' : st === 'returning' ? 'Coming back to ' + w.short : day(x.eta);
+        dp = { id: x.id, customer: x.customer, sub: x.channel + ' · ' + F.plural(x.units, 'unit') + ' · ' + F.money2(x.total), status: sv[1], tone: sv[0], icon: sv[2],
+          statusSub: scans[0] ? 'Last scan ' + F.timeAgo(scans[0].ts) : '', big, bigSub: st === 'delivered' ? (x.delivered <= x.eta + F.DAY ? 'Delivered on time' : 'Delivered ' + Math.round((x.delivered - x.eta) / F.DAY) + ' days late') : st === 'exception' ? 'Since ' + F.fmtWhen(x.exAt) : st === 'late' ? 'Was due; ' + Math.round((F.NOW - x.eta) / F.DAY) + ' days late' : st === 'reshipped' || st === 'returning' ? '' : 'Expected delivery',
+          alert: st === 'exception' ? x.exNote : st === 'late' ? 'No scan since ' + F.fmtWhen(scans[0].ts) + '. Parcels this late are usually delayed at a hub, not lost.' : x.unsynced && !s.synced && st === 'delivered' ? 'Delivered per ' + x.carrier + ', but the order still shows Shipped.' : null,
+          alertTone: st === 'exception' ? 'danger' : st === 'late' ? 'warning' : 'info', alertTitle: st === 'exception' ? x.exception : st === 'late' ? 'Running late' : null,
+          carrier: x.carrier === 'Collection' ? 'Customer collection' : x.carrier, tracking: x.tracking || '—', service: x.delivery + (x.intl ? ', international with customs' : ''), from: w.name, shipped: F.fmtWhen(x.shipped), order: x.id + ' · placed ' + F.fmtWhen(o.ts),
+          scans: scans.map((t, i) => ({ label: t.label, when: F.fmtWhen(t.ts), place: t.place, dot: 'dt-dot' + (t.bad ? ' is-bad' : i === 0 && st === 'delivered' ? ' is-good' : i === 0 ? ' is-first' : '') })),
+          primary: prim, secondary: sec, hasFoot: prim.length + sec.length > 0 };
+      }
+    }
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k, page: 1 }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(all.length, 'parcel') + ' shipped in the last 30 days',
+      kpis, sync, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id, page: 1 }), query: s.query, setQuery: (v) => this.setState({ query: v, page: 1 }),
+      carrierOpts: [{ value: '', label: 'All carriers' }].concat(Array.from(new Set(X.SHIPMENTS.map((x) => x.carrier))).sort().map((c) => ({ value: c, label: c === 'Collection' ? 'Customer collection' : c }))), carrier: s.carrier, setCarrier: (v) => this.setState({ carrier: v, page: 1 }),
+      whOpts: [{ value: '', label: 'All warehouses' }].concat(X.SITES.map((k) => ({ value: k, label: I.WH[k].name }))), wh: s.wh, setWh: (v) => this.setState({ wh: v, page: 1 }),
+      rows, shown: rows.length > 0, empty: rows.length === 0, page, pageSize: s.pageSize, total: list.length, setPage: (p) => this.setState({ page: p }), setPageSize: (n) => this.setState({ pageSize: Number(n), page: 1 }),
+      emptyIcon: s.tab === 'attention' && !q ? 'check-circle' : 'search', emptyTitle: s.tab === 'attention' && !q ? 'Nothing needs attention' : 'No parcels match', emptyDesc: s.tab === 'attention' && !q ? 'Exceptions and late parcels show up here.' : 'Try another carrier, warehouse or search.',
+      dp, closeDetail: () => this.setState({ detail: null }),
+      exportView: () => this.showToast('Exporting ' + F.plural(list.length, 'parcel'), 'CSV with tracking numbers, carrier status and delivery dates.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- delivery tracking: Fernhill orders (orders.js) and fulfillment (fulfillment.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, X = window.FernhillFulfillment, h = window.React.createElement, CommerceOS = window.CommerceOS;
+var ST = { label: ['neutral', 'Label created', 'file-text'], transit: ['info', 'In transit', 'truck'], out: ['brand', 'Out for delivery', 'truck'], delivered: ['success', 'Delivered', 'check-circle'],
+  late: ['warning', 'Late', 'clock'], exception: ['danger', 'Exception', 'alert-triangle'], reshipped: ['info', 'Replaced', 'package'], returning: ['neutral', 'Returning', 'rotate-ccw'] };
+</script>
+</body>
+</html>

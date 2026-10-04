@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Packing · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./orders.js?v=1"></script>
+<script src="./fulfillment.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Packing ---------- */
+.pa-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pa-late{color:var(--danger);font-weight:500}
+.pa-stations{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.pa-st{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0;font-size:13px;line-height:18px}
+.pa-st strong{font-size:13px}
+.pa-st .o-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pa-st.is-busy{border-color:var(--brand);box-shadow:inset 3px 0 0 var(--brand)}
+.pa-st.is-idle{background:var(--bg-subtle)}
+/* pack panel */
+.pa-scan{display:flex;gap:8px;align-items:flex-start}
+.pa-scan > :first-child{flex:1}
+.pa-items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.pa-item{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:18px}
+.pa-item:last-child{border-bottom:0}
+.pa-item .pr-cell-main{min-width:0}
+.pa-item.is-done .pr-cell-main > span:first-child{color:var(--text-muted)}
+.pa-count{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.pa-count.is-done{color:var(--success)}
+.pa-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pa-boxes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pa-box{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);font:inherit;font-size:13px;text-align:left;color:var(--text-primary);cursor:pointer}
+.pa-box:hover{border-color:var(--border-strong)}
+.pa-box[aria-pressed="true"]{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.pa-box:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+@media (max-width:1279px){ .pa-stations{grid-template-columns:repeat(3,minmax(0,1fr))} .c-pick{display:none} }
+@media (max-width:1023px){ .pa-kpis{display:flex} }
+@media (max-width:767px){ .pa-stations{grid-template-columns:repeat(2,minmax(0,1fr))} .pa-grid2,.pa-boxes{grid-template-columns:1fr 1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="fulfillment/packing" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="fulfillment/packing"></x-import>
+<h1>Packing</h1>
+<p class="ph-sub">Check every picked item, box it, weigh it and print the shipping label.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>{{localTime}}</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Warehouse" options="{{whOpts}}" value="{{wh}}" on-value-change="{{setWh}}" width="210px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="package" disabled="{{noneToPack}}" on-click="{{packNext}}">Pack next order</x-import>
+</div>
+</div>
+
+<section class="o-kpis pa-kpis" aria-label="Packing summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section class="pa-stations" aria-label="Pack stations">
+<sc-for list="{{stations}}" as="t" hint-placeholder-count="4"><div class="{{t.cls}}"><strong>{{t.name}}</strong><span class="o-sub">{{t.who}}</span><span class="o-sub">{{t.what}}</span></div></sc-for>
+</section>
+
+<section class="o-card" aria-label="Orders to pack">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Packing view" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1"><div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Scan or search an order, customer or SKU" label="Search orders to pack" value="{{query}}" on-change="{{setQuery}}"></x-import></div></div></div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Orders to pack">
+<thead><tr><th scope="col">Order</th><th scope="col">Customer</th><th scope="col">Delivery</th><th class="is-right" scope="col">Units</th><th class="c-pick" scope="col">Picked</th><th scope="col">Box</th><th scope="col">Waiting</th><th class="c-act" scope="col" style="width: auto"><span class="cx-sr">Action</span></th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="12"><tr>
+<td><span class="o-id">{{r.id}}</span><span class="o-sub">{{r.channel}}</span></td>
+<td><span>{{r.customer}}</span><span class="o-sub">{{r.lines}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.dTone}}">{{r.delivery}}</x-import><span class="o-sub">{{r.carrier}}</span></td>
+<td class="is-right">{{r.units}}</td>
+<td class="c-pick"><span>{{r.pickedBy}}</span><span class="o-sub">{{r.picked}}</span></td>
+<td><span>{{r.box}}</span><span class="o-sub">{{r.weight}}</span></td>
+<td><span class="{{r.ageCls}}">{{r.age}}</span><span class="o-sub">{{r.ageSub}}</span></td>
+<td class="c-act" style="width: auto; padding-right: 12px"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Orders to pack"><sc-for list="{{rows}}" as="r" hint-placeholder-count="6"><li class="o-m-card"><div class="o-m-top"><span class="o-id" style="flex: 1">{{r.id}}</span><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.dTone}}">{{r.delivery}}</x-import></div><div class="o-m-mid"><div><span class="td-strong">{{r.customer}}</span><span class="o-sub">{{r.units}} units · {{r.box}} · <span class="{{r.ageCls}}">{{r.age}}</span></span></div></div><div class="o-m-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></div></li></sc-for></ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="check-circle" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close packing" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="pa-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="pa-dp-title">Pack {{dp.id}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close packing" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}" title="{{dp.alertTitle}}">{{dp.alert}}</x-import></sc-if>
+<div class="pa-scan"><x-import component-from-global-scope="CommerceOS.Input" label="Scan an item" placeholder="Scan the barcode or type a SKU" value="{{dp.scan}}" on-change="{{dp.setScan}}" error="{{dp.scanError}}" hint="{{dp.scanHint}}"></x-import></div>
+<ul class="pa-items"><sc-for list="{{dp.items}}" as="i" hint-placeholder-count="3"><li class="{{i.cls}}">
+<x-import component-from-global-scope="CommerceOS.Checkbox" aria-label="{{i.aria}}" checked="{{i.done}}" on-change="{{i.toggle}}"></x-import>
+<span class="pr-cell-main"><span>{{i.name}}</span><span class="o-sub">{{i.variant}} · <span class="iv-sku">{{i.sku}}</span> · from {{i.bin}}</span></span>
+<span class="{{i.countCls}}">{{i.count}}</span>
+</li></sc-for></ul>
+</section>
+<section class="o-panel-sec"><h3>Box</h3>
+<div class="pa-boxes"><sc-for list="{{dp.boxes}}" as="b" hint-placeholder-count="6"><button class="pa-box" aria-pressed="{{b.on}}" onClick="{{b.pick}}"><span>{{b.name}}</span><span class="o-sub">{{b.size}}</span></button></sc-for></div>
+<div class="pa-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Weight" suffix="kg" inputmode="decimal" value="{{dp.weight}}" on-change="{{dp.setWeight}}" error="{{dp.weightError}}" hint="{{dp.weightHint}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Carrier and service" value="{{dp.service}}" disabled="{{yes}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="{{dp.insertLabel}}" checked="{{dp.inserts}}" on-change="{{dp.setInserts}}"></x-import>
+</section>
+<section class="o-panel-sec"><h3>Ship to</h3>
+<dl class="dp-kv"><dt>Customer</dt><dd>{{dp.customer}}</dd><dt>Email</dt><dd>{{dp.email}}</dd><dt>Phone</dt><dd>{{dp.phone}}</dd><dt>Order total</dt><dd>{{dp.total}}</dd><dt>Picked</dt><dd>{{dp.picked}}</dd></dl>
+</section>
+</div>
+<div class="o-panel-foot"><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="alert-triangle" on-click="{{dp.problem}}">Report a problem</x-import></div><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="truck" disabled="{{dp.blocked}}" on-click="{{dp.pack}}">{{dp.cta}}</x-import></div></div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{prOpen}}" on-close="{{closePr}}" size="sm" title="{{pr.title}}" description="The order goes on hold. Customer service is told so they can contact the customer.">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Select" label="What’s wrong" options="{{pr.opts}}" value="{{pr.value}}" on-value-change="{{pr.set}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closePr}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="danger" icon="alert-triangle" on-click="{{pr.save}}">Put on hold</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","pack"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none', q = new URLSearchParams(window.location.search);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      wh: X.SITES.indexOf(q.get('wh')) >= 0 ? q.get('wh') : 'dhk', tab: 'queue', query: '', steps: {}, held: {}, packedNow: [], detail: null, pk: null, pr: null };
+    if (demo === 'pack') { const f = this.queue('dhk')[0]; this.state.detail = f.id; this.state.pk = this.draft(f); }
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.pr) { if (this.state.detail) this.setState({ detail: null, pk: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  step(f) { return this.state.steps[f.id] || f.step; }
+  queue(site) { return X.OPEN.filter((f) => f.site === site && this.step(f) === 'pack' && !this.state.held[f.id]).sort((a, b) => a.priority - b.priority || a.ts - b.ts); }
+  draft(f) { return { scanned: f.lines.map(() => 0), box: X.boxFor(f), weight: X.weightOf(f).toFixed(2), inserts: true, scan: '', scanError: null }; }
+  open(f) { this.setState({ detail: f.id, pk: this.draft(f) }); }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), chan = s.store === 'all' ? null : F.channelOf(s.store).label, w = I.WH[s.wh];
+    const queue = this.queue(s.wh).filter((f) => !chan || f.channel === chan), held = X.OPEN.filter((f) => f.site === s.wh && s.held[f.id]);
+    const q = s.query.trim().toLowerCase();
+    const base = s.tab === 'held' ? held : queue;
+    const list = base.filter((f) => !q || f.id.toLowerCase().indexOf(q) >= 0 || f.customer.toLowerCase().indexOf(q) >= 0 || f.lines.some((l) => l.sku.toLowerCase().indexOf(q) >= 0));
+    const rows = list.map((f) => { const h = (F.NOW - f.ts) / 36e5;
+      return { id: f.id, channel: f.channel, customer: f.customer, lines: F.plural(f.lines.length, 'line'), delivery: f.delivery, dTone: DEL_TONE[f.delivery], carrier: f.carrier === 'Collection' ? 'customer collects' : f.carrier, units: F.int(f.units),
+        pickedBy: f.pickedBy || 'Picked on ' + (f.list || 'a pick list'), picked: f.picked ? F.timeAgo(f.picked) : 'just now', box: X.boxFor(f), weight: '≈ ' + X.weightOf(f).toFixed(2) + ' kg',
+        age: Math.round(h) + ' h', ageSub: s.held[f.id] ? 'on hold: ' + s.held[f.id] : f.late ? 'past the 24 h target' : f.delivery === 'Same-day' && h > 12 ? 'missed same-day' : '', ageCls: f.late || s.held[f.id] || (f.delivery === 'Same-day' && h > 12) ? 'pa-late' : '',
+        btnLabel: s.held[f.id] ? 'Release' : 'Pack', btnVariant: s.held[f.id] ? 'secondary' : 'primary',
+        act: () => (s.held[f.id] ? (this.setState((x) => { const hd = Object.assign({}, x.held); delete hd[f.id]; return { held: hd }; }), this.showToast(f.id + ' released', 'It’s back in the packing queue.')) : this.open(f)) }; });
+
+    const hrs = HOURS[s.wh], lh = Number(X.localHour(s.wh, F.NOW).slice(0, 2)), on = lh >= hrs[0] && lh < hrs[1];
+    const shipStep = X.OPEN.filter((f) => f.site === s.wh && (this.step(f) === 'ship'));
+    const packedToday = shipStep.filter((f) => (f.packed || F.NOW) >= F.DAY0 || s.packedNow.indexOf(f.id) >= 0).length + X.SHIPMENTS.filter((x) => x.site === s.wh && x.shipped >= F.DAY0).length;
+    const kpis = [
+      { label: 'Waiting to be packed', dot: 'cx-dot cx-dot-brand', value: F.int(queue.length), cmp: F.int(queue.reduce((a, f) => a + f.units, 0)) + ' units · ' + queue.filter((f) => f.late).length + ' late' },
+      { label: 'Packed today', dot: 'cx-dot cx-dot-success', value: F.int(packedToday), cmp: 'since 00:00 UTC · ' + s.packedNow.length + ' by you this session' },
+      { label: 'Stations in use', dot: 'cx-dot cx-dot-info', value: on ? Math.min(X.PACKERS[s.wh].length, X.STATIONS[s.wh]) + ' of ' + X.STATIONS[s.wh] : '0 of ' + X.STATIONS[s.wh], cmp: on ? X.PACKERS[s.wh].join(', ') : 'Opens at ' + (hrs[0] < 10 ? '0' : '') + hrs[0] + ':00 local' },
+      { label: 'On hold', dot: 'cx-dot cx-dot-danger', value: F.int(held.length), cmp: held.length ? 'damaged or missing items' : 'Nothing on hold' }
+    ];
+    const stations = Array.from({ length: X.STATIONS[s.wh] }, (_, i) => { const p = on ? X.PACKERS[s.wh][i] : null, cur = p ? queue[i] : null;
+      return { name: 'Station ' + (i + 1), who: p || (on ? 'Free' : 'Closed'), what: cur ? 'Packing ' + cur.id + ' · ' + F.plural(cur.units, 'unit') : on ? 'Waiting for a packer' : '', cls: 'pa-st' + (cur ? ' is-busy' : ' is-idle') }; });
+    const tabs = [{ id: 'queue', label: 'To pack', count: F.int(queue.length) }, { id: 'held', label: 'On hold', count: F.int(held.length) }];
+
+    let dp = null;
+    if (s.detail && s.pk) {
+      const f = X.OPEN.find((x) => x.id === s.detail), d = s.pk, o = f.order;
+      const done = f.lines.every((l, i) => d.scanned[i] >= l.qty), wt = Number(d.weight), est = X.weightOf(f);
+      const wErr = !/^\d+(\.\d{1,3})?$/.test(d.weight) || wt <= 0 ? 'Enter the weight from the scale' : null;
+      const setPk = (patch) => this.setState((x) => ({ pk: Object.assign({}, x.pk, patch) }));
+      const intl = (f.site === 'dhk' || f.site === 'ctg') && f.channel !== 'Wholesale' && f.delivery !== 'Same-day';
+      dp = { id: f.id, sub: f.customer + ' · ' + F.plural(f.units, 'unit') + ' · ' + f.delivery + (f.carrier === 'Collection' ? ', customer collects' : ' with ' + f.carrier),
+        alert: f.late ? (f.lateNote || 'Past the 24-hour target') + '. Pack it next.' : f.delivery === 'Same-day' ? 'Same-day: it has to make today’s ' + f.carrier + ' pickup.' : intl ? 'International parcel: a customs declaration prints with the label.' : null,
+        alertTone: f.late ? 'warning' : 'info', alertTitle: f.late ? 'Late' : null, scan: d.scan, scanError: d.scanError, scanHint: done ? 'Everything is checked.' : 'Scan each unit, or tick a line to count it all',
+        setScan: (e) => { const v = e.target.value.trim().toUpperCase(); const i = f.lines.findIndex((l, k) => l.sku === v && d.scanned[k] < l.qty);
+          if (i >= 0) setPk({ scan: '', scanError: null, scanned: d.scanned.map((n, k) => (k === i ? n + 1 : n)) });
+          else if (/^SKU-[A-Z0-9-]{6,}$/.test(v)) setPk({ scan: v, scanError: f.lines.some((l) => l.sku === v) ? 'All units of ' + v + ' are already checked' : v + ' isn’t in this order. Put it back in its bin.' });
+          else setPk({ scan: e.target.value, scanError: null }); },
+        items: f.lines.map((l, i) => ({ name: l.name, variant: l.variant, sku: l.sku, bin: X.bin(l.sku, f.site), done: d.scanned[i] >= l.qty, cls: 'pa-item' + (d.scanned[i] >= l.qty ? ' is-done' : ''),
+          count: d.scanned[i] + ' / ' + l.qty, countCls: 'pa-count' + (d.scanned[i] >= l.qty ? ' is-done' : ''), aria: 'Checked ' + l.qty + ' × ' + l.sku,
+          toggle: (v) => setPk({ scanned: d.scanned.map((n, k) => (k === i ? (v ? l.qty : 0) : n)) }) })),
+        boxes: BOXES.map((b) => ({ name: b[0], size: b[1], on: d.box === b[0] || (d.box.indexOf('Carton') === 0 && b[0] === 'Carton'), pick: () => setPk({ box: b[0] === 'Carton' ? 'Carton ×' + Math.ceil(f.units / 24) : b[0] }) })),
+        weight: d.weight, weightError: wErr, weightHint: !wErr && Math.abs(wt - est) > Math.max(0.3, est * 0.4) ? 'Expected about ' + est.toFixed(2) + ' kg. Check nothing is missing or extra.' : 'Expected about ' + est.toFixed(2) + ' kg',
+        setWeight: (e) => setPk({ weight: e.target.value }), service: f.carrier === 'Collection' ? 'Collection at ' + w.short : f.carrier + ' · ' + f.delivery,
+        inserts: d.inserts, setInserts: (v) => setPk({ inserts: v }), insertLabel: f.b2b ? 'Packing list and invoice in carton 1' : f.channel === 'Fernhill EU' ? 'Packing slip and prepaid returns label' : 'Packing slip and care card',
+        customer: f.customer, email: o.email, phone: o.phone, total: F.money2(f.total), picked: (f.pickedBy || 'Picker') + ' · ' + (f.picked ? F.fmtWhen(f.picked) : 'just now'),
+        blocked: !done || !!wErr, cta: !done ? 'Check ' + f.lines.reduce((a, l, i) => a + Math.max(0, l.qty - d.scanned[i]), 0) + ' more units' : f.carrier === 'Collection' ? 'Packed · ready for collection' : 'Pack and print label',
+        problem: () => this.setState({ pr: { id: f.id, value: 'damaged' } }),
+        pack: () => { const nxt = this.queue(s.wh).filter((x) => x.id !== f.id)[0];
+          this.setState((x) => ({ steps: Object.assign({}, x.steps, { [f.id]: 'ship' }), packedNow: x.packedNow.concat([f.id]), detail: nxt ? nxt.id : null, pk: nxt ? this.draft(nxt) : null }));
+          this.showToast(f.id + (f.carrier === 'Collection' ? ' ready for collection' : ' packed'), f.carrier === 'Collection' ? f.customer + ' was emailed that it’s ready to collect.' : X.trackingNo(f.carrier, f.id) + ' printed. It’s in Shipping for the next ' + f.carrier + ' pickup.' + (nxt ? ' Next: ' + nxt.id + '.' : '')); } };
+    }
+    let pr = { title: '', opts: [] };
+    if (s.pr) {
+      const d = s.pr;
+      pr = { title: 'Problem with ' + d.id, value: d.value, opts: [{ value: 'damaged', label: 'An item is damaged' }, { value: 'missing', label: 'An item is missing from the cart' }, { value: 'wrong', label: 'Wrong item or size was picked' }, { value: 'address', label: 'Address looks wrong' }],
+        set: (v) => this.setState((x) => ({ pr: Object.assign({}, x.pr, { value: v }) })),
+        save: () => { const label = { damaged: 'item damaged', missing: 'item missing', wrong: 'wrong item picked', address: 'address check' }[d.value];
+          this.setState((x) => ({ held: Object.assign({}, x.held, { [d.id]: label }), pr: null, detail: null, pk: null }));
+          this.showToast(d.id + ' on hold', 'Reason: ' + label + '. Customer service has a ticket to follow up.', 'info'); } };
+    }
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(queue.length, 'order') + ' to pack at ' + w.name, localTime: X.localHour(s.wh, F.NOW) + ' local time · ' + (on ? 'open until ' + hrs[1] + ':00' : 'closed, opens at ' + (hrs[0] < 10 ? '0' : '') + hrs[0] + ':00'),
+      whOpts: X.SITES.map((k) => ({ value: k, label: I.WH[k].name })), wh: s.wh, setWh: (v) => this.setState({ wh: v, detail: null, pk: null }),
+      noneToPack: queue.length === 0, packNext: () => queue[0] && this.open(queue[0]),
+      kpis, stations, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      rows, shown: rows.length > 0, empty: rows.length === 0, emptyTitle: s.tab === 'held' ? 'Nothing on hold' : q ? 'No orders match' : 'Nothing to pack', emptyDesc: s.tab === 'held' ? 'Orders with a problem show up here.' : 'Orders arrive here when their pick list is finished.',
+      dp, closeDetail: () => this.setState({ detail: null, pk: null }),
+      prOpen: !!s.pr, closePr: () => this.setState({ pr: null }), pr,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- packing: Fernhill orders (orders.js) and fulfillment (fulfillment.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, X = window.FernhillFulfillment, CommerceOS = window.CommerceOS;
+var HOURS = { dhk: [8, 20], ctg: [8, 20], rtm: [7, 22], ewr: [6, 22] };
+var DEL_TONE = { 'Same-day': 'danger', Express: 'warning', Standard: 'neutral', 'Store pickup': 'info' };
+var BOXES = [['Mailer S', '25 × 35 cm poly'], ['Mailer M', '35 × 45 cm poly'], ['Box S', '25 × 20 × 10 cm'], ['Box M', '35 × 25 × 15 cm'], ['Box L', '45 × 35 × 20 cm'], ['Carton', '60 × 40 × 40 cm, 24 units']];
+</script>
+</body>
+</html>

@@ -7,11 +7,11 @@
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=5"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
 <script src="./catalog.js?v=3"></script>
-<script src="./inventory.js?v=6"></script>
+<script src="./inventory.js?v=8"></script>
 </head>
 <body>
 <x-dc>
@@ -343,7 +343,7 @@ class Component extends DCLogic {
     const prevSaved = this.state.saved, prevRoutes = this.state.routes;
     const next = prevSaved.map((r) => (r.channel === 'eu' ? Object.assign({}, r, { order: ['ctg', 'rtm'] }) : Object.assign({}, r, { order: r.order.slice() })));
     this.setState({ saved: next, routes: cloneRoutes(next) });
-    this.showToast('New EU orders go to Chattogram first', 'Rotterdam keeps shipping its 96-order backlog. Switch back in Order routing once it’s cleared.', 'success',
+    this.showToast('New EU orders go to Chattogram first', 'Rotterdam keeps shipping its ' + I.WH.rtm.toShip + '-order backlog. Switch back in Order routing once it’s cleared.', 'success',
       { label: 'Undo', onClick: () => this.setState({ saved: prevSaved, routes: prevRoutes, toast: null }) });
   }
 }

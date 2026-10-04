@@ -7,11 +7,11 @@
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=5"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
 <script src="./catalog.js?v=3"></script>
-<script src="./inventory.js?v=6"></script>
+<script src="./inventory.js?v=8"></script>
 </head>
 <body>
 <x-dc>
@@ -203,7 +203,7 @@ class Component extends DCLogic {
     const demo = props.demo || 'none';
     this.state = {
       collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
-      reorder: {}, planned: {}, snoozed: [], tab: 'all', query: '', wh: '', sel: [], rowMenu: null, tr: null, po: null, rp: null, seqTr: 3117, seqPo: 20441
+      reorder: {}, planned: {}, snoozed: [], tab: 'all', query: '', wh: '', sel: [], rowMenu: null, tr: null, po: null, rp: null, seqTr: 3117, seqPo: 20443
     };
     if (demo === 'transfer') this.state.tr = this.trDraft(LOCS.find((l) => l.it.sku === 'SKU-TEE-BLK-L'));
     if (demo === 'po') this.state.po = this.poDraft(LOCS.find((l) => l.it.sku === 'SKU-TSH-NAVY-M'));

@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Purchase Orders · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./procurement.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Purchase orders ---------- */
+.po-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.po-flow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.po-stage{position:relative;display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;min-width:0}
+.po-stage:hover{border-color:var(--border-strong)}
+.po-stage[aria-pressed="true"]{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.po-stage:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.po-stage strong{font-size:18px;line-height:24px}
+.po-stage .o-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.po-stage.is-warn strong{color:var(--warning)}
+.po-table td.c-sup{white-space:normal;min-width:190px}
+.po-late{color:var(--danger);font-weight:500}
+.po-warn{color:var(--warning);font-weight:500}
+/* panel */
+.po-lines tfoot td{font-weight:600;background:var(--bg-subtle)}
+.po-links{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px}
+.po-note{margin:0;font-size:13px;line-height:20px;color:var(--text-secondary)}
+/* builder */
+.po-b-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.po-b-lines select{width:100%;min-width:0;height:30px;box-sizing:border-box;padding:0 6px;border:1px solid var(--border-control);border-radius:var(--radius-xs);background:var(--bg-surface);color:var(--text-primary);font:inherit;font-size:13px}
+.po-b-lines td:first-child{width:56%}
+.po-b-sum{display:flex;flex-wrap:wrap;gap:4px 20px;font-size:13px;line-height:20px;color:var(--text-secondary)}
+.po-b-sum strong{color:var(--text-primary);font-weight:600}
+.po-ta{width:100%;box-sizing:border-box;min-height:56px;padding:8px 12px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-surface);color:var(--text-primary);font:inherit;font-size:14px;line-height:20px;resize:vertical}
+.po-ta:focus{outline:2px solid var(--focus-ring);outline-offset:-1px}
+.po-lbl{display:block;margin-bottom:6px;font-size:13px;font-weight:500;color:var(--text-primary)}
+@media (max-width:1279px){ .po-flow{grid-template-columns:repeat(4,minmax(0,1fr))} .c-wh{display:none} }
+@media (max-width:1023px){ .po-kpis{display:flex} }
+@media (max-width:767px){ .o-head-actions{flex-wrap:wrap} .o-head-actions > :first-child{flex:1 1 100%} .po-flow{grid-template-columns:repeat(2,minmax(0,1fr))} .dp-wide{width:100%} .po-b-grid{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="procurement/purchase-orders" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="procurement/purchase-orders"></x-import>
+<h1>Purchase Orders</h1>
+<p class="ph-sub">Orders to suppliers, from draft to delivered. Warehouses check them in on the Receiving page.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Today, Oct 1 · 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Supplier" options="{{supOpts}}" value="{{sup}}" on-value-change="{{setSup}}" width="230px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{newPo}}">New purchase order</x-import>
+</div>
+</div>
+
+<section class="o-kpis po-kpis" aria-label="Purchasing summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<sc-if value="{{nudge}}" hint-placeholder-val="{{false}}">
+<x-import component-from-global-scope="CommerceOS.Alert" tone="warning" title="{{nudge.title}}" actions="{{nudge.actions}}">{{nudge.text}}</x-import>
+</sc-if>
+
+<section aria-label="Pipeline">
+<div class="po-flow"><sc-for list="{{stages}}" as="d" hint-placeholder-count="7"><button class="{{d.cls}}" aria-pressed="{{d.on}}" onClick="{{d.pick}}"><span class="o-sub">{{d.label}}</span><strong>{{d.count}}</strong><span class="o-sub">{{d.sub}}</span></button></sc-for></div>
+</section>
+
+<section class="o-card" aria-label="Purchase orders">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="PO status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search by PO, supplier, SKU or supplier reference" label="Search purchase orders" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<sc-if value="{{stageChip}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="x" on-click="{{clearStage}}">{{stageChip}}</x-import></sc-if>
+</div></div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table po-table" aria-label="Purchase orders">
+<thead><tr>
+<th scope="col">PO</th>
+<th scope="col">Supplier</th>
+<th class="c-wh" scope="col">Ship to</th>
+<th class="is-right" scope="col">Units</th>
+<th class="is-right" scope="col">Value</th>
+<th scope="col">Expected</th>
+<th scope="col">Status</th>
+<th class="c-act" scope="col" style="width: auto"><span class="cx-sr">Action</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="15">
+<tr>
+<td><button class="o-id rc-id" onClick="{{r.open}}">{{r.id}}</button><span class="o-sub">{{r.created}}</span></td>
+<td class="c-sup"><span>{{r.supplier}}</span><span class="o-sub">{{r.city}}</span></td>
+<td class="c-wh">{{r.wh}}</td>
+<td class="is-right"><span class="td-strong">{{r.units}}</span><span class="o-sub">{{r.linesLabel}}</span></td>
+<td class="is-right">{{r.value}}</td>
+<td><span class="{{r.etaCls}}">{{r.eta}}</span><span class="o-sub">{{r.etaSub}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import></td>
+<td class="c-act" style="width: auto; padding-right: 12px"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Purchase orders">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<li class="o-m-card"><div class="o-m-top"><button class="o-id rc-id" onClick="{{r.open}}">{{r.id}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.statusLabel}}</x-import></div>
+<div class="o-m-mid"><div><span class="td-strong">{{r.supplier}}</span><span class="o-sub">{{r.units}} units · to {{r.wh}} · <span class="{{r.etaCls}}">{{r.eta}}</span></span></div><span class="o-m-total">{{r.value}}</span></div>
+<div class="o-m-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></div></li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="{{emptyIcon}}" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close purchase order" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="po-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="po-dp-title">{{dp.id}} · {{dp.supplier}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close purchase order" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec"><div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.statusLabel}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}" title="{{dp.alertTitle}}">{{dp.alert}}</x-import></sc-if>
+<dl class="dp-kv"><dt>Supplier</dt><dd>{{dp.supplierLong}}</dd><dt>Ship to</dt><dd>{{dp.wh}}</dd><dt>Expected</dt><dd>{{dp.eta}}</dd><dt>Terms</dt><dd>{{dp.terms}}</dd><dt>Supplier ref</dt><dd>{{dp.ref}}</dd><dt>Buyer</dt><dd>{{dp.by}}</dd></dl>
+<sc-if value="{{dp.note}}" hint-placeholder-val="{{false}}"><p class="po-note">{{dp.note}}</p></sc-if>
+</section>
+<section class="o-panel-sec"><h3>Lines · {{dp.unitsLabel}}</h3>
+<div class="rc-lines-wrap"><table class="rc-lines po-lines"><thead><tr><th scope="col">SKU</th><th scope="col">Ordered</th><th scope="col">Received</th><th scope="col">Unit cost</th><th scope="col">Total</th></tr></thead>
+<tbody><sc-for list="{{dp.lines}}" as="l" hint-placeholder-count="3"><tr><td><span>{{l.name}}</span><span class="o-sub">{{l.variant}} · <span class="iv-sku">{{l.sku}}</span></span></td><td>{{l.qty}}</td><td><span class="{{l.recCls}}">{{l.rec}}</span></td><td>{{l.cost}}</td><td>{{l.total}}</td></tr></sc-for></tbody>
+<tfoot><tr><td>Total</td><td>{{dp.unitsShort}}</td><td>{{dp.recTotal}}</td><td></td><td>{{dp.value}}</td></tr></tfoot></table></div>
+</section>
+<section class="o-panel-sec"><h3>Progress</h3>
+<ol class="rc-tl"><sc-for list="{{dp.steps}}" as="t" hint-placeholder-count="5"><li><span class="{{t.dot}}" aria-hidden="true"></span><span class="pr-cell-main"><span class="{{t.cls}}">{{t.label}}</span><span class="o-sub">{{t.when}}</span></span></li></sc-for></ol>
+<sc-if value="{{dp.hasLinks}}" hint-placeholder-val="{{false}}"><div class="po-links"><sc-for list="{{dp.links}}" as="k" hint-placeholder-count="2"><a href="{{k.href}}">{{k.label}}</a></sc-for></div></sc-if>
+</section>
+</div>
+<sc-if value="{{dp.hasFoot}}" hint-placeholder-val="{{false}}"><div class="o-panel-foot"><div class="dp-foot-end"><sc-for list="{{dp.secondary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div><div class="dp-foot-end"><sc-for list="{{dp.primary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="{{b.variant}}" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div></div></sc-if>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{bOpen}}" on-close="{{closeB}}" size="lg" title="{{b.title}}" description="{{b.desc}}">
+<div class="o-modal-stack">
+<div class="po-b-grid"><x-import component-from-global-scope="CommerceOS.Select" label="Supplier" options="{{b.supOpts}}" value="{{b.sup}}" on-value-change="{{b.setSup}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Ship to" options="{{b.whOpts}}" value="{{b.wh}}" on-value-change="{{b.setWh}}"></x-import></div>
+<div class="rc-lines-wrap"><table class="rc-lines po-b-lines"><thead><tr><th scope="col">SKU</th><th scope="col">Quantity</th><th scope="col">Unit cost</th><th scope="col">Total</th><th scope="col"><span class="cx-sr">Remove</span></th></tr></thead>
+<tbody><sc-for list="{{b.lines}}" as="l" hint-placeholder-count="2"><tr><td><select aria-label="SKU, line {{l.n}}" value="{{l.sku}}" onChange="{{l.setSku}}"><sc-for list="{{b.skuOpts}}" as="o" hint-placeholder-count="3"><option value="{{o.value}}">{{o.label}}</option></sc-for></select><span class="o-sub">{{l.hint}}</span></td>
+<td><input class="{{l.qtyCls}}" inputmode="numeric" aria-label="Quantity, line {{l.n}}" value="{{l.qty}}" onChange="{{l.setQty}}"></td><td>{{l.cost}}</td><td>{{l.total}}</td>
+<td><button class="icon-btn" aria-label="Remove line {{l.n}}" onClick="{{l.remove}}"><x-import component-from-global-scope="CommerceOS.Icon" name="trash"></x-import></button></td></tr></sc-for></tbody></table></div>
+<div class="o-modal-actions" style="justify-content: flex-start"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="plus" on-click="{{b.addLine}}">Add line</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="alert-triangle" disabled="{{b.noLow}}" on-click="{{b.addLow}}">{{b.lowLabel}}</x-import></div>
+<div class="po-b-sum"><span>Units <strong>{{b.units}}</strong></span><span>Value <strong>{{b.value}}</strong></span><span>Expected <strong>{{b.eta}}</strong></span><span>{{b.terms}}</span></div>
+<sc-if value="{{b.warn}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{b.warnTone}}">{{b.warn}}</x-import></sc-if>
+<div><label class="po-lbl" for="po-b-note">Note to the supplier <span class="o-sub" style="display: inline">optional</span></label><textarea id="po-b-note" class="po-ta" value="{{b.note}}" onChange="{{b.setNote}}"></textarea></div>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeB}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" disabled="{{b.blocked}}" on-click="{{b.saveDraft}}">Save as draft</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="arrow-right" disabled="{{b.blocked}}" on-click="{{b.send}}">Send to supplier</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{cfOpen}}" on-close="{{closeCf}}" size="sm" title="{{cf.title}}" description="{{cf.desc}}">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Input" label="Supplier order reference" value="{{cf.ref}}" on-change="{{cf.setRef}}" error="{{cf.refError}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="Confirmed ready date" type="date" value="{{cf.date}}" on-change="{{cf.setDate}}" hint="{{cf.dateHint}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeCf}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{cf.save}}">Mark confirmed</x-import></div>
+</div>
+</x-import>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{cxOpen}}" on-close="{{closeCx}}" size="sm" title="{{cx.title}}" description="{{cx.desc}}">
+<div class="o-modal-stack">
+<div><label class="po-lbl" for="po-cx-why">Reason</label><textarea id="po-cx-why" class="po-ta" value="{{cx.why}}" onChange="{{cx.setWhy}}"></textarea></div>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeCx}}">Keep it</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="danger" icon="x" on-click="{{cx.save}}">{{cx.cta}}</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","detail","new"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const demo = props.demo || 'none', q = new URLSearchParams(window.location.search);
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      pos: P.POS.map((p) => Object.assign({}, p, { lines: p.lines.map((l) => Object.assign({}, l)) })), sup: q.get('supplier') || '', tab: 'open', stage: null, query: '',
+      detail: q.get('po') || null, b: null, cf: null, cx: null, seq: 20443
+    };
+    if (q.get('new') != null) this.state.b = this.draft(q.get('new') || 'ngl');
+    if (demo === 'detail') this.state.detail = 'PO-20431';
+    if (demo === 'new') this.state.b = this.draft('pkl');
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.b && !this.state.cf && !this.state.cx) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone, action) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: action || null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), action ? 8000 : 5000);
+  }
+  update(id, patch) { this.setState((s) => ({ pos: s.pos.map((p) => (p.id === id ? Object.assign({}, p, patch) : p)) })); }
+  draft(sup, from) {
+    const s = P.SUP[sup] || P.SUPPLIERS[0], cat = P.catalogOf(s.key);
+    if (from) return { id: from.id, sup: from.supplier, wh: from.wh, note: from.note || '', lines: from.lines.map((l) => ({ sku: l.sku, qty: String(l.qty) })) };
+    return { id: null, sup: s.key, wh: s.key === 'dlc' ? 'dhk' : s.key === 'blu' || s.key === 'hlm' ? 'rtm' : 'ewr', note: '', lines: cat.length ? [{ sku: cat[0].sku, qty: String(Math.max(20, Math.ceil(s.moq / 20) * 20)) }] : [] };
+  }
+  send(p) {
+    this.update(p.id, { status: 'sent', sent: F.NOW });
+    this.showToast(p.id + ' sent to ' + P.SUP[p.supplier].name, 'Emailed to ' + P.SUP[p.supplier].contact + ' as a PDF. Suppliers usually confirm within 48 hours.');
+  }
+  remind(p) {
+    this.update(p.id, { reminded: F.NOW });
+    this.showToast('Reminder sent', P.SUP[p.supplier].contact + ' was asked to confirm ' + p.id + ' or propose new dates.');
+  }
+  advance(p) {
+    const next = { confirmed: ['production', 'In production'], production: ['ready', 'Ready to ship'], ready: ['shipped', 'Shipped'] }[p.status];
+    if (!next) return;
+    this.update(p.id, Object.assign({ status: next[0] }, next[0] === 'shipped' ? { shipped: F.NOW } : {}));
+    this.showToast(p.id + ' marked ' + next[1].toLowerCase(), next[0] === 'shipped' ? 'It now shows as expected on the Receiving page at ' + I.WH[p.wh].short + '.' : 'The supplier portal will update this automatically once ' + P.SUP[p.supplier].name + ' is connected.');
+  }
+  act(p) {
+    if (p.status === 'draft') this.send(p);
+    else if (p.status === 'sent') this.setState({ cf: { id: p.id, ref: '', date: isoDate(p.eta - 9 * F.DAY), touched: false } });
+    else if (p.status === 'receiving') window.location.href = 'Receiving.dc.html';
+    else this.setState({ detail: p.id });
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store);
+    const scoped = s.pos.filter((p) => !s.sup || p.supplier === s.sup);
+    const q = s.query.trim().toLowerCase();
+    const searched = scoped.filter((p) => (!s.stage || p.status === s.stage) && (!q || p.id.toLowerCase().indexOf(q) >= 0 || P.SUP[p.supplier].name.toLowerCase().indexOf(q) >= 0 || (p.supplierRef || '').toLowerCase().indexOf(q) >= 0 || p.lines.some((l) => l.sku.toLowerCase().indexOf(q) >= 0)));
+    const inTab = (p, t) => t === 'all' || (t === 'open' ? OPEN.indexOf(p.status) >= 0 : t === 'draft' ? p.status === 'draft' : t === 'closed' ? p.status === 'received' : p.status === 'cancelled');
+    const list = searched.filter((p) => inTab(p, s.tab)).sort((a, b) => (STAGES.indexOf(a.status) - STAGES.indexOf(b.status)) || (a.status === 'received' ? b.received - a.received : (a.eta || 0) - (b.eta || 0)));
+    const rows = list.map((p) => {
+      const sv = statusV(p), sup = P.SUP[p.supplier], late = isLate(p), slow = isSlow(p);
+      return { id: p.id, created: (p.status === 'draft' ? 'Drafted ' : 'Created ') + F.fmtDate(p.created).replace(', 2026', '') + ' · ' + p.by.split(' ')[0], supplier: sup.name, city: sup.city, wh: I.WH[p.wh].short,
+        units: F.int(p.units), linesLabel: F.plural(p.lines.length, 'line'), value: F.money0(p.value),
+        eta: p.status === 'cancelled' ? 'Cancelled ' + F.fmtDate(p.cancelled).replace(', 2026', '') : p.status === 'received' ? 'Received ' + F.fmtDate(p.received).replace(', 2026', '') : p.status === 'receiving' ? 'At the dock' : late ? 'Due ' + F.fmtDate(p.eta).replace(', 2026', '') : 'Due ' + F.fmtDate(p.eta).replace(', 2026', ''),
+        etaSub: p.status === 'received' ? shortText(p) : p.status === 'cancelled' ? '' : p.status === 'receiving' ? 'Arrived ' + F.timeAgo(p.arrived) : late ? Math.round((F.NOW - p.eta) / F.DAY) + ' days late' : slow ? 'Unconfirmed for ' + Math.round((F.NOW - p.sent) / 36e5) + ' h' : 'in ' + Math.max(1, Math.round((p.eta - F.NOW) / F.DAY)) + ' days',
+        etaCls: late ? 'po-late' : slow ? 'po-warn' : '', tone: sv[0], icon: sv[2], statusLabel: sv[1],
+        btnLabel: p.status === 'draft' ? 'Send' : p.status === 'sent' ? 'Confirm' : p.status === 'receiving' ? 'Receive' : 'View', btnVariant: p.status === 'draft' || p.status === 'receiving' ? 'primary' : p.status === 'sent' ? 'secondary' : 'ghost',
+        act: () => this.act(p), open: () => this.setState({ detail: p.id }) };
+    });
+
+    // KPIs
+    const open = scoped.filter((p) => OPEN.indexOf(p.status) >= 0), sent = scoped.filter((p) => p.status === 'sent'), slow = sent.filter(isSlow);
+    const soon = scoped.filter((p) => ['confirmed', 'production', 'ready', 'shipped'].indexOf(p.status) >= 0 && p.eta - F.NOW <= 14 * F.DAY), drafts = scoped.filter((p) => p.status === 'draft');
+    const recent = scoped.filter((p) => p.status === 'received' && F.NOW - p.received <= 90 * F.DAY), onTime = recent.filter((p) => p.arrived <= p.eta + F.DAY).length;
+    const kpis = [
+      { label: 'On order', dot: 'cx-dot cx-dot-brand', value: F.money0(open.reduce((a, p) => a + p.value, 0)), cmp: F.plural(open.length, 'open PO') + ' · ' + F.int(open.reduce((a, p) => a + p.units, 0)) + ' units' },
+      { label: 'Waiting on the supplier', dot: 'cx-dot cx-dot-warning', value: F.int(sent.length), cmp: slow.length ? F.plural(slow.length, 'PO') + ' unconfirmed for over 48 h' : 'All within 48 hours' },
+      { label: 'Arriving in 14 days', dot: 'cx-dot cx-dot-info', value: F.int(soon.reduce((a, p) => a + p.units, 0)), cmp: 'units on ' + F.plural(soon.length, 'PO') },
+      { label: 'On time, 90 days', dot: 'cx-dot cx-dot-success', value: recent.length ? Math.round(onTime / recent.length * 100) + '%' : '—', cmp: F.int(onTime) + ' of ' + F.plural(recent.length, 'delivery', 'deliveries') + ' by the expected date' }
+    ];
+    const worst = slow.slice().sort((a, b) => a.sent - b.sent)[0];
+    const nudge = worst ? { title: worst.id + ' hasn’t been confirmed', text: P.SUP[worst.supplier].name + ' received it ' + F.timeAgo(worst.sent) + (worst.reminded ? ' and was reminded ' + F.timeAgo(worst.reminded) : '') + '. The ' + F.money0(worst.value) + ' order for ' + I.WH[worst.wh].short + ' is due ' + F.fmtDate(worst.eta).replace(', 2026', '') + ', which only holds if production starts this week.',
+      actions: [h(CommerceOS.Button, { key: 'r', variant: 'secondary', size: 'sm', onClick: () => this.remind(worst) }, 'Send reminder'), h(CommerceOS.Button, { key: 'o', variant: 'ghost', size: 'sm', onClick: () => this.setState({ detail: worst.id }) }, 'Open PO')] } : null;
+
+    const stages = STAGES.slice(0, 7).map((k) => {
+      const ps = scoped.filter((p) => p.status === k), warn = k === 'sent' && ps.some(isSlow);
+      return { label: STATUS_V[k][1], count: F.int(ps.length), sub: ps.length ? F.money0(ps.reduce((a, p) => a + p.value, 0)) : 'none', on: s.stage === k, cls: 'po-stage' + (warn ? ' is-warn' : ''),
+        pick: () => this.setState({ stage: s.stage === k ? null : k, tab: s.stage === k ? s.tab : k === 'draft' ? 'draft' : 'open' }) };
+    });
+    const tabs = [{ id: 'open', label: 'Open' }, { id: 'draft', label: 'Drafts' }, { id: 'closed', label: 'Received' }, { id: 'cancelled', label: 'Cancelled' }, { id: 'all', label: 'All' }].map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((p) => inTab(p, t.id)).length) }));
+
+    let dp = null;
+    if (s.detail) {
+      const p = s.pos.find((x) => x.id === s.detail);
+      if (p) {
+        const sv = statusV(p), sup = P.SUP[p.supplier], w = I.WH[p.wh], late = isLate(p), g = P.GRN_BY_PO[p.id], hasRec = p.status === 'received' || p.status === 'receiving';
+        const step = (label, ts, st) => ({ label, when: ts ? F.fmtWhen(ts) : '', dot: 'rc-dot is-' + st, cls: st === 'todo' ? 'is-todo' : '' });
+        const idx = STAGES.indexOf(p.status), past = (k) => p.status !== 'cancelled' && idx > STAGES.indexOf(k);
+        const steps = p.status === 'cancelled' ? [step('Created by ' + p.by, p.created, 'done'), step('Sent to ' + sup.name, p.sent, 'done'), step('Cancelled', p.cancelled, 'bad')] : [
+          step(p.status === 'draft' ? 'Drafted by ' + p.by : 'Created by ' + p.by, p.created, 'done'),
+          step(p.sent ? 'Sent to ' + sup.contact : 'Send to the supplier', p.sent, p.sent ? 'done' : 'now'),
+          step(past('sent') ? 'Confirmed' + (p.supplierRef ? ' as ' + p.supplierRef : '') : isSlow(p) ? 'Waiting for confirmation · ' + Math.round((F.NOW - p.sent) / 36e5) + ' h' : 'Supplier confirms', past('sent') ? p.confirmed : null, past('sent') ? 'done' : p.status === 'sent' ? (isSlow(p) ? 'bad' : 'now') : 'todo'),
+          step(past('ready') ? 'Shipped' + (p.tracking ? ' · ' + p.tracking : '') : p.status === 'production' ? 'In production' : p.status === 'ready' ? 'Ready, waiting for pickup' : 'Ships from ' + sup.city.split(',')[0], past('ready') ? p.shipped : null, past('ready') ? 'done' : p.status === 'production' || p.status === 'ready' ? 'now' : 'todo'),
+          step(p.arrived ? 'Arrived at ' + w.short : late ? 'Overdue at ' + w.short : 'Arrives at ' + w.short + ' · ' + F.fmtDate(p.eta).replace(', 2026', ''), p.arrived, p.arrived ? 'done' : late ? 'bad' : p.status === 'shipped' ? 'now' : 'todo'),
+          step(p.status === 'received' ? 'Received · ' + shortText(p).toLowerCase() : 'Counted and put away', p.received, p.status === 'received' ? (shortUnits(p) ? 'bad' : 'done') : p.status === 'receiving' ? 'now' : 'todo')];
+        const recTotal = p.lines.reduce((a, l) => a + (l.rec || 0), 0);
+        const prim = [], sec = [];
+        if (p.status === 'draft') { sec.push({ label: 'Delete draft', icon: 'trash', go: () => { this.setState((st) => ({ pos: st.pos.filter((x) => x.id !== p.id), detail: null })); this.showToast(p.id + ' deleted', 'The draft was removed. Nothing was sent to the supplier.', 'info'); } });
+          prim.push({ label: 'Edit', variant: 'secondary', icon: 'edit', go: () => this.setState({ b: this.draft(p.supplier, p) }) }, { label: 'Send to supplier', variant: 'primary', icon: 'arrow-right', go: () => this.send(p) }); }
+        if (p.status === 'sent') { sec.push({ label: 'Cancel PO', icon: 'x', go: () => this.setState({ cx: { id: p.id, why: '' } }) }); prim.push({ label: 'Send reminder', variant: 'secondary', icon: 'bell', go: () => this.remind(p) }, { label: 'Mark confirmed', variant: 'primary', icon: 'check', go: () => this.act(p) }); }
+        if (['confirmed', 'production', 'ready'].indexOf(p.status) >= 0) { sec.push({ label: 'Cancel PO', icon: 'x', go: () => this.setState({ cx: { id: p.id, why: '' } }) }); prim.push({ label: { confirmed: 'Mark in production', production: 'Mark ready to ship', ready: 'Mark shipped' }[p.status], variant: 'primary', icon: p.status === 'ready' ? 'truck' : 'check', go: () => this.advance(p) }); }
+        if (p.status === 'shipped' || p.status === 'receiving') prim.push({ label: p.status === 'receiving' ? 'Continue in Receiving' : 'View in Receiving', variant: 'primary', icon: 'inbox', go: () => { window.location.href = 'Receiving.dc.html'; } });
+        if (p.status === 'received' || p.status === 'cancelled') prim.push({ label: 'Reorder', variant: 'secondary', icon: 'copy', go: () => this.setState({ b: Object.assign(this.draft(p.supplier, p), { id: null }) }) });
+        const links = [];
+        if (g) links.push({ label: 'Goods received note ' + g.id, href: 'GoodsReceived.dc.html?grn=' + g.id });
+        if (p.rcv) links.push({ label: 'Receipt ' + p.rcv, href: 'Receiving.dc.html' });
+        const rt = P.RETURNS.filter((r) => r.po === p.id)[0]; if (rt) links.push({ label: 'Purchase return ' + rt.id, href: 'PurchaseReturns.dc.html?rtv=' + rt.id });
+        links.push({ label: 'Supplier scorecard', href: 'Suppliers.dc.html?supplier=' + sup.key });
+        dp = { id: p.id, supplier: sup.name, sub: F.plural(p.lines.length, 'line') + ' · ' + F.int(p.units) + ' units · ' + F.money0(p.value) + ' at cost',
+          tone: sv[0], icon: sv[2], statusLabel: sv[1],
+          statusSub: p.status === 'draft' ? 'Not sent yet' : p.status === 'sent' ? 'Sent ' + F.timeAgo(p.sent) : p.status === 'received' ? 'Received ' + F.fmtWhen(p.received) : p.status === 'cancelled' ? 'Cancelled ' + F.fmtWhen(p.cancelled) : p.status === 'receiving' ? 'At the dock since ' + F.fmtWhen(p.arrived) : 'Expected ' + F.fmtDate(p.eta),
+          alert: p.status === 'cancelled' ? p.cancelNote : late ? 'It was due ' + F.fmtDate(p.eta) + '. Ask ' + sup.contact + ' for an updated date.' : isSlow(p) ? sup.name + ' hasn’t confirmed in ' + Math.round((F.NOW - p.sent) / 36e5) + ' hours. The usual reply time is under a day.' : p.status === 'received' && shortUnits(p) ? shortText(p) + '. The difference is on goods received note ' + (g ? g.id : '') + ' for invoice matching.' : sup.status === 'review' && OPEN.indexOf(p.status) >= 0 ? sup.statusNote : null,
+          alertTone: p.status === 'cancelled' ? 'info' : late || isSlow(p) ? 'warning' : p.status === 'received' ? 'warning' : 'info',
+          alertTitle: p.status === 'cancelled' ? 'Cancelled' : late ? 'Late' : isSlow(p) ? 'Waiting for confirmation' : p.status === 'received' ? 'Received short or damaged' : 'Supplier under review',
+          supplierLong: sup.name + ' · ' + sup.city, wh: w.name, eta: p.status === 'cancelled' ? '—' : p.status === 'received' ? 'Arrived ' + F.fmtDate(p.arrived) + (p.arrived > p.eta + F.DAY ? ', ' + Math.round((p.arrived - p.eta) / F.DAY) + ' days late' : ', on time') : F.fmtDate(p.eta) + ' · ' + sup.lead + '-day lead time',
+          terms: sup.terms + ' · ' + sup.incoterm + ' · invoiced in ' + sup.currency, ref: p.supplierRef || (p.status === 'draft' || p.status === 'sent' ? 'Given when they confirm' : '—'), by: p.by, note: p.note || null,
+          unitsLabel: F.int(p.units) + ' units', unitsShort: F.int(p.units), recTotal: hasRec ? F.int(recTotal) : '—', value: F.money0(p.value),
+          lines: p.lines.map((l) => { const it = I.BY_SKU[l.sku]; return { name: it.p.name, variant: it.v.label, sku: l.sku, qty: F.int(l.qty), rec: l.rec != null ? F.int(l.rec) + (l.dmg ? ' (' + l.dmg + ' damaged)' : '') : '—', recCls: l.rec != null && (l.rec < l.qty || l.dmg) ? 'iv-neg' : '', cost: F.money2(l.cost), total: F.money0(l.qty * l.cost) }; }),
+          steps, links, hasLinks: links.length > 0, primary: prim, secondary: sec, hasFoot: prim.length + sec.length > 0 };
+      }
+    }
+
+    // builder
+    let b = { title: '', desc: '', supOpts: [], whOpts: [], lines: [], skuOpts: [] };
+    if (s.b) {
+      const d = s.b, sup = P.SUP[d.sup], cat = P.catalogOf(d.sup), used = d.lines.map((l) => l.sku);
+      const low = cat.filter((it) => { const st = I.locState(it, d.wh); return (st === 'low' || st === 'out') && used.indexOf(it.sku) < 0 && I.inboundQty(it, d.wh) === 0; });
+      const parsed = d.lines.map((l) => ({ l, it: I.BY_SKU[l.sku], q: Number(l.qty), ok: /^\d+$/.test(l.qty) && Number(l.qty) > 0 }));
+      const units = parsed.reduce((a, x) => a + (x.ok ? x.q : 0), 0), value = parsed.reduce((a, x) => a + (x.ok ? x.q * x.it.p.cost : 0), 0);
+      const dup = used.filter((k, i) => used.indexOf(k) !== i).length, bad = parsed.filter((x) => !x.ok).length;
+      const setLines = (fn) => this.setState((st) => ({ b: Object.assign({}, st.b, { lines: fn(st.b.lines) }) }));
+      const suggest = (it) => String(Math.max(20, Math.ceil(Math.max(I.reorderAt(it, d.wh) * 2 - it.stock[d.wh], 20) / 10) * 10));
+      b = { title: d.id ? 'Edit ' + d.id : 'New purchase order', desc: 'Pick a supplier and what to order. Prices come from the supplier’s current price list.',
+        sup: d.sup, wh: d.wh, note: d.note,
+        supOpts: P.SUPPLIERS.map((x) => ({ value: x.key, label: x.name + (x.status === 'review' ? ' · under review' : '') })), whOpts: I.WAREHOUSES.map((w) => ({ value: w.key, label: w.name })),
+        setSup: (v) => this.setState((st) => ({ b: Object.assign({}, st.b, { sup: v, lines: this.draft(v).lines }) })), setWh: (v) => this.setState((st) => ({ b: Object.assign({}, st.b, { wh: v }) })),
+        setNote: (e) => { const v = e.target.value; this.setState((st) => ({ b: Object.assign({}, st.b, { note: v }) })); },
+        skuOpts: cat.map((it) => ({ value: it.sku, label: it.p.name + ' · ' + it.v.label + ' · ' + it.sku })),
+        lines: parsed.map((x, i) => ({ n: i + 1, sku: x.l.sku, qty: x.l.qty, qtyCls: 'rc-in' + (x.ok ? '' : ' is-bad'), cost: F.money2(x.it.p.cost), total: x.ok ? F.money0(x.q * x.it.p.cost) : '—',
+          hint: F.int(x.it.stock[d.wh]) + ' on hand at ' + I.WH[d.wh].short + ' · reorder at ' + F.int(x.it.reorder[d.wh]) + (I.inboundQty(x.it, d.wh) ? ' · ' + F.int(I.inboundQty(x.it, d.wh)) + ' already on order' : ''),
+          setSku: (e) => { const v = e.target.value; setLines((ls) => ls.map((y, j) => (j === i ? Object.assign({}, y, { sku: v }) : y))); },
+          setQty: (e) => { const v = e.target.value; setLines((ls) => ls.map((y, j) => (j === i ? Object.assign({}, y, { qty: v }) : y))); },
+          remove: () => setLines((ls) => ls.filter((y, j) => j !== i)) })),
+        addLine: () => { const nx = cat.find((it) => used.indexOf(it.sku) < 0); if (nx) setLines((ls) => ls.concat([{ sku: nx.sku, qty: suggest(nx) }])); },
+        noLow: low.length === 0, lowLabel: low.length ? 'Add ' + F.plural(Math.min(low.length, 8), 'SKU') + ' below reorder point' : 'Nothing below reorder point at ' + I.WH[d.wh].short,
+        addLow: () => setLines((ls) => ls.concat(low.slice(0, 8).map((it) => ({ sku: it.sku, qty: suggest(it) })))),
+        units: F.int(units), value: F.money0(value), eta: F.fmtDate(F.NOW + sup.lead * F.DAY), terms: sup.terms + ' · ' + sup.incoterm,
+        warn: !d.lines.length ? 'Add at least one line.' : bad ? 'Quantities must be whole numbers above zero.' : dup ? 'A SKU is on more than one line. Combine them into one.' : units < sup.moq ? sup.name + ' has a ' + F.int(sup.moq) + '-unit minimum per order. This one is ' + F.int(units) + '.' : sup.status === 'review' ? sup.statusNote : null,
+        warnTone: !d.lines.length || bad || dup ? 'danger' : 'warning', blocked: !d.lines.length || bad > 0 || dup > 0,
+        saveDraft: () => this.saveB('draft'), send: () => this.saveB('sent') };
+    }
+
+    let cf = { title: '', desc: '' };
+    if (s.cf) {
+      const d = s.cf, p = s.pos.find((x) => x.id === d.id), sup = P.SUP[p.supplier], ready = Date.parse(d.date), err = !d.ref.trim() ? 'Enter the reference from their confirmation' : null;
+      cf = { title: 'Confirm ' + p.id, desc: sup.name + ' accepted the order. Copy the details from their confirmation email.', ref: d.ref, date: d.date,
+        refError: d.touched ? err : null, dateHint: isNaN(ready) ? 'Pick a date' : 'Arrives at ' + I.WH[p.wh].short + ' around ' + F.fmtDate(ready + Math.round(sup.lead * 0.45) * F.DAY) + ' after transit',
+        setRef: (e) => { const v = e.target.value; this.setState((st) => ({ cf: Object.assign({}, st.cf, { ref: v }) })); }, setDate: (e) => { const v = e.target.value; this.setState((st) => ({ cf: Object.assign({}, st.cf, { date: v }) })); },
+        save: () => { if (err) return this.setState({ cf: Object.assign({}, d, { touched: true }) });
+          const eta = isNaN(ready) ? p.eta : ready + Math.round(sup.lead * 0.45) * F.DAY;
+          this.update(p.id, { status: 'confirmed', confirmed: F.NOW, supplierRef: d.ref.trim(), eta }); this.setState({ cf: null });
+          this.showToast(p.id + ' confirmed', 'Expected at ' + I.WH[p.wh].short + ' on ' + F.fmtDate(eta) + '. Stock Levels now counts it as incoming.'); } };
+    }
+    let cx = { title: '', desc: '', cta: '' };
+    if (s.cx) {
+      const d = s.cx, p = s.pos.find((x) => x.id === d.id), sup = P.SUP[p.supplier], prod = p.status === 'production' || p.status === 'ready';
+      cx = { title: 'Cancel ' + p.id + '?', desc: prod ? sup.name + ' has already started production. Their terms allow them to charge for materials bought for this order.' : 'We’ll email ' + sup.contact + ' that the order is cancelled.',
+        why: d.why, setWhy: (e) => { const v = e.target.value; this.setState((st) => ({ cx: Object.assign({}, st.cx, { why: v }) })); }, cta: 'Cancel ' + p.id,
+        save: () => { this.update(p.id, { status: 'cancelled', cancelled: F.NOW, cancelNote: d.why.trim() || 'Cancelled by Priya Natarajan.' }); this.setState({ cx: null });
+          this.showToast(p.id + ' cancelled', F.money0(p.value) + ' removed from what’s on order. ' + sup.name + ' was notified.', 'info'); } };
+    }
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(open.length, 'open PO') + (s.sup ? ' with ' + P.SUP[s.sup].name : ' with ' + F.plural(new Set(open.map((p) => p.supplier)).size, 'supplier')),
+      supOpts: [{ value: '', label: 'All suppliers' }].concat(P.SUPPLIERS.map((x) => ({ value: x.key, label: x.name }))), sup: s.sup, setSup: (v) => this.setState({ sup: v }),
+      newPo: () => this.setState({ b: this.draft(s.sup || 'ngl') }),
+      kpis, nudge, stages, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      stageChip: s.stage ? STATUS_V[s.stage][1] + ' only' : null, clearStage: () => this.setState({ stage: null }),
+      rows, shown: rows.length > 0, empty: rows.length === 0,
+      emptyIcon: q || s.stage ? 'search' : 'clipboard-list', emptyTitle: q || s.stage ? 'No purchase orders match' : s.tab === 'draft' ? 'No drafts' : 'Nothing here yet',
+      emptyDesc: q || s.stage ? 'Try another supplier, stage or search.' : s.tab === 'draft' ? 'Drafts created here or from Low Stock show up until they’re sent.' : 'Purchase orders show up here as they move along.',
+      dp, closeDetail: () => this.setState({ detail: null }),
+      bOpen: !!s.b, closeB: () => this.setState({ b: null }), b,
+      cfOpen: !!s.cf, closeCf: () => this.setState({ cf: null }), cf,
+      cxOpen: !!s.cx, closeCx: () => this.setState({ cx: null }), cx,
+      exportView: () => this.showToast('Exporting ' + F.plural(rows.length, 'purchase order'), 'CSV with one row per line: SKU, quantity, unit cost, expected date and status.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+  saveB(status) {
+    const d = this.state.b, sup = P.SUP[d.sup], lines = d.lines.map((l) => P.line(l.sku, Number(l.qty)));
+    const fields = { supplier: d.sup, wh: d.wh, note: d.note.trim() || null, lines, units: lines.reduce((a, l) => a + l.qty, 0), value: lines.reduce((a, l) => a + l.qty * l.cost, 0), eta: F.NOW + sup.lead * F.DAY };
+    if (d.id) {
+      this.update(d.id, Object.assign(fields, status === 'sent' ? { status: 'sent', sent: F.NOW } : {}));
+      this.setState({ b: null, detail: d.id });
+      this.showToast(status === 'sent' ? d.id + ' sent to ' + sup.name : d.id + ' saved', status === 'sent' ? 'Emailed to ' + sup.contact + '.' : 'Still a draft. Send it when it’s ready.');
+      return;
+    }
+    const id = 'PO-' + this.state.seq;
+    const po = Object.assign({ id, by: F.USER.name, created: F.NOW, status, sent: status === 'sent' ? F.NOW : null }, fields);
+    this.setState((st) => ({ pos: [po].concat(st.pos), seq: st.seq + 1, b: null, detail: id, tab: status === 'draft' ? 'draft' : 'open', stage: null }));
+    this.showToast(status === 'sent' ? id + ' sent to ' + sup.name : 'Draft ' + id + ' saved', F.int(po.units) + ' units, ' + F.money0(po.value) + ' at cost, expected at ' + I.WH[d.wh].short + ' around ' + F.fmtDate(po.eta) + '.');
+  }
+}
+
+/* ---------- purchase orders: Fernhill procurement (procurement.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, P = window.FernhillProcurement, h = window.React.createElement, CommerceOS = window.CommerceOS;
+var STAGES = ['draft', 'sent', 'confirmed', 'production', 'ready', 'shipped', 'receiving', 'received', 'cancelled'];
+var OPEN = ['sent', 'confirmed', 'production', 'ready', 'shipped', 'receiving'];
+var STATUS_V = { draft: ['neutral', 'Draft', 'edit'], sent: ['warning', 'Awaiting confirmation', 'clock'], confirmed: ['info', 'Confirmed', 'check'], production: ['info', 'In production', 'factory'],
+  ready: ['info', 'Ready to ship', 'package'], shipped: ['brand', 'Shipped', 'truck'], receiving: ['warning', 'At the dock', 'inbox'], received: ['success', 'Received', 'check-circle'], cancelled: ['neutral', 'Cancelled', 'x'], late: ['danger', 'Late', 'alert-triangle'] };
+function isLate(p) { return ['confirmed', 'production', 'ready', 'shipped'].indexOf(p.status) >= 0 && p.eta < F.NOW - F.DAY; }
+function isSlow(p) { return p.status === 'sent' && F.NOW - p.sent > 48 * 36e5; }
+function statusV(p) { return STATUS_V[isLate(p) ? 'late' : p.status]; }
+function shortUnits(p) { return p.lines.reduce(function (a, l) { return a + Math.max(0, l.qty - (l.rec || 0)) + (l.dmg || 0); }, 0); }
+function shortText(p) { var s = p.lines.reduce(function (a, l) { return a + Math.max(0, l.qty - (l.rec || 0)); }, 0), d = p.lines.reduce(function (a, l) { return a + (l.dmg || 0); }, 0); return s || d ? [s ? s + ' short' : '', d ? d + ' damaged' : ''].filter(Boolean).join(', ') : 'In full'; }
+function isoDate(ts) { return new Date(ts).toISOString().slice(0, 10); }
+</script>
+</body>
+</html>
