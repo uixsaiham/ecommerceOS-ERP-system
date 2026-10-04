@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Promotions · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=10"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./customers.js?v=2"></script>
+<script src="./marketing.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Promotions ---------- */
+.pp-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pp-cal{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.pp-cal h2{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.pp-months{position:relative;display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);font-size:12px;color:var(--text-muted);padding-bottom:6px}
+.pp-track{position:relative;display:flex;flex-direction:column;gap:6px;padding-top:6px}
+.pp-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);pointer-events:none}
+.pp-grid span{border-left:1px dashed var(--border)}
+.pp-row{position:relative;height:30px}
+.pp-bar{position:absolute;top:0;height:30px;display:flex;align-items:center;gap:6px;padding:0 10px;border-radius:var(--radius-sm);font:inherit;font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid transparent;cursor:pointer;min-width:12px}
+.pp-bar:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.pp-bar.is-live{background:var(--success-subtle);color:var(--success);border-color:var(--success)}
+.pp-bar.is-scheduled{background:var(--info-subtle);color:var(--info)}
+.pp-bar.is-draft{background:var(--bg-muted);color:var(--text-secondary);border-style:dashed;border-color:var(--border-strong)}
+.pp-bar.is-ended{background:var(--bg-subtle);color:var(--text-muted)}
+.pp-lab{position:absolute;top:0;height:30px;display:flex;align-items:center;font-size:12px;color:var(--text-secondary);white-space:nowrap;pointer-events:none}
+.pp-today{position:absolute;top:-6px;bottom:0;width:0;border-left:2px solid var(--danger);pointer-events:none}
+.pp-today span{position:absolute;top:-16px;left:-18px;font-size:11px;color:var(--danger);font-weight:600}
+.pp-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.pp-card{display:flex;flex-direction:column;gap:8px;padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;min-width:0}
+.pp-card:hover{border-color:var(--border-strong)}
+.pp-card:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.pp-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pp-card strong{font-size:14px;line-height:20px}
+.pp-desc{margin:0;font-size:13px;line-height:18px;color:var(--text-secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:36px}
+.pp-goal{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary)}
+.pp-goal .pr-meter{flex:1}
+.pp-goal .pr-meter > span{background:var(--brand)}
+.pp-goal .pr-meter.is-good > span{background:var(--success)}
+.pp-sec-h{margin:8px 0 0;font-size:13px;font-weight:600;color:var(--text-secondary)}
+.pp-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pp-stats > div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.pp-stats strong{font-size:16px;line-height:22px;font-variant-numeric:tabular-nums}
+.pp-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.pp-links li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:20px}
+.pp-links li:last-child{border-bottom:0}
+.pp-links a{color:var(--text-primary);font-weight:500;text-decoration:none}
+.pp-links a:hover{text-decoration:underline}
+.pp-tasks{display:flex;flex-direction:column;gap:8px}
+.pp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:1279px){ .pp-cards{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:1023px){ .pp-kpis{display:flex} }
+@media (max-width:767px){ .pp-cards,.pp-grid2,.pp-stats{grid-template-columns:1fr} .pp-cal{overflow-x:auto} .pp-track,.pp-months{min-width:640px} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="marketing/promotions" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="marketing/promotions"></x-import>
+<h1>Promotions</h1>
+<p class="ph-sub">Sales events from planning to results, with the discounts, codes and campaigns behind each one.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>September to December 2026</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openNew}}">New promotion</x-import>
+</div>
+</div>
+
+<section class="o-kpis pp-kpis" aria-label="Promotions summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section class="pp-cal" aria-label="Calendar">
+<h2>Calendar</h2>
+<div class="pp-months"><span>September</span><span>October</span><span>November</span><span>December</span></div>
+<div class="pp-track">
+<div class="pp-grid" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+<div class="pp-today" style="{{todayLeft}}" aria-hidden="true"><span>Today</span></div>
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="7"><div class="pp-row"><button class="{{b.cls}}" style="{{b.style}}" title="{{b.title}}" aria-label="{{b.title}}" onClick="{{b.open}}">{{b.inner}}</button><span class="pp-lab" style="{{b.labStyle}}">{{b.outer}}</span></div></sc-for>
+</div>
+</section>
+
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+<h2 class="pp-sec-h">{{g.label}}</h2>
+<section class="pp-cards" aria-label="{{g.label}}">
+<sc-for list="{{g.items}}" as="p" hint-placeholder-count="3">
+<button class="pp-card" onClick="{{p.open}}">
+<span class="pp-card-top"><strong>{{p.name}}</strong><x-import component-from-global-scope="CommerceOS.Badge" tone="{{p.tone}}" icon="{{p.icon}}">{{p.status}}</x-import></span>
+<span class="o-sub">{{p.dates}}</span>
+<p class="pp-desc">{{p.desc}}</p>
+<span class="pp-goal"><span class="{{p.meter}}"><span style="{{p.w}}"></span></span><span>{{p.goal}}</span></span>
+<span class="o-sub">{{p.foot}}</span>
+</button>
+</sc-for>
+</section>
+</sc-for>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close promotion" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="pp-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="pp-dp-title">{{dp.name}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close promotion" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.status}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<p style="margin: 0; font-size: 13px; line-height: 20px; color: var(--text-secondary)">{{dp.desc}}</p>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}">{{dp.alert}}</x-import></sc-if>
+<div class="pp-stats"><sc-for list="{{dp.stats}}" as="m" hint-placeholder-count="3"><div><span class="o-sub">{{m.label}}</span><strong>{{m.value}}</strong><span class="o-sub">{{m.sub}}</span></div></sc-for></div>
+<dl class="dp-kv"><sc-for list="{{dp.kv}}" as="k" hint-placeholder-count="4"><dt>{{k.k}}</dt><dd>{{k.v}}</dd></sc-for></dl>
+</section>
+<sc-if value="{{dp.hasTasks}}" hint-placeholder-val="{{false}}">
+<section class="o-panel-sec"><h3>{{dp.tasksTitle}}</h3>
+<div class="pp-tasks"><sc-for list="{{dp.tasks}}" as="t" hint-placeholder-count="5"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{t.label}}" checked="{{t.done}}" on-change="{{t.toggle}}"></x-import></sc-for></div>
+</section>
+</sc-if>
+<section class="o-panel-sec"><h3>What’s in it</h3>
+<sc-if value="{{dp.hasLinks}}" hint-placeholder-val="{{true}}"><ul class="pp-links"><sc-for list="{{dp.links}}" as="l" hint-placeholder-count="4"><li><span class="pr-cell-main"><a href="{{l.href}}">{{l.label}}</a><span class="o-sub">{{l.sub}}</span></span><x-import component-from-global-scope="CommerceOS.Badge" tone="{{l.tone}}">{{l.status}}</x-import></li></sc-for></ul></sc-if>
+<sc-if value="{{dp.noLinks}}" hint-placeholder-val="{{false}}"><p class="o-sub" style="margin: 0">Nothing linked yet. Create the discounts, codes and campaigns, then tag them with this promotion.</p></sc-if>
+</section>
+</div>
+<div class="o-panel-foot"><div class="dp-foot-end"><sc-for list="{{dp.secondary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div><div class="dp-foot-end"><sc-for list="{{dp.primary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="{{b.variant}}" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div></div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{nwOpen}}" on-close="{{closeNw}}" size="md" title="New promotion" description="Start with dates and a goal. Add discounts, codes and campaigns to it next.">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Input" label="Name" value="{{nw.name}}" on-change="{{nw.setName}}" error="{{nw.nameError}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="What’s the idea" optional="{{yes}}" value="{{nw.desc}}" on-change="{{nw.setDesc}}"></x-import>
+<div class="pp-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Starts" type="date" value="{{nw.start}}" on-change="{{nw.setStart}}" error="{{nw.startError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Ends" type="date" value="{{nw.end}}" on-change="{{nw.setEnd}}" error="{{nw.endError}}"></x-import></div>
+<div class="pp-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Revenue goal" prefix="$" inputmode="numeric" value="{{nw.goal}}" on-change="{{nw.setGoal}}" error="{{nw.goalError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Discount budget" prefix="$" inputmode="numeric" value="{{nw.budget}}" on-change="{{nw.setBudget}}" error="{{nw.budgetError}}" hint="Most you’ll give away"></x-import></div>
+<sc-if value="{{nw.warn}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">{{nw.warn}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeNw}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{nw.save}}">Create as draft</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const q = new URLSearchParams(window.location.search);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, changes: {}, added: [], tasks: {}, detail: q.get('p') || null, nw: null, seq: 1 };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.nw) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+  all() { const c = this.state.changes; return this.state.added.concat(K.PROMOS).map((p) => (c[p.key] ? Object.assign({}, p, c[p.key]) : p)); }
+  change(p, patch, title, msg) { this.setState((s) => ({ changes: Object.assign({}, s.changes, { [p.key]: Object.assign({}, s.changes[p.key], patch) }) })); if (title) this.showToast(title, msg); }
+  tasksOf(p) { return (TASKS[p.key] || []).map((t, i) => ({ label: t[0], done: this.state.tasks[p.key + i] != null ? this.state.tasks[p.key + i] : t[1] })); }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), list0 = this.all();
+    const C0 = Date.UTC(2026, 8, 1), C1 = Date.UTC(2027, 0, 1), span = C1 - C0, pos = (t) => Math.max(0, Math.min(100, (t - C0) / span * 100));
+    const order = { live: 0, scheduled: 1, draft: 2, ended: 3 };
+    const sorted = list0.slice().sort((a, b) => a.start - b.start);
+    const bars = sorted.map((p) => { const l = pos(p.start), w = Math.max(1.2, pos(p.end) - pos(p.start)), fits = w * 11 > p.name.length * 6 + 16;
+      return { inner: fits ? p.name : '', outer: fits ? '' : p.name + ' · ' + range(p), labStyle: 'left: calc(' + (l + w).toFixed(2) + '% + 8px)', title: p.name + ' · ' + range(p), cls: 'pp-bar is-' + p.status, style: 'left: ' + l.toFixed(2) + '%; width: ' + w.toFixed(2) + '%', open: () => this.setState({ detail: p.key }) }; });
+    const card = (p) => { const st = ST[p.status], r = p.goal ? (p.revenue || 0) / p.goal : 0, tasks = this.tasksOf(p), done = tasks.filter((t) => t.done).length;
+      return { name: p.name, dates: range(p) + ' · ' + p.stores.map((k) => STORE[k]).join(', ') + (p.region ? ' · ' + p.region : ''), desc: p.desc, status: st[1], tone: st[0], icon: st[2],
+        meter: 'pr-meter' + (r >= 1 ? ' is-good' : ''), w: 'width: ' + Math.min(100, r * 100).toFixed(0) + '%',
+        goal: p.status === 'scheduled' || p.status === 'draft' ? (tasks.length ? done + ' of ' + tasks.length + ' ready' : 'Goal ' + F.money0(p.goal)) : F.money0(p.revenue || 0) + ' of ' + F.money0(p.goal) + ' goal',
+        foot: p.status === 'scheduled' ? 'Starts in ' + Math.round((p.start - F.NOW) / F.DAY) + ' days · ' + F.money0(p.budget) + ' discount budget' : p.status === 'draft' ? 'Planning · owner ' + p.owner : F.plural(p.orders || 0, 'order') + ' · ' + F.money0(p.cost || 0) + ' given away of ' + F.money0(p.budget),
+        open: () => this.setState({ detail: p.key }), w2: done }; };
+    const groups = [['live', 'Live now'], ['scheduled', 'Coming up'], ['draft', 'Planning'], ['ended', 'Ended']].map((g) => ({ label: g[1], items: sorted.filter((p) => p.status === g[0]).map(card) })).filter((g) => g.items.length);
+
+    const live = list0.filter((p) => p.status === 'live'), next = list0.filter((p) => p.status === 'scheduled').sort((a, b) => a.start - b.start)[0], ended = list0.filter((p) => p.status === 'ended');
+    const bf = list0.find((p) => p.key === 'bfcm'), bfTasks = bf ? this.tasksOf(bf) : [];
+    const kpis = [
+      { label: 'Live now', dot: 'cx-dot cx-dot-success', value: F.int(live.length), cmp: live.map((p) => p.name + ', ' + Math.max(1, Math.round((p.end - F.NOW) / F.DAY)) + ' days left').join(' · ') || 'Nothing running' },
+      { label: 'Next up', dot: 'cx-dot cx-dot-info', value: next ? F.fmtDate(next.start).replace(', 2026', '') : '—', cmp: next ? next.name + ' · in ' + Math.round((next.start - F.NOW) / F.DAY) + ' days' : 'Nothing scheduled' },
+      { label: 'Ended in September', dot: 'cx-dot cx-dot-brand', value: F.money0(ended.reduce((a, p) => a + p.revenue, 0)), cmp: F.money0(ended.reduce((a, p) => a + p.cost, 0)) + ' given away · ' + ended.filter((p) => p.revenue >= p.goal).length + ' of ' + ended.length + ' hit their goal' },
+      { label: 'Black Friday readiness', dot: 'cx-dot cx-dot-warning', value: bfTasks.filter((t) => t.done).length + ' of ' + bfTasks.length, cmp: Math.round((bf.start - F.NOW) / F.DAY) + ' days to go · goal ' + F.money0(bf.goal) }
+    ];
+
+    let dp = null;
+    if (s.detail) {
+      const p = list0.find((x) => x.key === s.detail);
+      if (p) {
+        const st = ST[p.status], tasks = this.tasksOf(p), sec = [], prim = [];
+        const links = (p.discounts || []).map((d) => ({ label: d.name, sub: 'Automatic discount · ' + (d.kind === 'percent' ? d.value + '% off' : 'gift'), href: 'Discounts.dc.html?d=' + d.key, status: DST[d.status][1], tone: DST[d.status][0] }))
+          .concat((p.coupons || []).map((c) => ({ label: c.code, sub: 'Code · ' + c.value + '% off · ' + F.plural(c.uses.length, 'use'), href: 'Coupons.dc.html?code=' + c.code, status: CST[c.status][1], tone: CST[c.status][0] })))
+          .concat((p.campaigns || []).map((c) => ({ label: c.name, sub: (c.kind === 'ads' ? c.platform : c.kind === 'sms' ? 'SMS' : 'Email') + (c.stats ? ' · ' + F.money0(c.stats.revenue) + ' revenue' : ''), href: 'Campaigns.dc.html?c=' + c.id, status: MST[c.status][1], tone: MST[c.status][0] })));
+        if (p.status === 'live') prim.push({ label: 'End early', variant: 'secondary', icon: 'x', go: () => this.change(p, { status: 'ended', end: F.NOW }, p.name + ' ended', 'Its discounts and codes stop working now. Campaigns already sent aren’t affected.') });
+        if (p.status === 'draft') prim.push({ label: 'Schedule', variant: 'primary', icon: 'calendar', go: () => { const left = tasks.filter((t) => !t.done).length; this.change(p, { status: 'scheduled' }, p.name + ' scheduled', left ? left + ' checklist items are still open.' : 'Everything on the checklist is done.'); } });
+        if (p.status === 'scheduled') sec.push({ label: 'Back to planning', icon: 'edit', go: () => this.change(p, { status: 'draft' }, p.name + ' moved back to planning', 'Nothing goes live until you schedule it again.') });
+        sec.push({ label: 'Duplicate for next year', icon: 'copy', go: () => { const key = p.key + '-27'; this.setState((x) => ({ added: x.added.concat([Object.assign({}, p, { key, name: p.name + ' 2027', start: p.start + 365 * F.DAY, end: p.end + 365 * F.DAY, status: 'draft', revenue: 0, orders: 0, cost: 0, discounts: [], coupons: [], campaigns: [] })]), detail: key })); this.showToast('Copied to 2027', 'Same dates next year, as a draft without linked items.'); } });
+        const roi = p.cost ? p.revenue / p.cost : 0;
+        dp = { name: p.name, sub: range(p) + ' · owner ' + p.owner, status: st[1], tone: st[0], icon: st[2], desc: p.desc,
+          statusSub: p.status === 'live' ? Math.max(1, Math.round((p.end - F.NOW) / F.DAY)) + ' days left' : p.status === 'scheduled' ? 'Starts in ' + Math.round((p.start - F.NOW) / F.DAY) + ' days' : p.status === 'ended' ? 'Ended ' + F.fmtDate(p.end - 1) : 'Not scheduled yet',
+          alert: p.status === 'ended' ? (p.revenue >= p.goal ? 'Beat its goal by ' + F.money0(p.revenue - p.goal) + '.' : 'Missed its goal by ' + F.money0(p.goal - p.revenue) + '.') + ' Every $1 off brought in ' + F.money2(roi) + ' of sales.' : p.key === 'puja' ? 'Dhaka has only ' + I.BY_SKU['SKU-SCF-IND-OS'].stock.dhk + ' Jamdani scarves for a 12-day launch built around them. Plan a transfer or a purchase order now.' : p.key === 'bfcm' ? 'Ad budget isn’t approved yet. Last year Meta CPMs rose 40% in the week before Black Friday.' : null,
+          alertTone: p.status === 'ended' && p.revenue < p.goal ? 'warning' : p.status === 'ended' ? 'success' : 'warning',
+          stats: [{ label: 'Sales', value: F.money0(p.revenue || 0), sub: 'goal ' + F.money0(p.goal) }, { label: 'Orders', value: F.int(p.orders || 0), sub: p.orders ? F.money2(p.revenue / p.orders) + ' per order' : '' }, { label: 'Given away', value: F.money0(p.cost || 0), sub: 'budget ' + F.money0(p.budget) }],
+          kv: [{ k: 'Dates', v: range(p) }, { k: 'Stores', v: p.stores.map((k) => STORE[k]).join(', ') + (p.region ? ' · ' + p.region + ' only' : '') }, { k: 'Owner', v: p.owner }],
+          hasTasks: tasks.length > 0, tasksTitle: 'Checklist · ' + tasks.filter((t) => t.done).length + ' of ' + tasks.length + ' done',
+          tasks: tasks.map((t, i) => ({ label: t.label, done: t.done, toggle: (v) => this.setState((x) => ({ tasks: Object.assign({}, x.tasks, { [p.key + i]: v }) })) })),
+          links, hasLinks: links.length > 0, noLinks: links.length === 0, secondary: sec, primary: prim };
+      }
+    }
+
+    let nw = {};
+    if (s.nw) {
+      const d = s.nw, set = (k) => (e) => { const v = e.target.value; this.setState((x) => ({ nw: Object.assign({}, x.nw, { [k]: v }) })); };
+      const a = Date.parse(d.start), b = Date.parse(d.end);
+      const errs = { name: !d.name.trim() ? 'Name it' : null, start: isNaN(a) ? 'Pick a start date' : a < F.DAY0 ? 'Can’t start in the past' : null, end: isNaN(b) ? 'Pick an end date' : b < a ? 'Must be on or after the start' : null,
+        goal: !/^\d+$/.test(d.goal) ? 'Enter a whole number' : null, budget: !/^\d+$/.test(d.budget) ? 'Enter a whole number' : +d.budget > +d.goal * 0.5 ? 'More than half the goal' : null };
+      const overlap = !errs.start && !errs.end ? list0.filter((p) => p.status !== 'ended' && p.start <= b + F.DAY && p.end >= a) : [];
+      nw = { name: d.name, desc: d.desc, start: d.start, end: d.end, goal: d.goal, budget: d.budget,
+        nameError: d.touched ? errs.name : null, startError: d.touched ? errs.start : null, endError: errs.end && d.end ? errs.end : d.touched ? errs.end : null, goalError: d.touched ? errs.goal : null, budgetError: d.budget ? errs.budget : null,
+        setName: set('name'), setDesc: set('desc'), setStart: set('start'), setEnd: set('end'), setGoal: set('goal'), setBudget: set('budget'),
+        warn: overlap.length ? 'Overlaps with ' + overlap.map((p) => p.name).join(' and ') + '. Customers get only one discount per item, the biggest.' : null,
+        save: () => { if (Object.keys(errs).some((k) => errs[k])) return this.setState({ nw: Object.assign({}, d, { touched: true }) });
+          const key = 'new' + s.seq, p = { key, name: d.name.trim(), desc: d.desc.trim() || 'No description yet.', start: a, end: b + F.DAY, stores: ['us', 'eu'], goal: +d.goal, budget: +d.budget, owner: F.USER.name, status: 'draft', revenue: 0, orders: 0, cost: 0, discounts: [], coupons: [], campaigns: [] };
+          this.setState((x) => ({ added: x.added.concat([p]), seq: x.seq + 1, nw: null, detail: key })); this.showToast(p.name + ' created', 'It’s a draft on the calendar. Add discounts and campaigns next.'); } };
+    }
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(list0.length, 'promotion') + ' · ' + live.length + ' live · ' + list0.filter((p) => p.status === 'scheduled').length + ' scheduled',
+      kpis, bars, todayLeft: 'left: ' + pos(F.NOW).toFixed(2) + '%', groups,
+      dp, closeDetail: () => this.setState({ detail: null }),
+      nwOpen: !!s.nw, openNew: () => this.setState({ nw: { name: '', desc: '', start: '2026-11-11', end: '2026-11-12', goal: '15000', budget: '2500', touched: false } }), closeNw: () => this.setState({ nw: null }), nw,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- promotions: Fernhill marketing (marketing.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, K = window.FernhillMarketing, I = window.FernhillInventory, CommerceOS = window.CommerceOS;
+var ST = { live: ['success', 'Live', 'check-circle'], scheduled: ['info', 'Scheduled', 'calendar'], draft: ['neutral', 'Planning', 'edit'], ended: ['neutral', 'Ended', 'check'] };
+var DST = { active: ['success', 'Active'], paused: ['warning', 'Paused'], scheduled: ['info', 'Scheduled'], draft: ['neutral', 'Draft'], ended: ['neutral', 'Ended'] };
+var CST = { active: ['success', 'Active'], paused: ['warning', 'Paused'], scheduled: ['info', 'Scheduled'], expired: ['neutral', 'Expired'] };
+var MST = { active: ['success', 'Running'], sent: ['neutral', 'Sent'], scheduled: ['info', 'Scheduled'], draft: ['neutral', 'Draft'], paused: ['warning', 'Paused'] };
+var STORE = { us: 'Fernhill US', eu: 'Fernhill EU', amazon: 'Amazon US', wholesale: 'Wholesale' };
+var TASKS = {
+  vip: [['Early-access discount set up for VIP Club', true], ['VIP preview email scheduled for Oct 6, 07:00', true], ['Autumn ’26 collection published but hidden', false], ['Stock check on the top 20 autumn SKUs', false], ['Customer service briefed on early access', false]],
+  puja: [['PUJA20 code ready', true], ['SMS scheduled for Oct 10', true], ['Jamdani scarf stock topped up at Dhaka', false], ['Bangla banner and product copy', false], ['Pathao same-day capacity confirmed for the week', false]],
+  bfcm: [['Discount plan signed off (30% sitewide)', true], ['Free canvas tote gift set up', true], ['Ad budget approved ($52,000)', false], ['Stock buys placed with suppliers by Oct 15', false], ['Extra pickers booked at Newark and Rotterdam', false], ['Early-access email drafted', true], ['Amazon deals submitted (deadline Oct 18)', false], ['Site load test at 5× normal traffic', false]],
+  gift: [['Gift guide pages designed', false], ['Last order dates per country', false], ['Gift wrap stock ordered', false]]
+};
+function range(p) { return F.fmtDate(p.start).replace(', 2026', '') + ' – ' + F.fmtDate(p.end - 1).replace(', 2026', ''); }
+</script>
+</body>
+</html>

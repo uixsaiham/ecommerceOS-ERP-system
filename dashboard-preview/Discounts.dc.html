@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Discounts · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=10"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./customers.js?v=2"></script>
+<script src="./marketing.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Discounts ---------- */
+.ds-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ds-name{min-width:220px;white-space:normal}
+.ds-val{font-weight:600;white-space:nowrap}
+.ds-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ds-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:20px}
+.ds-list li:last-child{border-bottom:0}
+.ds-side{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ds-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ds-stats > div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.ds-stats strong{font-size:16px;line-height:22px;font-variant-numeric:tabular-nums}
+.ds-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ds-checks{display:flex;flex-wrap:wrap;gap:8px 16px}
+@media (max-width:1279px){ .c-elig{display:none} }
+@media (max-width:1023px){ .ds-kpis{display:flex} .c-when{display:none} }
+@media (max-width:767px){ .ds-grid2,.ds-stats{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="marketing/discounts" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="marketing/discounts"></x-import>
+<h1>Discounts</h1>
+<p class="ph-sub">Automatic discounts that apply at checkout without a code: group perks, bundles, free shipping and sale prices.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Results for the last 30 days</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="file-text" on-click="{{toCoupons}}">Discount codes</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openNew}}">New discount</x-import>
+</div>
+</div>
+
+<section class="o-kpis ds-kpis" aria-label="Discount summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section class="o-card" aria-label="Discounts">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Discount status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Discounts">
+<thead><tr><th scope="col">Discount</th><th scope="col">Value</th><th class="c-elig" scope="col">Who gets it</th><th class="c-when" scope="col">When</th><th class="is-right" scope="col">Orders</th><th class="is-right" scope="col">Given away</th><th scope="col">Status</th><th class="c-act" scope="col" style="width: auto"><span class="cx-sr">Action</span></th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="8"><tr>
+<td class="ds-name"><button class="pr-name" onClick="{{r.open}}">{{r.name}}</button><span class="o-sub">{{r.applies}}</span></td>
+<td><span class="ds-val">{{r.value}}</span><span class="o-sub">{{r.kind}}</span></td>
+<td class="c-elig"><span>{{r.eligible}}</span><span class="o-sub">{{r.combines}}</span></td>
+<td class="c-when"><span>{{r.when}}</span><span class="o-sub">{{r.whenSub}}</span></td>
+<td class="is-right"><span class="td-strong">{{r.orders}}</span><span class="o-sub">{{r.sales}}</span></td>
+<td class="is-right">{{r.given}}</td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.status}}</x-import></td>
+<td class="c-act" style="width: auto; padding-right: 12px"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Discounts"><sc-for list="{{rows}}" as="r" hint-placeholder-count="6"><li class="o-m-card"><div class="o-m-top"><button class="pr-name" style="flex: 1" onClick="{{r.open}}">{{r.name}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}">{{r.status}}</x-import></div><div class="o-m-mid"><div><span class="o-sub">{{r.value}} · {{r.eligible}}</span><span class="o-sub">{{r.orders}} orders</span></div><span class="o-m-total">{{r.given}}</span></div></li></sc-for></ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="tag" title="No discounts here" description="Try another tab, or create a discount."></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close discount" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="ds-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="ds-dp-title">{{dp.name}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close discount" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.status}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="info">{{dp.alert}}</x-import></sc-if>
+<div class="ds-stats"><sc-for list="{{dp.stats}}" as="m" hint-placeholder-count="3"><div><span class="o-sub">{{m.label}}</span><strong>{{m.value}}</strong><span class="o-sub">{{m.sub}}</span></div></sc-for></div>
+<dl class="dp-kv"><sc-for list="{{dp.kv}}" as="k" hint-placeholder-count="6"><dt>{{k.k}}</dt><dd>{{k.v}}</dd></sc-for></dl>
+<sc-if value="{{dp.promoHref}}" hint-placeholder-val="{{false}}"><a href="{{dp.promoHref}}" style="font-size: 13px">{{dp.promoLabel}}</a></sc-if>
+</section>
+<section class="o-panel-sec"><h3>{{dp.ordersTitle}}</h3>
+<sc-if value="{{dp.hasOrders}}" hint-placeholder-val="{{true}}"><ul class="ds-list"><sc-for list="{{dp.orders}}" as="o" hint-placeholder-count="8"><li><span class="pr-cell-main"><span class="td-strong">{{o.id}} · {{o.customer}}</span><span class="o-sub">{{o.sub}}</span></span><span class="ds-side"><span>{{o.total}}</span><span class="o-sub" style="display: block">{{o.disc}}</span></span></li></sc-for></ul></sc-if>
+<sc-if value="{{dp.noOrders}}" hint-placeholder-val="{{false}}"><p class="o-sub" style="margin: 0">{{dp.noOrdersText}}</p></sc-if>
+</section>
+</div>
+<div class="o-panel-foot"><div class="dp-foot-end"><sc-for list="{{dp.secondary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div><div class="dp-foot-end"><sc-for list="{{dp.primary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="{{b.variant}}" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div></div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{nwOpen}}" on-close="{{closeNw}}" size="md" title="{{nw.title}}" description="Applies at checkout automatically. Customers see the saving in their cart.">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Input" label="Name" value="{{nw.name}}" on-change="{{nw.setName}}" error="{{nw.nameError}}" hint="Customers see this in their cart"></x-import>
+<div class="ds-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Type" options="{{nw.kindOpts}}" value="{{nw.kind}}" on-value-change="{{nw.setKind}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="{{nw.valueLabel}}" prefix="{{nw.prefix}}" suffix="{{nw.suffix}}" inputmode="decimal" value="{{nw.value}}" on-change="{{nw.setValue}}" error="{{nw.valueError}}" disabled="{{nw.noValue}}"></x-import></div>
+<div class="ds-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Applies to" options="{{nw.applyOpts}}" value="{{nw.applies}}" on-value-change="{{nw.setApplies}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Who gets it" options="{{nw.groupOpts}}" value="{{nw.group}}" on-value-change="{{nw.setGroup}}"></x-import></div>
+<div class="ds-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Starts" type="date" value="{{nw.start}}" on-change="{{nw.setStart}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Ends" type="date" optional="{{yes}}" value="{{nw.end}}" on-change="{{nw.setEnd}}" error="{{nw.endError}}"></x-import></div>
+<div class="ds-checks"><sc-for list="{{nw.storeChecks}}" as="c" hint-placeholder-count="2"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{c.label}}" checked="{{c.on}}" on-change="{{c.toggle}}"></x-import></sc-for></div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Can be combined with discount codes" checked="{{nw.combines}}" on-change="{{nw.setCombines}}"></x-import>
+<sc-if value="{{nw.warn}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">{{nw.warn}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeNw}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{nw.save}}">{{nw.cta}}</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const q = new URLSearchParams(window.location.search);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, tab: 'all', changes: {}, added: [], detail: q.get('d') || null, nw: null, seq: 1 };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.nw) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+  all() { const c = this.state.changes; return this.state.added.concat(K.DISCOUNTS).map((d) => (c[d.key] ? Object.assign({}, d, c[d.key]) : d)); }
+  change(d, patch, title, msg) { this.setState((s) => ({ changes: Object.assign({}, s.changes, { [d.key]: Object.assign({}, s.changes[d.key], patch) }) })); if (title) this.showToast(title, msg); }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), list0 = this.all();
+    const inTab = (d, t) => t === 'all' || (t === 'active' ? d.status === 'active' || d.status === 'paused' : t === 'scheduled' ? d.status === 'scheduled' || d.status === 'draft' : d.status === 'ended');
+    const order = { active: 0, paused: 1, scheduled: 2, draft: 3, ended: 4 };
+    const list = list0.filter((d) => inTab(d, s.tab)).sort((a, b) => order[a.status] - order[b.status] || b.uses.length - a.uses.length);
+    const rows = list.map((d) => { const st = ST[d.status];
+      return { name: d.name, applies: d.applies, value: valueText(d), kind: KIND[d.kind], eligible: d.eligible, combines: d.combines ? 'Stacks with codes' : 'Doesn’t stack with codes',
+        when: d.end ? F.fmtDate(d.start).replace(', 2026', '') + ' – ' + F.fmtDate(d.end - 1).replace(', 2026', '') : 'Always on', whenSub: d.status === 'scheduled' ? 'starts in ' + Math.round((d.start - F.NOW) / F.DAY) + ' days' : d.status === 'active' && d.end ? 'ends in ' + Math.max(1, Math.round((d.end - F.NOW) / F.DAY)) + ' days' : d.status === 'active' ? 'since ' + F.fmtDate(d.start) : '',
+        orders: F.int(d.uses.length), sales: d.uses.length ? F.money0(K.sum(d.uses)) + ' in sales' : '', given: d.uses.length ? F.money0(K.sum(d.uses, 'discount')) : '—', status: st[1], tone: st[0], icon: st[2],
+        btnLabel: d.status === 'active' ? 'Pause' : d.status === 'paused' ? 'Resume' : 'View',
+        act: () => (d.status === 'active' ? this.change(d, { status: 'paused' }, d.name + ' paused', 'Checkout stops applying it right away.') : d.status === 'paused' ? this.change(d, { status: 'active' }, d.name + ' resumed', 'It applies again at checkout.') : this.setState({ detail: d.key })),
+        open: () => this.setState({ detail: d.key }) }; });
+
+    const uses = list0.reduce((a, d) => a.concat(d.uses), []), given = K.sum(uses, 'discount'), ship = list0.find((d) => d.key === 'freeship');
+    const retail = O.ORDERS.filter((o) => o.channel === 'Fernhill US' || o.channel === 'Fernhill EU');
+    const kpis = [
+      { label: 'Given away, 30 days', dot: 'cx-dot cx-dot-brand', value: F.money0(given), cmp: 'on ' + F.money0(K.sum(uses)) + ' of sales · automatic discounts only' },
+      { label: 'Orders with a discount', dot: 'cx-dot cx-dot-info', value: Math.round(uses.filter((r) => r.pct).length / retail.length * 100) + '%', cmp: F.plural(uses.filter((r) => r.pct).length, 'retail order') + ' got money off' },
+      { label: 'Free shipping', dot: 'cx-dot cx-dot-success', value: F.money0(K.sum(ship.uses, 'discount')), cmp: F.plural(ship.uses.length, 'order') + ' over $120 shipped free' },
+      { label: 'Running now', dot: 'cx-dot cx-dot-warning', value: F.int(list0.filter((d) => d.status === 'active').length), cmp: list0.filter((d) => d.status === 'scheduled').length + ' scheduled · ' + list0.filter((d) => d.status === 'draft').length + ' draft' }
+    ];
+    const tabs = [{ id: 'all', label: 'All' }, { id: 'active', label: 'Active' }, { id: 'scheduled', label: 'Scheduled and drafts' }, { id: 'ended', label: 'Ended' }].map((t) => ({ id: t.id, label: t.label, count: F.int(list0.filter((d) => inTab(d, t.id)).length) }));
+
+    let dp = null;
+    if (s.detail) {
+      const d = list0.find((x) => x.key === s.detail);
+      if (d) {
+        const st = ST[d.status], sec = [], prim = [], recent = d.uses.slice().sort((a, b) => b.ts - a.ts).slice(0, 8);
+        if (d.status === 'active') { sec.push({ label: 'Pause', icon: 'clock', go: () => this.change(d, { status: 'paused' }, d.name + ' paused', 'Checkout stops applying it right away.') }); if (d.end) prim.push({ label: 'End now', variant: 'secondary', icon: 'x', go: () => this.change(d, { status: 'ended', end: F.NOW }, d.name + ' ended', 'Carts already open lose the discount at checkout.') }); }
+        if (d.status === 'paused') prim.push({ label: 'Resume', variant: 'primary', icon: 'refresh', go: () => this.change(d, { status: 'active' }, d.name + ' resumed', 'It applies again at checkout.') });
+        if (d.status === 'draft') prim.push({ label: 'Schedule', variant: 'primary', icon: 'calendar', go: () => this.change(d, { status: 'scheduled' }, d.name + ' scheduled', 'Starts ' + F.fmtDate(d.start) + '.') });
+        sec.push({ label: 'Duplicate', icon: 'copy', go: () => this.setState({ nw: this.draft(d, true) }) });
+        if (d.status !== 'ended') prim.push({ label: 'Edit', variant: d.status === 'draft' ? 'secondary' : 'primary', icon: 'edit', go: () => this.setState({ nw: this.draft(d) }) });
+        const p = d.promo ? K.PROMO[d.promo] : null;
+        dp = { name: d.name, sub: valueText(d) + ' · ' + d.applies, status: st[1], tone: st[0], icon: st[2],
+          statusSub: d.end ? F.fmtDate(d.start) + ' – ' + F.fmtDate(d.end - 1) : 'Always on since ' + F.fmtDate(d.start),
+          alert: d.group ? 'Applies to everyone in the ' + C.GROUP[d.group].name + ' group (' + F.int(C.CUSTOMERS.filter((c) => c.group === d.group).length) + ' customers). Change who’s in it on Customer Groups.' : d.key === 'freeship' ? 'Retail orders under $120 pay $8.50 in the US and €6.90 in the EU.' : null,
+          stats: [{ label: 'Orders', value: F.int(d.uses.length), sub: 'last 30 days' }, { label: 'Sales', value: F.money0(K.sum(d.uses)), sub: d.uses.length ? F.money2(K.sum(d.uses) / d.uses.length) + ' per order' : '' }, { label: 'Given away', value: F.money0(K.sum(d.uses, 'discount')), sub: d.uses.length ? (K.sum(d.uses, 'discount') / (K.sum(d.uses) + K.sum(d.uses, 'discount')) * 100).toFixed(1) + '% off list' : '' }],
+          kv: [{ k: 'Type', v: KIND[d.kind] }, { k: 'Value', v: valueText(d) }, { k: 'Applies to', v: d.applies }, { k: 'Who gets it', v: d.eligible }, { k: 'Stores', v: d.stores.map((k) => STORE[k]).join(', ') }, { k: 'With codes', v: d.combines ? 'Stacks with discount codes' : 'Codes replace it if bigger' }],
+          promoHref: p ? 'Promotions.dc.html?p=' + p.key : null, promoLabel: p ? 'Part of the promotion ' + p.name : '',
+          ordersTitle: 'Recent orders', hasOrders: recent.length > 0, noOrders: recent.length === 0, noOrdersText: d.status === 'scheduled' || d.status === 'draft' ? 'Hasn’t started yet.' : 'No orders in the last 30 days.',
+          orders: recent.map((r) => ({ id: r.order.id, customer: r.order.customer, sub: r.order.channel + ' · ' + F.fmtWhen(r.ts), total: F.money2(r.order.total), disc: r.discount ? '−' + F.money2(r.discount) : '' })),
+          secondary: sec, primary: prim };
+      }
+    }
+
+    let nw = { kindOpts: [], applyOpts: [], groupOpts: [], storeChecks: [] };
+    if (s.nw) {
+      const d = s.nw, set = (k) => (e) => { const v = e.target.value; this.setState((x) => ({ nw: Object.assign({}, x.nw, { [k]: v }) })); }, pick = (k) => (v) => this.setState((x) => ({ nw: Object.assign({}, x.nw, { [k]: v }) }));
+      const v = Number(d.value), noValue = d.kind === 'shipping';
+      const start = Date.parse(d.start), end = d.end ? Date.parse(d.end) : null;
+      const errs = { name: !d.name.trim() ? 'Give it a name' : list0.some((x) => x.key !== d.key && x.name.toLowerCase() === d.name.trim().toLowerCase()) ? 'Another discount has this name' : null,
+        value: noValue ? null : !/^\d+(\.\d{1,2})?$/.test(d.value) || v <= 0 ? 'Enter a number' : d.kind === 'percent' && v > 90 ? 'Up to 90%' : null, end: end && end <= start ? 'Must be after the start' : null };
+      const clash = d.kind === 'percent' && list0.filter((x) => x.key !== d.key && x.kind === 'percent' && (x.status === 'active' || x.status === 'scheduled') && (!x.end || !end || (x.start < end && x.end > start)) && (d.group === '' || !x.group || x.group === d.group));
+      nw = { title: d.key && !d.copy ? 'Edit ' + d.name : 'New discount', name: d.name, kind: d.kind, value: noValue ? '' : d.value, applies: d.applies, group: d.group, start: d.start, end: d.end, combines: d.combines, noValue,
+        kindOpts: [{ value: 'percent', label: 'Percentage off' }, { value: 'fixed', label: 'Amount off' }, { value: 'shipping', label: 'Free shipping' }, { value: 'bundle', label: 'Bundle price' }],
+        valueLabel: d.kind === 'bundle' ? 'Bundle price' : 'Value', prefix: d.kind === 'percent' || noValue ? null : '$', suffix: d.kind === 'percent' ? '% off' : null,
+        applyOpts: [{ value: 'Everything', label: 'Everything' }].concat(F.COLLECTIONS.map((c) => ({ value: 'Collection: ' + c.name, label: 'Collection: ' + c.name }))),
+        groupOpts: [{ value: '', label: 'Everyone' }].concat(C.GROUPS.map((g) => ({ value: g.key, label: 'Group: ' + g.name }))),
+        storeChecks: [['us', 'Fernhill US'], ['eu', 'Fernhill EU'], ['amazon', 'Amazon US']].map((x) => ({ label: x[1], on: d.stores.indexOf(x[0]) >= 0, toggle: (on) => this.setState((y) => ({ nw: Object.assign({}, y.nw, { stores: on ? y.nw.stores.concat([x[0]]) : y.nw.stores.filter((k) => k !== x[0]) }) })) })),
+        nameError: d.touched ? errs.name : null, valueError: d.touched ? errs.value : null, endError: errs.end,
+        setName: set('name'), setValue: set('value'), setStart: set('start'), setEnd: set('end'), setKind: pick('kind'), setApplies: pick('applies'), setGroup: pick('group'), setCombines: (on) => this.setState((y) => ({ nw: Object.assign({}, y.nw, { combines: on }) })),
+        warn: d.stores.indexOf('amazon') >= 0 ? 'Amazon sets its own promotions. This will be sent to Seller Central as a promotion request, which takes up to 4 hours to go live.' : clash && clash.length ? 'Overlaps with ' + clash.map((x) => x.name).join(', ') + '. Customers get only the bigger discount.' : !d.stores.length ? 'Pick at least one store.' : null,
+        cta: d.key && !d.copy ? 'Save changes' : 'Create discount',
+        save: () => {
+          if (errs.name || errs.value || errs.end || !d.stores.length) return this.setState({ nw: Object.assign({}, d, { touched: true }) });
+          const fields = { name: d.name.trim(), kind: d.kind, value: noValue ? 0 : v, applies: d.applies, eligible: d.group ? 'Customer group: ' + C.GROUP[d.group].name : 'Everyone', group: d.group || null, start: start, end: end ? end + F.DAY : null, stores: d.stores.slice(), combines: d.combines };
+          fields.status = fields.start > F.NOW ? 'scheduled' : fields.end && fields.end <= F.NOW ? 'ended' : 'active';
+          if (d.key && !d.copy) { this.change(list0.find((x) => x.key === d.key), fields, fields.name + ' saved', 'Checkout uses the new settings right away.'); this.setState({ nw: null }); return; }
+          const key = 'new' + s.seq; this.setState((x) => ({ added: [Object.assign({ key, uses: [] }, fields)].concat(x.added), seq: x.seq + 1, nw: null, detail: key }));
+          this.showToast(fields.name + ' created', fields.status === 'active' ? 'It’s live at checkout now.' : 'Starts ' + F.fmtDate(fields.start) + '.');
+        } };
+    }
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(list0.length, 'discount') + ' · ' + list0.filter((d) => d.status === 'active').length + ' active',
+      toCoupons: () => { window.location.href = 'Coupons.dc.html'; },
+      kpis, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), rows, shown: rows.length > 0, empty: rows.length === 0,
+      dp, closeDetail: () => this.setState({ detail: null }),
+      nwOpen: !!s.nw, openNew: () => this.setState({ nw: { key: null, name: '', kind: 'percent', value: '15', applies: 'Everything', group: '', start: '2026-10-01', end: '', stores: ['us', 'eu'], combines: false, touched: false } }), closeNw: () => this.setState({ nw: null }), nw,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+  draft(d, copy) { return { key: d.key, copy: !!copy, name: copy ? d.name + ' (copy)' : d.name, kind: d.kind, value: String(d.value), applies: /^Collection/.test(d.applies) ? d.applies.split(',')[0] : 'Everything', group: d.group || '', start: new Date(copy ? F.DAY0 : d.start).toISOString().slice(0, 10), end: d.end && !copy ? new Date(d.end - F.DAY).toISOString().slice(0, 10) : '', stores: d.stores.slice(), combines: d.combines, touched: false }; }
+}
+
+/* ---------- discounts: Fernhill marketing (marketing.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, O = window.FernhillOrders, C = window.FernhillCustomers, K = window.FernhillMarketing, CommerceOS = window.CommerceOS;
+var ST = { active: ['success', 'Active', 'check-circle'], paused: ['warning', 'Paused', 'clock'], scheduled: ['info', 'Scheduled', 'calendar'], draft: ['neutral', 'Draft', 'edit'], ended: ['neutral', 'Ended', 'x'] };
+var KIND = { percent: 'Percentage off', fixed: 'Amount off', shipping: 'Free shipping', bundle: 'Bundle price', gift: 'Free gift' };
+var STORE = { us: 'Fernhill US', eu: 'Fernhill EU', amazon: 'Amazon US', wholesale: 'Wholesale' };
+function valueText(d) { return d.kind === 'percent' ? d.value + '% off' : d.kind === 'fixed' ? '$' + d.value + ' off' : d.kind === 'shipping' ? 'Free shipping' : d.kind === 'bundle' ? '3 for $' + d.value : 'Free gift ($' + d.value + ')'; }
+</script>
+</body>
+</html>

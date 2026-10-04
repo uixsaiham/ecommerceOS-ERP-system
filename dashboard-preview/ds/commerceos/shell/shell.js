@@ -66,10 +66,10 @@
         { key: "expenses", label: "Expenses", href: "Expenses.dc.html" },
         { key: "transactions", label: "Transactions", href: "Transactions.dc.html" }] },
       { key: "marketing", label: "Marketing", icon: "megaphone", children: [
-        { key: "campaigns", label: "Campaigns" },
-        { key: "discounts", label: "Discounts" },
-        { key: "coupons", label: "Coupons" },
-        { key: "promotions", label: "Promotions" }] },
+        { key: "campaigns", label: "Campaigns", href: "Campaigns.dc.html" },
+        { key: "discounts", label: "Discounts", href: "Discounts.dc.html" },
+        { key: "coupons", label: "Coupons", href: "Coupons.dc.html" },
+        { key: "promotions", label: "Promotions", href: "Promotions.dc.html" }] },
       { key: "analytics", label: "Analytics", icon: "bar-chart", children: [
         { key: "sales", label: "Sales Analytics" },
         { key: "products", label: "Product Analytics" },

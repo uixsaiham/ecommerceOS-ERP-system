@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Campaigns · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=10"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./customers.js?v=2"></script>
+<script src="./marketing.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Campaigns ---------- */
+.cm-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.cm-name{min-width:240px;white-space:normal}
+.cm-kind{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.cm-kind .cx-icon{width:14px;height:14px;color:var(--text-muted)}
+.cm-funnel{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.cm-funnel li{display:grid;grid-template-columns:96px minmax(0,1fr) 120px;gap:10px;align-items:center;font-size:13px;line-height:18px}
+.cm-funnel li span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.cm-funnel .pr-meter > span{background:var(--brand)}
+.cm-preview{padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-subtle);font-size:13px;line-height:20px}
+.cm-preview strong{display:block;font-size:14px;margin-bottom:2px}
+.cm-links{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px}
+.cm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cm-reach{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-subtle);font-size:13px}
+.cm-reach strong{font-size:18px;line-height:24px}
+@media (max-width:1279px){ .c-aud{display:none} }
+@media (max-width:1023px){ .cm-kpis{display:flex} .c-date{display:none} }
+@media (max-width:767px){ .cm-grid2{grid-template-columns:1fr} .cm-funnel li{grid-template-columns:80px minmax(0,1fr) 90px} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="marketing/campaigns" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="marketing/campaigns"></x-import>
+<h1>Campaigns</h1>
+<p class="ph-sub">Emails, SMS, automated flows and paid ads, and the orders each one brought in.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Results for the last 30 days · last-click attribution</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openNew}}">New campaign</x-import>
+</div>
+</div>
+
+<section class="o-kpis cm-kpis" aria-label="Campaign summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section class="o-card" aria-label="Campaigns">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Campaign type" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1"><div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search campaigns, subjects or audiences" label="Search campaigns" value="{{query}}" on-change="{{setQuery}}"></x-import></div></div></div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Campaigns">
+<thead><tr><th scope="col">Campaign</th><th scope="col">Type</th><th class="c-aud" scope="col">Audience</th><th class="c-date" scope="col">When</th><th class="is-right" scope="col">Performance</th><th class="is-right" scope="col">Revenue</th><th scope="col">Status</th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="12"><tr>
+<td class="cm-name"><button class="pr-name" onClick="{{r.open}}">{{r.name}}</button><span class="o-sub">{{r.sub}}</span></td>
+<td><span class="cm-kind"><x-import component-from-global-scope="CommerceOS.Icon" name="{{r.icon}}"></x-import>{{r.kind}}</span><span class="o-sub">{{r.kindSub}}</span></td>
+<td class="c-aud"><span>{{r.audience}}</span><span class="o-sub">{{r.audSub}}</span></td>
+<td class="c-date"><span>{{r.when}}</span><span class="o-sub">{{r.whenSub}}</span></td>
+<td class="is-right"><span>{{r.perf}}</span><span class="o-sub">{{r.perfSub}}</span></td>
+<td class="is-right"><span class="td-strong">{{r.revenue}}</span><span class="o-sub">{{r.orders}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.sIcon}}">{{r.status}}</x-import></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Campaigns"><sc-for list="{{rows}}" as="r" hint-placeholder-count="6"><li class="o-m-card"><div class="o-m-top"><button class="pr-name" style="flex: 1" onClick="{{r.open}}">{{r.name}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}">{{r.status}}</x-import></div><div class="o-m-mid"><div><span class="o-sub">{{r.kind}} · {{r.when}}</span><span class="o-sub">{{r.perf}}</span></div><span class="o-m-total">{{r.revenue}}</span></div></li></sc-for></ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="megaphone" title="No campaigns here" description="Try another tab, or create a new campaign."></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close campaign" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="cm-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="cm-dp-title">{{dp.name}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close campaign" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.sIcon}}">{{dp.status}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}">{{dp.alert}}</x-import></sc-if>
+<div class="cm-preview"><strong>{{dp.subject}}</strong><span class="o-sub">{{dp.previewSub}}</span></div>
+<dl class="dp-kv"><sc-for list="{{dp.kv}}" as="k" hint-placeholder-count="5"><dt>{{k.k}}</dt><dd>{{k.v}}</dd></sc-for></dl>
+<sc-if value="{{dp.hasLinks}}" hint-placeholder-val="{{false}}"><div class="cm-links"><sc-for list="{{dp.links}}" as="l" hint-placeholder-count="2"><a href="{{l.href}}">{{l.label}}</a></sc-for></div></sc-if>
+</section>
+<sc-if value="{{dp.hasFunnel}}" hint-placeholder-val="{{false}}">
+<section class="o-panel-sec"><h3>{{dp.funnelTitle}}</h3>
+<ul class="cm-funnel"><sc-for list="{{dp.funnel}}" as="f" hint-placeholder-count="5"><li><span>{{f.label}}</span><span class="pr-meter"><span style="{{f.w}}"></span></span><span>{{f.value}}</span></li></sc-for></ul>
+<span class="o-sub">{{dp.funnelNote}}</span>
+</section>
+</sc-if>
+</div>
+<div class="o-panel-foot"><div class="dp-foot-end"><sc-for list="{{dp.secondary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div><div class="dp-foot-end"><sc-for list="{{dp.primary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="{{b.variant}}" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div></div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{nwOpen}}" on-close="{{closeNw}}" size="md" title="New campaign" description="Send an email or SMS to a saved segment. Counts only include people who agreed to hear from you.">
+<div class="o-modal-stack">
+<div class="cm-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Name" value="{{nw.name}}" on-change="{{nw.setName}}" error="{{nw.nameError}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Type" options="{{nw.kindOpts}}" value="{{nw.kind}}" on-value-change="{{nw.setKind}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" label="Audience" options="{{nw.segOpts}}" value="{{nw.seg}}" on-value-change="{{nw.setSeg}}"></x-import>
+<div class="cm-reach" aria-live="polite"><span class="o-sub">Will reach</span><strong>{{nw.reach}}</strong><span class="o-sub">{{nw.reachSub}}</span></div>
+<x-import component-from-global-scope="CommerceOS.Input" label="{{nw.subjectLabel}}" value="{{nw.subject}}" on-change="{{nw.setSubject}}" error="{{nw.subjectError}}" hint="{{nw.subjectHint}}"></x-import>
+<div class="cm-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Discount code" options="{{nw.codeOpts}}" value="{{nw.code}}" on-value-change="{{nw.setCode}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Send at (UTC)" type="datetime-local" value="{{nw.when}}" on-change="{{nw.setWhen}}" error="{{nw.whenError}}" hint="{{nw.whenHint}}"></x-import></div>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeNw}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" on-click="{{nw.saveDraft}}">Save draft</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="calendar" on-click="{{nw.schedule}}">Schedule</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const q = new URLSearchParams(window.location.search);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, tab: 'all', query: '', changes: {}, added: [], detail: q.get('c') || null, nw: null, seq: 2500 };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.nw) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+  all() { const c = this.state.changes; return this.state.added.concat(K.CAMPAIGNS).map((x) => (c[x.id] ? Object.assign({}, x, c[x.id]) : x)); }
+  change(x, patch, title, msg) { this.setState((s) => ({ changes: Object.assign({}, s.changes, { [x.id]: Object.assign({}, s.changes[x.id], patch) }) })); if (title) this.showToast(title, msg); }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), list0 = this.all(), q = s.query.trim().toLowerCase();
+    const inTab = (c, t) => t === 'all' || (t === 'messages' ? (c.kind === 'email' || c.kind === 'sms') && c.status === 'sent' : t === 'flows' ? c.kind === 'flow' : t === 'ads' ? c.kind === 'ads' : c.status === 'scheduled' || c.status === 'draft');
+    const searched = list0.filter((c) => !q || [c.name, c.subject || '', c.audience || '', c.platform || ''].some((v) => v.toLowerCase().indexOf(q) >= 0));
+    const order = { active: 0, sending: 0, scheduled: 1, draft: 2, sent: 3, paused: 4 };
+    const list = searched.filter((c) => inTab(c, s.tab)).sort((a, b) => order[a.status] - order[b.status] || (b.sent || 0) - (a.sent || 0));
+    const rows = list.map((c) => { const st = ST[c.status], x = c.stats;
+      return { name: c.name, sub: c.kind === 'ads' ? c.audience : c.subject, icon: KIND[c.kind][1], kind: c.kind === 'ads' ? c.platform : KIND[c.kind][0], kindSub: c.kind === 'flow' ? 'automated' : c.kind === 'ads' ? 'paid' : '',
+        audience: c.kind === 'ads' ? 'Ad audience' : c.audience, audSub: c.audienceSize != null ? F.int(c.audienceSize) + (c.kind === 'flow' ? ' in segment' : ' people') : '',
+        when: c.status === 'draft' ? 'Not scheduled' : c.kind === 'flow' || c.kind === 'ads' ? (c.kind === 'ads' ? 'September' : 'Since ' + F.fmtDate(c.sent).replace(', 2026', '')) : F.fmtWhen(c.sent), whenSub: c.status === 'scheduled' ? 'in ' + Math.round((c.sent - F.NOW) / F.DAY) + ' days' : '',
+        perf: !x ? '—' : c.kind === 'ads' ? F.money0(x.spend) + ' spent' : c.kind === 'sms' ? pct(x.clicks / x.delivered) + ' clicked' : pct(x.opens / x.delivered) + ' opened', perfSub: !x ? '' : c.kind === 'ads' ? x.roas.toFixed(1) + '× return on ad spend' : c.kind === 'sms' ? F.int(x.delivered) + ' delivered' : pct(x.clicks / x.delivered) + ' clicked',
+        revenue: x ? F.money0(x.revenue) : '—', orders: x ? F.plural(x.orders, 'order') : '', status: st[1], tone: st[0], sIcon: st[2], open: () => this.setState({ detail: c.id }) }; });
+
+    const sent = list0.filter((c) => c.stats && c.kind !== 'ads'), ads = list0.filter((c) => c.kind === 'ads' && c.stats);
+    const msgRev = sent.reduce((a, c) => a + c.stats.revenue, 0), adRev = ads.reduce((a, c) => a + c.stats.revenue, 0), spend = ads.reduce((a, c) => a + c.stats.spend, 0);
+    const emails = sent.filter((c) => c.kind === 'email' || c.kind === 'flow'), openRate = emails.reduce((a, c) => a + c.stats.opens, 0) / Math.max(1, emails.reduce((a, c) => a + c.stats.delivered, 0));
+    const kpis = [
+      { label: 'Revenue from email and SMS', dot: 'cx-dot cx-dot-brand', value: F.money0(msgRev), cmp: F.plural(sent.reduce((a, c) => a + c.stats.orders, 0), 'order') + ' · ' + pct(openRate) + ' average open rate' },
+      { label: 'Ad spend, September', dot: 'cx-dot cx-dot-warning', value: F.money0(spend), cmp: 'Meta, Google and TikTok · matches the bills in Finance' },
+      { label: 'Revenue from ads', dot: 'cx-dot cx-dot-success', value: F.money0(adRev), cmp: (adRev / spend).toFixed(1) + '× return on ad spend' },
+      { label: 'Email subscribers', dot: 'cx-dot cx-dot-info', value: F.int(K.SUBSCRIBED), cmp: F.int(K.SMS) + ' on SMS · ' + pct(K.SUBSCRIBED / C.CUSTOMERS.length) + ' of customers' }
+    ];
+    const tabs = [{ id: 'all', label: 'All' }, { id: 'messages', label: 'Sent emails and SMS' }, { id: 'flows', label: 'Automations' }, { id: 'ads', label: 'Ads' }, { id: 'planned', label: 'Scheduled and drafts' }].map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((c) => inTab(c, t.id)).length) }));
+
+    let dp = null;
+    if (s.detail) {
+      const c = list0.find((x) => x.id === s.detail);
+      if (c) {
+        const st = ST[c.status], x = c.stats, sec = [], prim = [];
+        let funnel = [], funnelTitle = '', funnelNote = '';
+        if (x && c.kind !== 'ads') { const base = x.delivered;
+          funnel = [['Delivered', x.delivered], ['Opened', x.opens], ['Clicked', x.clicks], ['Ordered', x.orders]].filter((f) => f[1] != null).map((f) => ({ label: f[0], w: 'width: ' + Math.max(1, f[1] / base * 100).toFixed(1) + '%', value: F.int(f[1]) + ' · ' + pct(f[1] / base) }));
+          funnelTitle = c.kind === 'flow' ? 'Last 30 days' : 'Results'; funnelNote = F.money2(x.revenue) + ' from ' + F.plural(x.orders, 'order') + ' within 5 days of a click · ' + F.plural(x.unsubs, 'unsubscribe'); }
+        if (x && c.kind === 'ads') { funnel = [['Impressions', x.impressions, x.impressions], ['Clicks', x.clicks, x.impressions], ['Orders', x.orders, x.clicks]].map((f) => ({ label: f[0], w: 'width: ' + Math.min(100, Math.max(1, f[1] / f[2] * 100 * (f[0] === 'Impressions' ? 1 : 20))).toFixed(1) + '%', value: F.int(f[1]) }));
+          funnelTitle = 'September'; funnelNote = F.money2(x.spend) + ' spent · ' + F.money2(x.spend / Math.max(1, x.orders)) + ' per order · ' + pct(x.ctr) + ' click-through'; }
+        if (c.kind === 'flow') sec.push({ label: c.status === 'paused' ? 'Resume' : 'Pause', icon: c.status === 'paused' ? 'refresh' : 'clock', go: () => this.change(c, { status: c.status === 'paused' ? 'active' : 'paused' }, c.name + (c.status === 'paused' ? ' resumed' : ' paused'), c.status === 'paused' ? 'New people entering the segment get it again.' : 'No one new gets it until you resume. People halfway through stop too.') });
+        if (c.kind === 'ads') sec.push({ label: 'Open in ' + c.platform, icon: 'arrow-right', go: () => this.showToast('Opening ' + c.platform, 'Budgets and creatives are managed there; spend syncs back every night.', 'info') });
+        if (c.status === 'scheduled') { sec.push({ label: 'Unschedule', icon: 'x', go: () => this.change(c, { status: 'draft' }, c.name + ' moved to drafts', 'Nothing will be sent until you schedule it again.') }); prim.push({ label: 'Send a test', variant: 'secondary', icon: 'megaphone', go: () => this.showToast('Test sent to ' + F.USER.email, 'Check it on your phone before ' + F.fmtWhen(c.sent) + '.') }); }
+        if (c.status === 'draft') prim.push({ label: 'Schedule', variant: 'primary', icon: 'calendar', go: () => this.setState({ nw: this.draftFrom(c) }) });
+        if (c.kind === 'email' || c.kind === 'sms') sec.push({ label: 'Duplicate', icon: 'copy', go: () => this.setState({ nw: Object.assign(this.draftFrom(c), { id: null, name: c.name + ' (copy)' }) }) });
+        const links = [];
+        if (c.audience && SEGKEY[c.audience]) links.push({ label: 'Audience: ' + c.audience, href: 'Segments.dc.html?segment=' + SEGKEY[c.audience] });
+        if (c.coupon) links.push({ label: 'Code ' + c.coupon, href: 'Coupons.dc.html?code=' + c.coupon });
+        if (c.promo) links.push({ label: 'Promotion: ' + c.promoName, href: 'Promotions.dc.html?p=' + c.promo });
+        if (c.link) links.push({ label: 'Abandoned Carts', href: c.link });
+        dp = { name: c.name, sub: (c.kind === 'ads' ? c.platform : KIND[c.kind][0]) + ' · ' + (c.owner || F.USER.name), status: st[1], tone: st[0], sIcon: st[2],
+          statusSub: c.status === 'sent' ? 'Sent ' + F.fmtWhen(c.sent) : c.status === 'scheduled' ? 'Sends ' + F.fmtWhen(c.sent) : c.status === 'draft' ? 'Draft' : 'Running since ' + F.fmtDate(c.sent),
+          alert: c.status === 'scheduled' && c.kind === 'sms' ? 'SMS goes out at 10:00 local time in Bangladesh. Only the ' + F.int(Math.round(c.audienceSize * 0.11)) + ' customers who opted in to SMS will get it.' : c.kind === 'ads' && x && x.roas < 2 ? 'Below 2× return on ad spend. Consider moving budget to Creator drop retargeting (4.1×).' : null,
+          alertTone: c.kind === 'ads' ? 'warning' : 'info', subject: c.subject, previewSub: c.kind === 'ads' ? 'Audience: ' + c.audience : c.kind === 'sms' ? 'SMS · 160 characters' : 'From Fernhill <hello@fernhill.co>',
+          kv: [{ k: 'Type', v: c.kind === 'ads' ? c.platform : KIND[c.kind][0] }, { k: 'Audience', v: c.audience + (c.audienceSize != null ? ' · ' + F.int(c.audienceSize) : '') }, { k: 'Owner', v: c.owner || F.USER.name }]
+            .concat(c.coupon ? [{ k: 'Discount code', v: c.coupon }] : []).concat(c.promoName ? [{ k: 'Promotion', v: c.promoName }] : []),
+          links, hasLinks: links.length > 0, hasFunnel: !!x, funnel, funnelTitle, funnelNote, secondary: sec, primary: prim };
+      }
+    }
+
+    let nw = { kindOpts: [], segOpts: [], codeOpts: [] };
+    if (s.nw) {
+      const d = s.nw, set = (k) => (e) => { const v = e.target.value; this.setState((x) => ({ nw: Object.assign({}, x.nw, { [k]: v }) })); }, pick = (k) => (v) => this.setState((x) => ({ nw: Object.assign({}, x.nw, { [k]: v }) }));
+      const seg = C.SEGMENTS.find((x) => x.key === d.seg), members = d.seg === 'subs' ? C.CUSTOMERS.filter((c) => c.consent.email) : C.segmentMembers(seg);
+      const reach = members.filter((c) => c.channel !== 'amz' && (d.kind === 'sms' ? c.consent.sms : c.consent.email)).length, ts = Date.parse(d.when + ':00Z');
+      const errs = { name: !d.name.trim() ? 'Name it so you can find it later' : null, subject: !d.subject.trim() ? (d.kind === 'sms' ? 'Write the message' : 'Write a subject line') : d.kind === 'sms' && d.subject.length > 160 ? 'SMS is limited to 160 characters' : null,
+        when: isNaN(ts) ? 'Pick a date and time' : ts < F.NOW + 15 * 6e4 ? 'Schedule at least 15 minutes ahead' : null };
+      nw = { name: d.name, kind: d.kind, seg: d.seg, subject: d.subject, code: d.code, when: d.when,
+        kindOpts: [{ value: 'email', label: 'Email' }, { value: 'sms', label: 'SMS' }], segOpts: [{ value: 'subs', label: 'All email subscribers' }].concat(C.SEGMENTS.map((x) => ({ value: x.key, label: x.name }))),
+        codeOpts: [{ value: '', label: 'No code' }].concat(K.COUPONS.filter((x) => x.status !== 'expired').map((x) => ({ value: x.code, label: x.code + ' · ' + x.value + '% off' }))),
+        reach: F.plural(reach, 'person', 'people'), reachSub: F.int(members.length) + ' in the audience · ' + F.int(members.length - reach) + ' left out: not subscribed' + (d.kind === 'sms' ? ' to SMS' : '') + ' or Amazon buyers',
+        subjectLabel: d.kind === 'sms' ? 'Message' : 'Subject line', subjectHint: d.kind === 'sms' ? d.subject.length + ' / 160 characters' : 'Under 50 characters reads best on phones',
+        nameError: d.touched ? errs.name : null, subjectError: d.touched ? errs.subject : null, whenError: d.touched ? errs.when : null, whenHint: 'Best time for this audience: Tuesday 07:00 local',
+        setName: set('name'), setSubject: set('subject'), setWhen: set('when'), setKind: pick('kind'), setSeg: pick('seg'), setCode: pick('code'),
+        saveDraft: () => this.saveNw('draft', reach, errs), schedule: () => this.saveNw('scheduled', reach, errs) };
+    }
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(list0.length, 'campaign') + ' · ' + list0.filter((c) => c.status === 'active').length + ' running · ' + list0.filter((c) => c.status === 'scheduled').length + ' scheduled',
+      kpis, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      rows, shown: rows.length > 0, empty: rows.length === 0, dp, closeDetail: () => this.setState({ detail: null }),
+      nwOpen: !!s.nw, openNew: () => this.setState({ nw: { id: null, name: '', kind: 'email', seg: 'subs', subject: '', code: '', when: '2026-10-06T07:00', touched: false } }), closeNw: () => this.setState({ nw: null }), nw,
+      exportView: () => this.showToast('Exporting ' + F.plural(list.length, 'campaign'), 'CSV with sends, opens, clicks, orders, revenue and spend.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+  draftFrom(c) { const seg = Object.keys(SEGKEY).find((k) => k === c.audience); return { id: c.id, name: c.name, kind: c.kind === 'sms' ? 'sms' : 'email', seg: seg ? SEGKEY[seg] : 'subs', subject: c.subject.replace(/^\(draft\) /, ''), code: c.coupon || '', when: c.sent ? new Date(c.sent).toISOString().slice(0, 16) : '2026-11-26T07:00', touched: false }; }
+  saveNw(status, reach, errs) {
+    const d = this.state.nw;
+    if (errs.name || errs.subject || (status === 'scheduled' && errs.when)) return this.setState({ nw: Object.assign({}, d, { touched: true }) });
+    const ts = Date.parse(d.when + ':00Z'), segName = d.seg === 'subs' ? 'All email subscribers' : C.SEGMENTS.find((x) => x.key === d.seg).name;
+    const fields = { name: d.name.trim(), kind: d.kind, status, audience: segName, audienceSize: reach, sent: isNaN(ts) ? null : ts, subject: d.subject.trim(), coupon: d.code || null, owner: F.USER.name, stats: null };
+    if (d.id) { this.setState((s) => ({ changes: Object.assign({}, s.changes, { [d.id]: Object.assign({}, s.changes[d.id], fields) }), nw: null })); }
+    else { const id = 'CMP-' + this.state.seq; this.setState((s) => ({ added: [Object.assign({ id }, fields)].concat(s.added), seq: s.seq + 1, nw: null, detail: id, tab: 'planned' })); }
+    this.showToast(status === 'scheduled' ? fields.name + ' scheduled' : 'Draft saved', status === 'scheduled' ? 'Goes to ' + F.plural(reach, 'person', 'people') + ' on ' + F.fmtWhen(ts) + ' UTC.' : 'Schedule it when it’s ready.');
+  }
+}
+
+/* ---------- campaigns: Fernhill marketing (marketing.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, C = window.FernhillCustomers, K = window.FernhillMarketing, CommerceOS = window.CommerceOS;
+var ST = { active: ['success', 'Running', 'refresh'], sent: ['neutral', 'Sent', 'check'], scheduled: ['info', 'Scheduled', 'calendar'], draft: ['neutral', 'Draft', 'edit'], paused: ['warning', 'Paused', 'clock'], sending: ['brand', 'Sending', 'arrow-right'] };
+var KIND = { email: ['Email', 'megaphone'], sms: ['SMS', 'bell'], flow: ['Automated flow', 'refresh'], ads: ['Ads', 'bar-chart'] };
+var SEGKEY = { 'VIP customers': 'vip', 'Repeat buyers': 'repeat', 'New in the last 30 days': 'new30', 'At risk': 'risk', 'Bangladesh': 'bd', 'Fernhill EU customers, subscribed': 'eu', 'Repeat buyers, subscribed': 'repeat' };
+function pct(x) { return (x * 100).toFixed(1) + '%'; }
+</script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Coupons · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=10"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./customers.js?v=2"></script>
+<script src="./marketing.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Coupons ---------- */
+.cp-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.cp-code{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border:1px dashed var(--border-strong);border-radius:var(--radius-xs);font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:.02em;background:var(--bg-subtle);color:var(--text-primary);cursor:pointer}
+.cp-code:hover{border-color:var(--brand)}
+.cp-code:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.cp-purpose{white-space:normal;min-width:220px}
+.cp-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.cp-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:20px}
+.cp-list li:last-child{border-bottom:0}
+.cp-side{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cp-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cp-stats > div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.cp-stats strong{font-size:16px;line-height:22px;font-variant-numeric:tabular-nums}
+.cp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:1279px){ .c-limit{display:none} }
+@media (max-width:1023px){ .cp-kpis{display:flex} .c-rev{display:none} }
+@media (max-width:767px){ .cp-grid2,.cp-stats{grid-template-columns:1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="marketing/coupons" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="marketing/coupons"></x-import>
+<h1>Coupons</h1>
+<p class="ph-sub">Discount codes customers type at checkout: sign-up, win-back, cart recovery, creator and goodwill codes.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Results for the last 30 days</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openNew}}">New code</x-import>
+</div>
+</div>
+
+<section class="o-kpis cp-kpis" aria-label="Coupon summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<sc-if value="{{leak}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning" title="{{leak.title}}" actions="{{leak.actions}}">{{leak.text}}</x-import></sc-if>
+
+<section class="o-card" aria-label="Codes">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Code status" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1"><div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search codes or what they’re for" label="Search codes" value="{{query}}" on-change="{{setQuery}}"></x-import></div></div></div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Discount codes">
+<thead><tr><th scope="col">Code</th><th scope="col">For</th><th class="c-limit" scope="col">Limits</th><th class="is-right" scope="col">Uses</th><th class="is-right c-rev" scope="col">Sales</th><th class="is-right" scope="col">Given away</th><th scope="col">Status</th><th class="c-act" scope="col" style="width: auto"><span class="cx-sr">Action</span></th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="10"><tr>
+<td><button class="cp-code" aria-label="{{r.copyAria}}" onClick="{{r.copy}}">{{r.code}}<x-import component-from-global-scope="CommerceOS.Icon" name="copy"></x-import></button><span class="o-sub">{{r.value}}</span></td>
+<td class="cp-purpose"><button class="pr-name" style="white-space: normal" onClick="{{r.open}}">{{r.purpose}}</button><span class="o-sub">{{r.purposeSub}}</span></td>
+<td class="c-limit"><span>{{r.limit}}</span><span class="o-sub">{{r.when}}</span></td>
+<td class="is-right"><span class="td-strong">{{r.uses}}</span><span class="o-sub">{{r.allTime}}</span></td>
+<td class="is-right c-rev">{{r.sales}}</td>
+<td class="is-right">{{r.given}}</td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.status}}</x-import></td>
+<td class="c-act" style="width: auto; padding-right: 12px"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" on-click="{{r.open}}">View</x-import></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Discount codes"><sc-for list="{{rows}}" as="r" hint-placeholder-count="6"><li class="o-m-card"><div class="o-m-top"><button class="cp-code" onClick="{{r.open}}">{{r.code}}</button><span style="flex: 1"></span><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}">{{r.status}}</x-import></div><div class="o-m-mid"><div><span class="o-sub">{{r.purpose}}</span><span class="o-sub">{{r.uses}} uses</span></div><span class="o-m-total">{{r.given}}</span></div></li></sc-for></ul>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="tag" title="No codes here" description="Try another tab or search."></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close code" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="cp-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="cp-dp-title">{{dp.code}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close code" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.status}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}" title="{{dp.alertTitle}}">{{dp.alert}}</x-import></sc-if>
+<div class="cp-stats"><sc-for list="{{dp.stats}}" as="m" hint-placeholder-count="3"><div><span class="o-sub">{{m.label}}</span><strong>{{m.value}}</strong><span class="o-sub">{{m.sub}}</span></div></sc-for></div>
+<dl class="dp-kv"><sc-for list="{{dp.kv}}" as="k" hint-placeholder-count="6"><dt>{{k.k}}</dt><dd>{{k.v}}</dd></sc-for></dl>
+<sc-if value="{{dp.hasLinks}}" hint-placeholder-val="{{false}}"><div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px"><sc-for list="{{dp.links}}" as="l" hint-placeholder-count="2"><a href="{{l.href}}">{{l.label}}</a></sc-for></div></sc-if>
+</section>
+<section class="o-panel-sec"><h3>Orders that used it</h3>
+<sc-if value="{{dp.hasOrders}}" hint-placeholder-val="{{true}}"><ul class="cp-list"><sc-for list="{{dp.orders}}" as="o" hint-placeholder-count="8"><li><span class="pr-cell-main"><span class="td-strong">{{o.id}} · {{o.customer}}</span><span class="o-sub">{{o.sub}}</span></span><span class="cp-side"><span>{{o.total}}</span><span class="o-sub" style="display: block">{{o.disc}}</span></span></li></sc-for></ul></sc-if>
+<sc-if value="{{dp.noOrders}}" hint-placeholder-val="{{false}}"><p class="o-sub" style="margin: 0">{{dp.noOrdersText}}</p></sc-if>
+</section>
+</div>
+<div class="o-panel-foot"><div class="dp-foot-end"><sc-for list="{{dp.secondary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div><div class="dp-foot-end"><sc-for list="{{dp.primary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="{{b.variant}}" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div></div>
+</div>
+</sc-if>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{nwOpen}}" on-close="{{closeNw}}" size="md" title="New discount code" description="Customers type it at checkout on Fernhill US and EU.">
+<div class="o-modal-stack">
+<div class="cp-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Code" value="{{nw.code}}" on-change="{{nw.setCode}}" error="{{nw.codeError}}" hint="{{nw.codeHint}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Discount" suffix="% off" inputmode="numeric" value="{{nw.value}}" on-change="{{nw.setValue}}" error="{{nw.valueError}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Input" label="What it’s for" value="{{nw.purpose}}" on-change="{{nw.setPurpose}}" error="{{nw.purposeError}}" hint="Only your team sees this"></x-import>
+<div class="cp-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Limits" options="{{nw.limitOpts}}" value="{{nw.limit}}" on-value-change="{{nw.setLimit}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Expires" type="date" optional="{{yes}}" value="{{nw.end}}" on-change="{{nw.setEnd}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Generate unique single-use codes instead (safer for emails)" checked="{{nw.unique}}" on-change="{{nw.setUnique}}"></x-import>
+<sc-if value="{{nw.unique}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Input" label="How many" inputmode="numeric" value="{{nw.count}}" on-change="{{nw.setCount}}" error="{{nw.countError}}" hint="{{nw.countHint}}"></x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeNw}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{nw.save}}">Create code</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const q = new URLSearchParams(window.location.search);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, tab: 'all', query: '', changes: {}, added: [], leakFixed: false, detail: q.get('code') || null, nw: null };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.nw) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+  all() { const c = this.state.changes; return this.state.added.concat(K.COUPONS).map((x) => (c[x.code] ? Object.assign({}, x, c[x.code]) : x)); }
+  change(x, patch, title, msg) { this.setState((s) => ({ changes: Object.assign({}, s.changes, { [x.code]: Object.assign({}, s.changes[x.code], patch) }) })); if (title) this.showToast(title, msg); }
+  copy(c) { try { navigator.clipboard.writeText(c.code); } catch (e) { /* clipboard blocked */ } this.showToast(c.code + ' copied', 'Paste it into an email, a post or a support reply.', 'info'); }
+  fixLeak() { this.change(K.COUPON.WELCOME10, { limit: 'Once per customer · new email addresses only', leakFixed: true }); this.setState({ leakFixed: true }); this.showToast('WELCOME10 now only works for new customers', 'Checkout checks the email against existing customers. The newsletter keeps sending the same code.'); }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), list0 = this.all(), q = s.query.trim().toLowerCase();
+    const inTab = (c, t) => t === 'all' || (t === 'active' ? c.status === 'active' || c.status === 'paused' : t === 'scheduled' ? c.status === 'scheduled' : t === 'creators' ? !!c.creator : c.status === 'expired');
+    const searched = list0.filter((c) => !q || c.code.toLowerCase().indexOf(q) >= 0 || c.purpose.toLowerCase().indexOf(q) >= 0);
+    const order = { active: 0, paused: 1, scheduled: 2, expired: 3 };
+    const list = searched.filter((c) => inTab(c, s.tab)).sort((a, b) => order[a.status] - order[b.status] || b.uses.length - a.uses.length);
+    const rows = list.map((c) => { const st = ST[c.status];
+      return { code: c.code, copyAria: 'Copy ' + c.code, value: c.value + '% off' + (c.unique ? ' · unique codes' : ''), purpose: c.purpose, purposeSub: c.creator ? '10% commission to ' + c.creator : c.campaign ? 'Sent by ' + K.CAMPAIGNS.find((x) => x.id === c.campaign).name : '',
+        limit: c.limit, when: c.end ? (c.status === 'expired' ? 'Ended ' : 'Ends ') + F.fmtDate(c.end - 1).replace(', 2026', '') : 'No end date',
+        uses: F.int(c.uses.length), allTime: F.int(c.redeemed) + ' all time', sales: c.uses.length ? F.money0(K.sum(c.uses)) : '—', given: c.uses.length ? F.money0(K.sum(c.uses, 'discount')) : '—',
+        status: st[1], tone: st[0], icon: st[2], copy: () => this.copy(c), open: () => this.setState({ detail: c.code }) }; });
+
+    const uses = list0.reduce((a, c) => a.concat(c.uses), []), creators = list0.filter((c) => c.creator), creatorSales = creators.reduce((a, c) => a + K.sum(c.uses), 0);
+    const kpis = [
+      { label: 'Orders with a code', dot: 'cx-dot cx-dot-brand', value: F.int(uses.length), cmp: F.money0(K.sum(uses)) + ' in sales' },
+      { label: 'Given away', dot: 'cx-dot cx-dot-warning', value: F.money0(K.sum(uses, 'discount')), cmp: (K.sum(uses, 'discount') / Math.max(1, K.sum(uses) + K.sum(uses, 'discount')) * 100).toFixed(1) + '% off on average' },
+      { label: 'Creator codes', dot: 'cx-dot cx-dot-success', value: F.money0(creatorSales), cmp: F.money2(creatorSales * 0.1) + ' commission owed for October 1' },
+      { label: 'Active codes', dot: 'cx-dot cx-dot-info', value: F.int(list0.filter((c) => c.status === 'active').length), cmp: list0.filter((c) => c.status === 'scheduled').length + ' scheduled · ' + list0.filter((c) => c.status === 'expired').length + ' expired' }
+    ];
+    const ln = K.COUPON.WELCOME10.leakNote;
+    const leak = s.leakFixed ? null : { title: 'WELCOME10 is on a coupon site', text: 'It’s been listed on ' + ln.site + ' since ' + F.fmtDate(ln.since).replace(', 2026', '') + '. ' + ln.repeat + ' of its ' + ln.week + ' uses this week were by customers who’d ordered before, so it’s no longer a first-order code.',
+      actions: [h(CommerceOS.Button, { key: 'f', variant: 'secondary', size: 'sm', onClick: () => this.fixLeak() }, 'Limit it to new customers'), h(CommerceOS.Button, { key: 'o', variant: 'ghost', size: 'sm', onClick: () => this.setState({ detail: 'WELCOME10' }) }, 'See who used it')] };
+    const tabs = [{ id: 'all', label: 'All' }, { id: 'active', label: 'Active' }, { id: 'creators', label: 'Creators' }, { id: 'scheduled', label: 'Scheduled' }, { id: 'expired', label: 'Expired' }].map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((c) => inTab(c, t.id)).length) }));
+
+    let dp = null;
+    if (s.detail) {
+      const c = list0.find((x) => x.code === s.detail);
+      if (c) {
+        const st = ST[c.status], sec = [], prim = [], recent = c.uses.slice().sort((a, b) => b.ts - a.ts).slice(0, 8), camp = c.campaign ? K.CAMPAIGNS.find((x) => x.id === c.campaign) : null;
+        sec.push({ label: 'Copy code', icon: 'copy', go: () => this.copy(c) });
+        if (c.status === 'active') prim.push({ label: 'Pause', variant: 'secondary', icon: 'clock', go: () => this.change(c, { status: 'paused' }, c.code + ' paused', 'Checkout says the code isn’t valid until you resume it.') });
+        if (c.status === 'paused') prim.push({ label: 'Resume', variant: 'primary', icon: 'refresh', go: () => this.change(c, { status: 'active' }, c.code + ' works again', 'Customers can use it at checkout.') });
+        if (c.status === 'expired') prim.push({ label: 'Extend to Dec 31', variant: 'primary', icon: 'calendar', go: () => this.change(c, { status: 'active', end: Date.UTC(2027, 0, 1) }, c.code + ' extended', 'Works until Dec 31, 2026.') });
+        if (c.creator) prim.push({ label: 'Pay commission', variant: 'primary', icon: 'credit-card', go: () => this.showToast(F.money2(K.sum(c.uses) * 0.1) + ' commission queued', 'Paid to ' + c.creator + ' with the October 1 creator payouts. It shows under Expenses.') });
+        if (c.unique) sec.push({ label: 'Export codes', icon: 'download', go: () => this.showToast('Exporting unique ' + c.code + ' codes', 'CSV with each code, who it was sent to and whether it was used.') });
+        const links = [];
+        if (camp) links.push({ label: 'Sent by ' + camp.name, href: 'Campaigns.dc.html?c=' + camp.id });
+        if (c.promo) links.push({ label: 'Promotion: ' + K.PROMO[c.promo].name, href: 'Promotions.dc.html?p=' + c.promo });
+        if (c.creator) links.push({ label: c.creator + ' in Press & creators', href: 'CustomerGroups.dc.html?group=press' });
+        const ln2 = c.code === 'WELCOME10' && !s.leakFixed;
+        dp = { code: c.code, sub: c.value + '% off · ' + c.purpose, status: st[1], tone: st[0], icon: st[2], statusSub: (c.status === 'scheduled' ? 'Starts ' : 'Since ') + F.fmtDate(c.start) + (c.end ? ' · ' + (c.status === 'expired' ? 'ended ' : 'ends ') + F.fmtDate(c.end - 1) : ''),
+          alert: ln2 ? ln.repeat + ' of this week’s ' + ln.week + ' uses were by returning customers after it appeared on ' + ln.site + '.' : c.status === 'scheduled' ? 'Goes live ' + F.fmtDate(c.start) + (c.promo ? ' with ' + K.PROMO[c.promo].name : '') + '.' : null,
+          alertTone: ln2 ? 'warning' : 'info', alertTitle: ln2 ? 'Leaked' : null,
+          stats: [{ label: 'Uses, 30 days', value: F.int(c.uses.length), sub: F.int(c.redeemed) + ' all time' }, { label: 'Sales', value: F.money0(K.sum(c.uses)), sub: c.uses.length ? F.money2(K.sum(c.uses) / c.uses.length) + ' per order' : '' }, { label: c.creator ? 'Commission' : 'Given away', value: c.creator ? F.money2(K.sum(c.uses) * 0.1) : F.money0(K.sum(c.uses, 'discount')), sub: c.creator ? '10% of sales' : '' }],
+          kv: [{ k: 'Discount', v: c.value + '% off everything except gift cards' }, { k: 'Limits', v: c.limit }, { k: 'Stores', v: c.stores.map((k) => (k === 'us' ? 'Fernhill US' : 'Fernhill EU')).join(', ') }, { k: 'Expires', v: c.end ? F.fmtDate(c.end - 1) : 'Never' }, { k: 'Stacks with', v: 'Free shipping only' }],
+          links, hasLinks: links.length > 0, hasOrders: recent.length > 0, noOrders: recent.length === 0, noOrdersText: c.status === 'scheduled' ? 'Not live yet.' : 'No orders used it in the last 30 days.',
+          orders: recent.map((r) => ({ id: r.order.id, customer: r.order.customer, sub: r.order.channel + ' · ' + F.fmtWhen(r.ts), total: F.money2(r.order.total), disc: '−' + F.money2(r.discount) })),
+          secondary: sec, primary: prim };
+      }
+    }
+
+    let nw = { limitOpts: [] };
+    if (s.nw) {
+      const d = s.nw, set = (k) => (e) => { const v = e.target.value; this.setState((x) => ({ nw: Object.assign({}, x.nw, { [k]: k === 'code' ? v.toUpperCase().replace(/\s/g, '') : v }) })); };
+      const errs = { code: !/^[A-Z0-9-]{4,20}$/.test(d.code) ? '4 to 20 letters, numbers or dashes' : list0.some((c) => c.code === d.code) ? d.code + ' already exists' : null,
+        value: !/^\d+$/.test(d.value) || +d.value < 1 || +d.value > 80 ? 'Between 1 and 80' : null, purpose: !d.purpose.trim() ? 'Say what it’s for' : null,
+        count: d.unique && (!/^\d+$/.test(d.count) || +d.count < 1 || +d.count > 50000) ? 'Up to 50,000' : null };
+      nw = { code: d.code, value: d.value, purpose: d.purpose, limit: d.limit, end: d.end, unique: d.unique, count: d.count,
+        codeError: d.touched || (d.code.length >= 4 && errs.code && /exists/.test(errs.code)) ? errs.code : null, codeHint: d.unique ? 'Codes look like ' + (d.code || 'CODE') + '-7KQ2F' : 'Short and easy to say out loud works best',
+        valueError: d.touched ? errs.value : null, purposeError: d.touched ? errs.purpose : null, countError: d.touched ? errs.count : null, countHint: 'One per recipient. Unused codes expire with the campaign.',
+        limitOpts: ['Unlimited', 'Once per customer', 'First order only', 'First 100 uses'].map((x) => ({ value: x, label: x })),
+        setCode: set('code'), setValue: set('value'), setPurpose: set('purpose'), setEnd: set('end'), setCount: set('count'), setLimit: (v) => this.setState((x) => ({ nw: Object.assign({}, x.nw, { limit: v }) })), setUnique: (v) => this.setState((x) => ({ nw: Object.assign({}, x.nw, { unique: v }) })),
+        save: () => {
+          if (errs.code || errs.value || errs.purpose || errs.count) return this.setState({ nw: Object.assign({}, d, { touched: true }) });
+          const end = d.end ? Date.parse(d.end) + F.DAY : null;
+          const c = { code: d.code, kind: 'percent', value: +d.value, purpose: d.purpose.trim(), limit: d.unique ? 'Unique codes · ' + F.int(+d.count) + ' generated' : d.limit, start: F.NOW, end, stores: ['us', 'eu'], status: 'active', uses: [], redeemed: 0, unique: d.unique };
+          this.setState((x) => ({ added: [c].concat(x.added), nw: null, detail: c.code })); this.showToast(c.code + ' created', d.unique ? F.int(+d.count) + ' unique codes are ready to export.' : 'It works at checkout now.');
+        } };
+    }
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(list0.length, 'code') + ' · ' + list0.filter((c) => c.status === 'active').length + ' active',
+      kpis, leak, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id }), query: s.query, setQuery: (v) => this.setState({ query: v }),
+      rows, shown: rows.length > 0, empty: rows.length === 0, dp, closeDetail: () => this.setState({ detail: null }),
+      nwOpen: !!s.nw, openNew: () => this.setState({ nw: { code: '', value: '10', purpose: '', limit: 'Once per customer', end: '', unique: false, count: '500', touched: false } }), closeNw: () => this.setState({ nw: null }), nw,
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- coupons: Fernhill marketing (marketing.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, K = window.FernhillMarketing, h = window.React.createElement, CommerceOS = window.CommerceOS;
+var ST = { active: ['success', 'Active', 'check-circle'], paused: ['warning', 'Paused', 'clock'], scheduled: ['info', 'Scheduled', 'calendar'], expired: ['neutral', 'Expired', 'x'] };
+</script>
+</body>
+</html>
