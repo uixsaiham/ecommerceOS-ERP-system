@@ -60,11 +60,11 @@
         { key: "shipping", label: "Shipping", href: "Shipping.dc.html" },
         { key: "tracking", label: "Delivery Tracking", href: "DeliveryTracking.dc.html" }] },
       { key: "finance", label: "Finance", icon: "wallet", children: [
-        { key: "overview", label: "Overview" },
-        { key: "payments", label: "Payments" },
-        { key: "refunds", label: "Refunds" },
-        { key: "expenses", label: "Expenses" },
-        { key: "transactions", label: "Transactions" }] },
+        { key: "overview", label: "Overview", href: "FinanceOverview.dc.html" },
+        { key: "payments", label: "Payments", href: "Payments.dc.html" },
+        { key: "refunds", label: "Refunds", href: "Refunds.dc.html" },
+        { key: "expenses", label: "Expenses", href: "Expenses.dc.html" },
+        { key: "transactions", label: "Transactions", href: "Transactions.dc.html" }] },
       { key: "marketing", label: "Marketing", icon: "megaphone", children: [
         { key: "campaigns", label: "Campaigns" },
         { key: "discounts", label: "Discounts" },

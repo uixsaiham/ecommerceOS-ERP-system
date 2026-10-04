@@ -1,7 +1,8 @@
 /* Fernhill customers shared by the Customers pages (All Customers, Segments, Customer Groups, Customer
    Activity). Built on catalog.js (load it first). Matches the dashboard: 18,497 customers with at least one
-   order, 412 of them new in the last 30 days (5 today), 2,846 orders and $128,450 in the last 30 days split
-   by store as on Sales Channels. The customers other pages name keep their numbers: Sarah Johnson’s
+   order, 412 of them new in the last 30 days (5 today), 2,846 orders and $820,443 in the last 30 days split
+   by store as on Sales Channels. Load orders.js first: the five trade accounts take their 30 days of orders
+   straight from the Orders page. The customers other pages name keep their numbers: Sarah Johnson’s
    #ORD-10482, the dashboard’s recent orders, and the search results for Lena Okafor, Nora Whitfield,
    Northwind Retail and Harbor & Pine Co. Snapshot: Oct 1 2026 09:42 UTC. */
 (function () {
@@ -9,7 +10,7 @@
   var F = window.Fernhill, NOW = F.NOW, DAY = F.DAY, DAY0 = F.DAY0, H = 36e5;
   var FOUNDED = Date.UTC(2021, 2, 15), WIN = NOW - 30 * DAY;
   var TOTAL = 18497, NEW30 = 412, NEW_TODAY = 5, ORD30 = 2846;
-  var REV30 = { us: 66794, eu: 34682, wh: 16699, amz: 10275 };
+  var REV30 = { us: 213122.5, eu: 161442.5, wh: 401488.45, amz: 44389.5 };   // the Orders page, by store
   var ANCHOR = Date.UTC(2026, 8, 30, 21, 14);   // #ORD-10482, Sarah Johnson
 
   var FIRST = ['Sarah', 'Ayesha', 'Daniel', 'Lena', 'Marcus', 'Nusrat', 'Tomás', 'Grace', 'Hiroshi', 'Fatima', 'Oliver', 'Priya', 'Tanvir', 'Chloé', 'Kwame', 'Sofia', 'Imran', 'Emily', 'Lucas', 'Mehjabin',
@@ -76,11 +77,19 @@
     ['Coastal Common', 'Sydney', 'AU', 'Mia Thornton', 'orders@coastalcommon.com.au', 'ws1', 4, 7940, []]
   ];
   PLACES.GB = { country: 'United Kingdom', cities: [['Bristol']], phone: 'eu' };
+  /* the trade accounts on the Orders page: their last 30 days come from there; b[6], b[7] are the orders and spend before that */
+  var ORD = window.FernhillOrders ? window.FernhillOrders.ORDERS : [];
+  var STAGE_STATUS = { pending: 'confirmed', confirmed: 'confirmed', processing: 'processing', ready_to_ship: 'ready_to_ship', shipped: 'shipped', delivered: 'delivered', cancelled: 'cancelled', returned: 'returned' };
+  B2B.forEach(function (b) {
+    var fromOrders = ORD.filter(function (o) { return o.customer === b[0]; });
+    if (fromOrders.length) b[8] = fromOrders.map(function (o) { return [o.ts, o.total, STAGE_STATUS[o.stage], o.items, o.id]; });
+    b[6] += b[8].length; b[7] += b[8].reduce(function (a, x) { return a + x[1]; }, 0);
+  });
   B2B.forEach(function (b, i) {
     var rb = srng(900 + i), first = b[8].length ? b[8][0][0] : NOW - (40 + rb() * 200) * DAY, created = NOW - (300 + rb() * 900) * DAY;
     make({ name: b[0], company: b[0], contact: b[3], email: b[4], phone: phoneFor(PLACES[b[2]].phone, rb), city: b[1], cc: b[2], country: PLACES[b[2]].country, channel: 'wh', b2b: true,
-      created: created, firstTs: created + 5 * DAY, lastTs: b[8].length ? b[8][0][0] : NOW - (32 + rb() * 70) * DAY, orders: b[6], spent: b[7], ord30: b[8].length, rev30: b[8].reduce(function (a, x) { return a + x[1]; }, 0),
-      recent: b[8].map(function (x) { return { ts: x[0], total: x[1] }; }), returns: Math.floor(b[6] / 15), consent: { email: true, sms: false }, group: b[5], tags: ['Wholesale'], source: 'Wholesale rep', terms: b[5] === 'ws2' ? 'Net 45' : 'Net 30' });
+      created: created, firstTs: created + 5 * DAY, lastTs: b[8].length ? Math.max.apply(null, b[8].map(function (x) { return x[0]; })) : NOW - (32 + rb() * 70) * DAY, orders: b[6], spent: b[7], ord30: b[8].length, rev30: b[8].reduce(function (a, x) { return a + x[1]; }, 0),
+      recent: b[8].map(function (x) { return { ts: x[0], total: x[1], status: x[2], items: x[3], id: x[4] }; }).sort(function (a, c) { return c.ts - a.ts; }), returns: Math.floor(b[6] / 15), consent: { email: true, sms: false }, group: b[5], tags: ['Wholesale'], source: 'Wholesale rep', terms: b[5] === 'ws2' ? 'Net 45' : 'Net 30' });
   });
   [['Pacific Crest Museum Store', 'San Francisco', 'US', 'Lauren Kim', 'store@pacificcrestmuseum.org', 4, 2380], ['Ridgeline Outdoor Club', 'Boulder', 'US', 'Sam Patel', 'gear@ridgelineclub.org', 3, 1460], ['Green Shore Trust', 'Rotterdam', 'NL', 'Eva Jansen', 'shop@greenshore.nl', 2, 940]]
     .forEach(function (b, i) {
@@ -106,7 +115,7 @@
     make({ name: n.name, first: parts[0], email: n.email, phone: n.phone, city: n.city, st: n.st, cc: n.cc, country: PLACES[n.cc].country, channel: n.channel, created: n.first, firstTs: n.first,
       lastTs: n.recent.length ? n.recent[0][0] : n.last, orders: n.orders, spent: n.spent || n.recent.reduce(function (a, x) { return a + x[1]; }, 0), ord30: n.recent.length,
       rev30: n.recent.reduce(function (a, x) { return a + x[1]; }, 0), recent: n.recent.map(function (x) { return { ts: x[0], total: x[1], status: x[2], items: x[3] }; }),
-      returns: n.name === 'Priya Shah' ? 2 : 0, consent: { email: n.email1, sms: n.name === 'Lena Okafor' }, group: n.spent >= 1000 ? 'vip' : 'retail', tags: [], source: n.source, pinned: true });
+      returns: n.name === 'Priya Shah' ? 2 : 0, consent: { email: n.email1, sms: n.name === 'Lena Okafor' }, group: n.spent >= 2000 ? 'vip' : 'retail', tags: [], source: n.source, pinned: true });
   });
   CUSTOMERS.forEach(function (c) { EMAILS[c.email] = 1; });
 
@@ -125,7 +134,7 @@
     var isNew = !!opts.isNew;
     var firstTs = isNew ? (opts.today ? DAY0 + rr() * (NOW - DAY0) : WIN + rr() * (DAY0 - WIN)) : FOUNDED + (WIN - FOUNDED) * Math.sqrt(rr());
     var orders = isNew ? 1 : rr() < 0.56 ? 1 : 2 + Math.floor(Math.pow(rr(), 2.6) * 14) + (rr() < 0.01 ? 12 + Math.floor(rr() * 20) : 0);
-    var base = channel === 'amz' ? 52 : cc === 'BD' ? 38 : channel === 'eu' ? 78 : 72;
+    var base = channel === 'amz' ? 150 : cc === 'BD' ? 115 : channel === 'eu' ? 158 : 150;
     var aov = Math.max(18, base * Math.exp(0.38 * gauss(rr)));
     var lastTs = orders === 1 ? firstTs : firstTs + (WIN - firstTs) * (1 - Math.pow(rr(), 1.7) * 0.95);
     var src = channel === 'amz' ? 'Amazon' : SOURCES[(function () { var x = rr(); for (var k = 0; k < SOURCE_W.length; k++) { x -= SOURCE_W[k]; if (x <= 0) return k; } return 0; })()];
@@ -181,7 +190,7 @@
     c.spent = Math.round(c.spent * 100) / 100;
     if (!c.b2b) c.returns = c.returns || Math.floor(c.orders * (c.channel === 'amz' ? 0.05 : 0.09) * (0.4 + srng(Number(c.id.slice(4)))() * 1.6) + (c.orders > 6 && Number(c.id.slice(4)) % 23 === 0 ? 3 : 0));
     c.aov = c.orders ? c.spent / c.orders : 0;
-    if (c.group === 'retail' && c.spent >= 1000) c.group = 'vip';
+    if (c.group === 'retail' && c.spent >= 2000) c.group = 'vip';
     if (c.group === 'vip' && c.tags.indexOf('VIP') < 0) c.tags = c.tags.concat(['VIP']);
     if (c.returns >= 3 && c.returns / c.orders >= 0.3) c.tags = c.tags.concat(['Frequent returner']);
     if (c.guest) c.tags = c.tags.concat(['Guest checkout']);
@@ -190,10 +199,19 @@
   var BY_ID = {}; CUSTOMERS.forEach(function (c) { BY_ID[c.id] = c; });
   /* number the last 30 days’ orders in time order, as the Orders page does: Sarah Johnson’s is #ORD-10482 */
   (function numberRecent() {
-    var all = []; CUSTOMERS.forEach(function (c) { (c.recent || []).forEach(function (o) { all.push(o); }); });
+    var all = []; CUSTOMERS.forEach(function (c) { (c.recent || []).forEach(function (o) { if (!o.id) all.push(o); }); });
     all.sort(function (a, b) { return a.ts - b.ts; });
-    var k = all.findIndex(function (o) { return o.ts === ANCHOR; });
-    all.forEach(function (o, i) { o.id = '#ORD-' + (10482 + i - k); });
+    if (ORD.length) {
+      /* retail orders take the Orders page numbers the trade orders don’t use, in time order */
+      var taken = {}; CUSTOMERS.forEach(function (c) { (c.recent || []).forEach(function (o) { if (o.id) taken[o.id] = 1; }); });
+      var pool = ORD.map(function (o) { return o.idNum; }).filter(function (n) { return !taken['#ORD-' + n]; }).sort(function (a, b) { return a - b; });
+      all.forEach(function (o, i) { o.id = '#ORD-' + pool[Math.min(i, pool.length - 1)]; });
+      var sarah = all.filter(function (o) { return o.ts === ANCHOR; })[0], other = all.filter(function (o) { return o.id === '#ORD-10482'; })[0];
+      if (sarah && other && sarah !== other) { other.id = sarah.id; sarah.id = '#ORD-10482'; }
+    } else {
+      var k = all.findIndex(function (o) { return o.ts === ANCHOR; });
+      all.forEach(function (o, i) { o.id = '#ORD-' + (10482 + i - k); });
+    }
   })();
 
   /* ---------- order history for one customer (deterministic, adds up to orders and spent) ---------- */
@@ -220,7 +238,7 @@
   /* ---------- groups: pricing, terms and perks (membership is set by hand or by a rule) ---------- */
   var GROUPS = [
     { key: 'retail', name: 'Retail', desc: 'Everyone who isn’t in another group. Standard prices and checkout.', discount: 0, terms: 'Pay at checkout', shipping: 'Free over $120', tax: true, priceList: 'Retail', auto: null, system: true, tone: 'neutral' },
-    { key: 'vip', name: 'VIP Club', desc: 'Customers who’ve spent $1,000 or more. Early access to drops and free express shipping.', discount: 10, terms: 'Pay at checkout', shipping: 'Free express', tax: true, priceList: 'Retail', auto: { field: 'spent', op: 'gte', value: '1000' }, tone: 'brand', perks: ['Early access to new drops (48 h)', 'Free express shipping', 'Birthday gift card, $20'] },
+    { key: 'vip', name: 'VIP Club', desc: 'Customers who’ve spent $2,000 or more. Early access to drops and free express shipping.', discount: 10, terms: 'Pay at checkout', shipping: 'Free express', tax: true, priceList: 'Retail', auto: { field: 'spent', op: 'gte', value: '2000' }, tone: 'brand', perks: ['Early access to new drops (48 h)', 'Free express shipping', 'Birthday gift card, $20'] },
     { key: 'staff', name: 'Staff', desc: 'Fernhill employees. Limited to 6 orders a year, shipped to a home address.', discount: 30, terms: 'Pay at checkout', shipping: 'Free standard', tax: true, priceList: 'Retail', auto: { field: 'email', op: 'ends', value: '@fernhill.co' }, tone: 'info', limit: '6 orders a year', perks: ['30% off everything', 'Free standard shipping'] },
     { key: 'press', name: 'Press & creators', desc: 'Editors, stylists and creators we seed product to. Orders are free and need approval.', discount: 100, terms: 'Approval required', shipping: 'Free express', tax: true, priceList: 'Retail', auto: null, tone: 'warning', perks: ['Free product on approval', 'Not counted in sales reports'] },
     { key: 'ws1', name: 'Wholesale', desc: 'Independent stockists ordering through the B2B portal. Minimum order $1,500.', discount: 45, terms: 'Net 30', shipping: 'Freight, billed', tax: false, priceList: 'Wholesale 2026', auto: null, tone: 'success', minOrder: 1500, perks: ['Wholesale price list', 'Net 30 invoicing', 'Line sheets two weeks early'] },
@@ -254,7 +272,7 @@
     return list.filter(function (c) { return seg.match === 'any' ? seg.rules.some(function (r) { return ruleMatch(c, r); }) : seg.rules.every(function (r) { return ruleMatch(c, r); }); });
   }
   var SEGMENTS = [
-    { key: 'vip', name: 'VIP customers', desc: 'Spent $1,000 or more across all stores, wholesale accounts included.', match: 'all', rules: [{ field: 'spent', op: 'gte', value: '1000' }], by: 'Priya Natarajan', updated: NOW - 41 * DAY, usedIn: ['Autumn VIP preview (email)', 'VIP Club group'], tone: 'brand', pinned: true },
+    { key: 'vip', name: 'VIP customers', desc: 'Spent $2,000 or more across all stores, wholesale accounts included.', match: 'all', rules: [{ field: 'spent', op: 'gte', value: '2000' }], by: 'Priya Natarajan', updated: NOW - 41 * DAY, usedIn: ['Autumn VIP preview (email)', 'VIP Club group'], tone: 'brand', pinned: true },
     { key: 'repeat', name: 'Repeat buyers', desc: 'Two or more orders, any store.', match: 'all', rules: [{ field: 'orders', op: 'gte', value: '2' }], by: 'Priya Natarajan', updated: NOW - 120 * DAY, usedIn: ['Loyalty welcome flow'], tone: 'success', pinned: true },
     { key: 'new30', name: 'New in the last 30 days', desc: 'First order in the last 30 days. Gets the second-order nudge.', match: 'all', rules: [{ field: 'firstOrder', op: 'within', value: '30' }], by: 'Mei Lin', updated: NOW - 64 * DAY, usedIn: ['Second-order nudge (email)'], tone: 'info', pinned: true },
     { key: 'risk', name: 'At risk', desc: 'Bought at least twice but nothing in the last 90 days.', match: 'all', rules: [{ field: 'orders', op: 'gte', value: '2' }, { field: 'lastOrder', op: 'before', value: '90' }, { field: 'lastOrder', op: 'within', value: '365' }], by: 'Mei Lin', updated: NOW - 9 * DAY, usedIn: ['We miss you, 15% off (email)'], tone: 'warning', pinned: true },
@@ -264,7 +282,7 @@
     { key: 'eu', name: 'Fernhill EU customers', desc: 'Ordered from fernhill.eu. Used for EU-only launches and VAT-inclusive pricing.', match: 'all', rules: [{ field: 'channel', op: 'eq', value: 'eu' }], by: 'Sofie de Vries', updated: NOW - 200 * DAY, usedIn: ['EU end-of-season sale'], tone: 'info' },
     { key: 'bd', name: 'Bangladesh', desc: 'Customers in Bangladesh, shipped from Dhaka. bKash and cash on delivery.', match: 'all', rules: [{ field: 'country', op: 'eq', value: 'Bangladesh' }], by: 'Jamal Uddin', updated: NOW - 88 * DAY, usedIn: ['Puja collection (SMS)'], tone: 'info' },
     { key: 'returners', name: 'Frequent returners', desc: 'Three or more returns. Excluded from free-returns promos.', match: 'all', rules: [{ field: 'returns', op: 'gte', value: '3' }], by: 'Priya Natarajan', updated: NOW - 30 * DAY, usedIn: ['Free returns exclusion'], tone: 'danger' },
-    { key: 'big-baskets', name: 'Big baskets', desc: 'Average order of $150 or more.', match: 'all', rules: [{ field: 'aov', op: 'gte', value: '150' }, { field: 'group', op: 'neq', value: 'ws1' }, { field: 'group', op: 'neq', value: 'ws2' }], by: 'Mei Lin', updated: NOW - 14 * DAY, usedIn: [], tone: 'brand' },
+    { key: 'big-baskets', name: 'Big baskets', desc: 'Average order of $300 or more.', match: 'all', rules: [{ field: 'aov', op: 'gte', value: '300' }, { field: 'group', op: 'neq', value: 'ws1' }, { field: 'group', op: 'neq', value: 'ws2' }], by: 'Mei Lin', updated: NOW - 14 * DAY, usedIn: [], tone: 'brand' },
     { key: 'insta', name: 'Found us on Instagram', desc: 'First-touch source was Instagram.', match: 'all', rules: [{ field: 'source', op: 'eq', value: 'Instagram' }], by: 'Mei Lin', updated: NOW - 51 * DAY, usedIn: ['Creator drop retargeting'], tone: 'neutral' }
   ];
 

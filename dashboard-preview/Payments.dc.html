@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Payments · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=9"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./procurement.js?v=1"></script>
+<script src="./fulfillment.js?v=1"></script>
+<script src="./returns.js?v=1"></script>
+<script src="./finance.js?v=2"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Payments ---------- */
+.pm-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pm-bad{color:var(--danger);font-weight:500}
+.pm-mono{font-family:var(--font-mono);font-size:12px}
+.pm-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pm-sum > div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.pm-sum strong{font-size:16px;line-height:22px;font-variant-numeric:tabular-nums}
+.pm-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.pm-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:20px}
+.pm-list li:last-child{border-bottom:0}
+.pm-list .fi-side{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+@media (max-width:1279px){ .c-chan,.c-fee{display:none} }
+@media (max-width:1023px){ .pm-kpis{display:flex} .c-date{display:none} }
+@media (max-width:767px){ .pm-sum{grid-template-columns:1fr 1fr} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="finance/payments" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="finance/payments"></x-import>
+<h1>Payments</h1>
+<p class="ph-sub">Every payment taken across the stores, what the processor kept, and when it reached the bank.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Last 30 days</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<section class="o-kpis pm-kpis" aria-label="Payments summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<section class="o-card" aria-label="Payments">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Payments view" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="{{searchPh}}" label="Search payments" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Processor" options="{{procOpts}}" value="{{proc}}" on-value-change="{{setProc}}" width="180px"></x-import>
+</div></div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="{{tableLabel}}">
+<thead><tr><sc-for list="{{cols}}" as="c" hint-placeholder-count="7"><th class="{{c.cls}}" scope="col">{{c.label}}</th></sc-for><th class="c-act" scope="col" style="width: auto"><span class="cx-sr">Action</span></th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="15"><tr>
+<td><button class="o-id rc-id" onClick="{{r.open}}">{{r.c1}}</button><span class="o-sub">{{r.c1s}}</span></td>
+<td><span>{{r.c2}}</span><span class="o-sub">{{r.c2s}}</span></td>
+<td class="c-chan"><span>{{r.c3}}</span><span class="o-sub">{{r.c3s}}</span></td>
+<td class="is-right"><span class="td-strong">{{r.c4}}</span><span class="o-sub">{{r.c4s}}</span></td>
+<td class="is-right c-fee"><span>{{r.c5}}</span><span class="o-sub">{{r.c5s}}</span></td>
+<td class="c-date"><span class="{{r.c6cls}}">{{r.c6}}</span><span class="o-sub">{{r.c6s}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.status}}</x-import></td>
+<td class="c-act" style="width: auto; padding-right: 12px"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.act}}">{{r.btnLabel}}</x-import></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="{{tableLabel}}"><sc-for list="{{rows}}" as="r" hint-placeholder-count="8"><li class="o-m-card"><div class="o-m-top"><button class="o-id rc-id" onClick="{{r.open}}">{{r.c1}}</button><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}">{{r.status}}</x-import></div><div class="o-m-mid"><div><span class="td-strong">{{r.c2}}</span><span class="o-sub">{{r.c6}}</span></div><span class="o-m-total">{{r.c4}}</span></div></li></sc-for></ul>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="{{itemLabel}}" on-page-change="{{setPage}}" on-page-size-change="{{setPageSize}}"></x-import></div>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="search" title="Nothing matches" description="Try another processor or search."></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="pm-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="pm-dp-title">{{dp.title}}</h2><span class="o-sub">{{dp.sub}}</span></div><button class="icon-btn" aria-label="Close" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.status}}</x-import><span class="o-sub">{{dp.statusSub}}</span></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}">{{dp.alert}}</x-import></sc-if>
+<div class="pm-sum"><sc-for list="{{dp.sum}}" as="m" hint-placeholder-count="3"><div><span class="o-sub">{{m.label}}</span><strong>{{m.value}}</strong><span class="o-sub">{{m.sub}}</span></div></sc-for></div>
+<dl class="dp-kv"><sc-for list="{{dp.kv}}" as="k" hint-placeholder-count="6"><dt>{{k.k}}</dt><dd>{{k.v}}</dd></sc-for></dl>
+</section>
+<section class="o-panel-sec"><h3>{{dp.listTitle}}</h3>
+<sc-if value="{{dp.isTimeline}}" hint-placeholder-val="{{true}}"><ol class="rc-tl"><sc-for list="{{dp.steps}}" as="t" hint-placeholder-count="4"><li><span class="{{t.dot}}" aria-hidden="true"></span><span class="pr-cell-main"><span class="{{t.cls}}">{{t.label}}</span><span class="o-sub">{{t.when}}</span></span></li></sc-for></ol></sc-if>
+<sc-if value="{{dp.isList}}" hint-placeholder-val="{{false}}"><ul class="pm-list"><sc-for list="{{dp.items}}" as="i" hint-placeholder-count="8"><li><span class="pr-cell-main"><span>{{i.label}}</span><span class="o-sub">{{i.sub}}</span></span><span class="fi-side">{{i.value}}</span></li></sc-for></ul><span class="o-sub">{{dp.more}}</span></sc-if>
+</section>
+</div>
+<sc-if value="{{dp.hasFoot}}" hint-placeholder-val="{{false}}"><div class="o-panel-foot"><div class="dp-foot-end"><sc-for list="{{dp.secondary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div><div class="dp-foot-end"><sc-for list="{{dp.primary}}" as="b" hint-placeholder-count="1"><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="{{b.icon}}" on-click="{{b.go}}">{{b.label}}</x-import></sc-for></div></div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const q = new URLSearchParams(window.location.search), t = q.get('tab');
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      tab: ['payments', 'payouts', 'invoices', 'failed'].indexOf(t) >= 0 ? t : 'payments', query: '', proc: '', page: 1, pageSize: 25, detail: null, done: {} };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape') { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+  mark(id) { this.setState((s) => ({ done: Object.assign({}, s.done, { [id]: true }) })); }
+  payoutOf(p) { return M.PAYOUTS.find((g) => g.payments.indexOf(p) >= 0); }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), chan = s.store === 'all' ? null : F.channelOf(s.store).label;
+    const pays = M.PAYMENTS.filter((p) => !chan || p.channel === chan), q = s.query.trim().toLowerCase();
+    const pq = (p) => !q || p.id.toLowerCase().indexOf(q) >= 0 || p.orderId.toLowerCase().indexOf(q) >= 0 || p.customer.toLowerCase().indexOf(q) >= 0 || (p.invoice || '').toLowerCase().indexOf(q) >= 0 || (p.card || '').toLowerCase().indexOf(q) >= 0;
+    const captured = pays.filter((p) => p.status !== 'failed' && p.status !== 'pending'), invoices = M.INVOICES.filter((p) => !chan || chan === 'Wholesale');
+    const open = invoices.filter((p) => p.invoiceStatus === 'open' || p.invoiceStatus === 'overdue'), failedWk = pays.filter((p) => p.status === 'failed' && F.NOW - p.ts < 7 * F.DAY);
+    const fees = captured.reduce((a, p) => a + p.fee, 0), gross = captured.reduce((a, p) => a + p.amount, 0);
+    const kpis = [
+      { label: 'Collected, 30 days', dot: 'cx-dot cx-dot-brand', value: F.money0(gross), cmp: F.plural(captured.length, 'payment') + ' · ' + F.money0(pays.filter((p) => p.status === 'pending').reduce((a, p) => a + p.amount, 0)) + ' still pending' },
+      { label: 'Processing fees', dot: 'cx-dot cx-dot-warning', value: F.money0(fees), cmp: (fees / Math.max(1, gross) * 100).toFixed(2) + '% of what was collected' },
+      { label: 'Failed this week', dot: 'cx-dot cx-dot-danger', value: F.int(failedWk.length), cmp: F.money0(failedWk.reduce((a, p) => a + p.amount, 0)) + ' in orders on hold' },
+      { label: 'Wholesale invoices open', dot: 'cx-dot cx-dot-info', value: F.money0(open.reduce((a, p) => a + p.amount, 0)), cmp: F.plural(open.length, 'invoice') + ' · ' + open.filter((p) => p.invoiceStatus === 'overdue').length + ' overdue' }
+    ];
+    const ST = { paid: ['success', 'Paid', 'check-circle'], pending: ['warning', 'Pending', 'clock'], failed: ['danger', 'Failed', 'alert-triangle'], refunded: ['neutral', 'Refunded', 'rotate-ccw'], partially_refunded: ['info', 'Partly refunded', 'rotate-ccw'] };
+    const PO_ST = { paid: ['success', 'Paid out', 'check-circle'], in_transit: ['info', 'In transit', 'truck'], scheduled: ['neutral', 'Scheduled', 'clock'] };
+    const procOk = (p) => !s.proc || p.processor === s.proc;
+    let list, cols, rows, itemLabel = 'payments', tableLabel = 'Payments', searchPh = 'Search by payment, order, customer or card';
+    if (s.tab === 'payouts') {
+      list = M.PAYOUTS.filter((g) => procOk(g) && (!q || g.id.toLowerCase().indexOf(q) >= 0) && (!chan || g.payments.some((p) => p.channel === chan)));
+      cols = [{ label: 'Payout' }, { label: 'Processor' }, { label: 'Account', cls: 'c-chan' }, { label: 'Net', cls: 'is-right' }, { label: 'Fees and refunds', cls: 'is-right c-fee' }, { label: 'Arrives', cls: 'c-date' }, { label: 'Status' }];
+      rows = list.map((g) => { const st = PO_ST[g.status]; return { c1: g.id, c1s: F.plural(g.payments.length, 'payment'), c2: g.processor, c2s: g.reserve ? F.money2(g.reserve) + ' held in reserve' : '', c3: M.ACC[g.account].name, c3s: M.ACC[g.account].bank,
+        c4: F.money2(g.net), c4s: F.money2(g.gross) + ' gross', c5: '−' + F.money2(g.fees + g.refundTotal), c5s: g.refundTotal ? F.money2(g.refundTotal) + ' refunds' : 'fees only', c6: day(g.date), c6s: '', c6cls: '',
+        status: st[1], tone: st[0], icon: st[2], btnLabel: 'View', btnVariant: 'ghost', act: () => this.setState({ detail: 'po:' + g.id }), open: () => this.setState({ detail: 'po:' + g.id }) }; });
+      itemLabel = 'payouts'; tableLabel = 'Payouts'; searchPh = 'Search by payout';
+    } else if (s.tab === 'invoices') {
+      list = invoices.filter((p) => pq(p)).sort((a, b) => INV_ORDER[a.invoiceStatus] - INV_ORDER[b.invoiceStatus] || a.due - b.due);
+      cols = [{ label: 'Invoice' }, { label: 'Account' }, { label: 'Terms', cls: 'c-chan' }, { label: 'Amount', cls: 'is-right' }, { label: 'Wire fee', cls: 'is-right c-fee' }, { label: 'Due', cls: 'c-date' }, { label: 'Status' }];
+      rows = list.map((p) => { const od = p.invoiceStatus === 'overdue', isOpen = od || p.invoiceStatus === 'open', st = INV_ST[p.invoiceStatus];
+        return { c1: p.invoice, c1s: (p.prior ? 'August order' : p.orderId) + ' · issued ' + F.fmtDate(p.ts).replace(', 2026', ''), c2: p.customer, c2s: 'Bank transfer', c3: 'Net ' + p.terms, c3s: '', c4: F.money2(p.amount), c4s: '', c5: p.fee ? F.money2(p.fee) : '—', c5s: '',
+          c6: day(p.due), c6s: od ? Math.round((F.NOW - p.due) / F.DAY) + ' days overdue' : isOpen ? 'in ' + Math.max(0, Math.round((p.due - F.NOW) / F.DAY)) + ' days' : p.wired ? 'wired ' + day(p.wired) : '', c6cls: od ? 'pm-bad' : '',
+          status: st[1], tone: st[0], icon: st[2], btnLabel: isOpen ? (s.done[p.id] ? 'Reminded' : 'Send reminder') : 'View', btnVariant: od ? 'primary' : isOpen ? 'secondary' : 'ghost',
+          act: () => (isOpen && !s.done[p.id] ? (this.mark(p.id), this.showToast('Reminder sent to ' + p.customer, p.invoice + ' for ' + F.money2(p.amount) + ', due ' + F.fmtDate(p.due) + ', with bank details.')) : this.setState({ detail: p.id })), open: () => this.setState({ detail: p.id }) }; });
+      itemLabel = 'invoices'; tableLabel = 'Wholesale invoices'; searchPh = 'Search by invoice, order or account';
+    } else {
+      list = pays.filter((p) => procOk(p) && pq(p) && (s.tab !== 'failed' || p.status === 'failed'));
+      cols = [{ label: 'Payment' }, { label: 'Customer' }, { label: 'Method', cls: 'c-chan' }, { label: 'Amount', cls: 'is-right' }, { label: 'Fee', cls: 'is-right c-fee' }, { label: 'Date', cls: 'c-date' }, { label: 'Status' }];
+      rows = list.map((p) => { const st = ST[p.status];
+        return { c1: p.id, c1s: p.orderId, c2: p.customer, c2s: p.channel, c3: p.processor === 'Bank transfer' ? 'Bank transfer' : p.processor, c3s: p.card || p.method, c4: F.money2(p.amount), c4s: p.status === 'failed' ? p.failReason : p.pendingReason || '',
+          c5: p.fee ? F.money2(p.fee) : '—', c5s: p.fee ? (p.fee / p.amount * 100).toFixed(1) + '%' : '', c6: F.fmtWhen(p.ts), c6s: '', c6cls: '',
+          status: st[1], tone: st[0], icon: st[2], btnLabel: p.status === 'failed' ? (s.done[p.id] ? 'Link sent' : 'Send payment link') : 'View', btnVariant: p.status === 'failed' ? 'secondary' : 'ghost',
+          act: () => (p.status === 'failed' && !s.done[p.id] ? (this.mark(p.id), this.showToast('Payment link sent to ' + p.customer, 'For ' + p.orderId + ', ' + F.money2(p.amount) + '. The order ships once they pay.')) : this.setState({ detail: p.id })), open: () => this.setState({ detail: p.id }) }; });
+      if (s.tab === 'failed') { itemLabel = 'failed payments'; tableLabel = 'Failed payments'; }
+    }
+    const pages = Math.max(1, Math.ceil(rows.length / s.pageSize)), page = Math.min(s.page, pages);
+    const tabs = [{ id: 'payments', label: 'Payments', count: F.int(pays.length) }, { id: 'payouts', label: 'Payouts', count: F.int(M.PAYOUTS.length) }, { id: 'invoices', label: 'Wholesale invoices', count: F.int(invoices.length) }, { id: 'failed', label: 'Failed', count: F.int(pays.filter((p) => p.status === 'failed').length) }];
+
+    let dp = null;
+    if (s.detail && s.detail.indexOf('po:') === 0) {
+      const g = M.PAYOUTS.find((x) => x.id === s.detail.slice(3)), st = PO_ST[g.status];
+      dp = { title: g.id, sub: g.processor + ' → ' + M.ACC[g.account].name, status: st[1], tone: st[0], icon: st[2], statusSub: (g.status === 'paid' ? 'Arrived ' : 'Arrives ') + F.fmtWhen(g.date),
+        alert: g.reserve ? 'Amazon holds 5% (' + F.money2(g.reserve) + ') for 7 days to cover A-to-z claims.' : null, alertTone: 'info',
+        sum: [{ label: 'Gross', value: F.money2(g.gross), sub: F.plural(g.payments.length, 'payment') }, { label: 'Fees and refunds', value: '−' + F.money2(g.fees + g.refundTotal), sub: F.money2(g.fees) + ' fees · ' + F.money2(g.refundTotal) + ' refunds' }, { label: 'Net', value: F.money2(g.net), sub: 'to ' + M.ACC[g.account].currency + ' account' }],
+        kv: [{ k: 'Processor', v: g.processor }, { k: 'Bank account', v: M.ACC[g.account].name + ' · ' + M.ACC[g.account].bank }, { k: 'Reconciled', v: g.status === 'paid' ? 'Matched to the bank feed' : 'After it arrives' }],
+        listTitle: 'Payments in this payout', isList: true, isTimeline: false,
+        items: g.payments.slice(0, 10).map((p) => ({ label: p.id + ' · ' + p.customer, sub: p.orderId + ' · ' + F.fmtWhen(p.ts), value: F.money2(p.net) })),
+        more: g.payments.length > 10 ? 'and ' + F.plural(g.payments.length - 10, 'more payment') : '', hasFoot: false };
+    } else if (s.detail) {
+      const p = M.PAYMENTS.concat(M.PRIOR_INVOICES).find((x) => x.id === s.detail), st = ST[p.status], g = this.payoutOf(p), rf = M.REFUNDS.filter((r) => r.payment === p);
+      const step = (label, ts, cls) => ({ label, when: ts ? F.fmtWhen(ts) : '', dot: 'rc-dot is-' + cls, cls: cls === 'todo' ? 'is-todo' : '' });
+      const steps = [step(p.processor === 'Bank transfer' ? 'Invoice ' + p.invoice + ' sent' : 'Authorised' + (p.card ? ' · ' + p.card : ''), p.ts, 'done')];
+      if (p.status === 'failed') steps.push(step('Failed: ' + p.failReason, p.ts + 6e4, 'bad'));
+      else if (p.status === 'pending') steps.push(step(p.pendingReason, null, 'now'));
+      else { steps.push(step('Captured', p.ts + 2 * 6e4, 'done')); rf.forEach((r) => steps.push(step('Refunded ' + F.money2(r.amount) + ' · ' + r.reason.toLowerCase(), r.ts, r.status === 'failed' ? 'bad' : 'done'))); if (g) steps.push(step((g.status === 'paid' ? 'Paid out in ' : 'Pays out in ') + g.id, g.date, g.status === 'paid' ? 'done' : 'todo')); }
+      dp = { title: p.id, sub: p.orderId + ' · ' + p.customer + ' · ' + p.channel, status: st[1], tone: st[0], icon: st[2], statusSub: F.fmtWhen(p.ts),
+        alert: p.status === 'failed' ? p.failReason + '. The order is on hold until they pay.' : p.invoiceStatus === 'open' || p.invoiceStatus === 'overdue' ? 'Invoice ' + p.invoice + ' is ' + (p.invoiceStatus === 'overdue' ? 'overdue: it was due ' : 'open, due ') + F.fmtDate(p.due) + ' (Net ' + p.terms + ').' : null, alertTone: p.status === 'failed' ? 'danger' : 'info',
+        sum: [{ label: 'Amount', value: F.money2(p.amount), sub: p.method }, { label: 'Processor fee', value: p.fee ? '−' + F.money2(p.fee) : '—', sub: p.fee ? (p.fee / p.amount * 100).toFixed(2) + '%' : 'no fee' }, { label: 'Net', value: F.money2(p.net - rf.reduce((a, r) => a + (r.status === 'failed' ? 0 : r.amount), 0)), sub: rf.length ? 'after refunds' : 'to the bank' }],
+        kv: [{ k: 'Processor', v: p.processor }, { k: 'Method', v: p.card || p.method }, { k: 'Order', v: p.orderId }, { k: 'Store', v: p.channel }, { k: 'Lands in', v: M.ACC[p.account].name }],
+        listTitle: 'Timeline', isTimeline: true, isList: false, steps,
+        secondary: p.status === 'paid' || p.status === 'partially_refunded' ? [{ label: 'Refund', icon: 'rotate-ccw', go: () => { window.location.href = 'Refunds.dc.html'; } }] : [],
+        primary: p.status === 'failed' ? [{ label: 'Send payment link', icon: 'arrow-right', go: () => { this.mark(p.id); this.showToast('Payment link sent to ' + p.customer, 'For ' + F.money2(p.amount) + '.'); } }] : p.invoiceStatus === 'open' || p.invoiceStatus === 'overdue' ? [{ label: 'Mark paid', icon: 'check', go: () => this.showToast(p.invoice + ' marked paid', 'Match the wire in Transactions when it lands.') }] : [],
+        hasFoot: p.status === 'failed' || p.status === 'paid' || p.status === 'partially_refunded' };
+    }
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k, page: 1 }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(pays.length, 'payment') + (chan ? ' · ' + store.label : ' across 4 stores'),
+      kpis, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id, page: 1 }), query: s.query, setQuery: (v) => this.setState({ query: v, page: 1 }), searchPh,
+      procOpts: [{ value: '', label: 'All processors' }].concat(['Stripe', 'PayPal', 'bKash', 'Pathao COD', 'Amazon', 'Bank transfer'].map((x) => ({ value: x, label: x }))), proc: s.proc, setProc: (v) => this.setState({ proc: v, page: 1 }),
+      cols, rows: rows.slice((page - 1) * s.pageSize, page * s.pageSize), shown: rows.length > 0, empty: rows.length === 0, page, pageSize: s.pageSize, total: rows.length, itemLabel, tableLabel,
+      setPage: (n) => this.setState({ page: n }), setPageSize: (n) => this.setState({ pageSize: Number(n), page: 1 }),
+      dp, closeDetail: () => this.setState({ detail: null }),
+      exportView: () => this.showToast('Exporting ' + F.plural(rows.length, itemLabel.replace(/s$/, '')), 'CSV with amounts, fees and payout references for the accounting import.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- payments: Fernhill finance (finance.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, M = window.FernhillFinance, CommerceOS = window.CommerceOS;
+var INV_ST = { overdue: ['danger', 'Overdue', 'alert-triangle'], open: ['warning', 'Open', 'clock'], paid: ['success', 'Paid', 'check-circle'], void: ['neutral', 'Void', 'x'] }, INV_ORDER = { overdue: 0, open: 1, paid: 2, void: 3 };
+function day(ts) { return ts >= F.DAY0 && ts < F.DAY0 + F.DAY ? 'Today' : ts >= F.DAY0 + F.DAY && ts < F.DAY0 + 2 * F.DAY ? 'Tomorrow' : F.fmtDate(ts).replace(', 2026', ''); }
+</script>
+</body>
+</html>

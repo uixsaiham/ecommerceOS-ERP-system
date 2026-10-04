@@ -9,9 +9,10 @@
 <link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="ds/commerceos/shell/shell.js?v=9"></script>
 <script src="./catalog.js?v=3"></script>
-<script src="./customers.js?v=1"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./customers.js?v=2"></script>
 </head>
 <body>
 <x-dc>
@@ -339,11 +340,11 @@ class Component extends DCLogic {
     let gr = { title: '', desc: '', opts: [] };
     if (s.gr) {
       const d = s.gr, n = d.ids.length, one = n === 1 ? this.get(d.ids[0]) : null, g = C.GROUP[d.value];
-      const autoVip = d.ids.some((id) => this.get(id).spent >= 1000) && d.value === 'retail';
+      const autoVip = d.ids.some((id) => this.get(id).spent >= 2000) && d.value === 'retail';
       gr = { title: one ? 'Change ' + one.name + '’s group' : 'Change group for ' + F.plural(n, 'customer'), desc: 'Groups set prices, payment terms and perks at checkout.', value: d.value,
         opts: C.GROUPS.map((x) => ({ value: x.key, label: x.name + (x.discount ? ' · ' + (x.discount === 100 ? 'free on approval' : x.discount + '% off') : '') })),
         set: (v) => this.setState((x) => ({ gr: Object.assign({}, x.gr, { value: v }) })), hint: g.desc,
-        warn: autoVip ? 'Customers who’ve spent $1,000 or more move back to VIP Club automatically. Remove the auto rule in Customer Groups to keep them in Retail.' : (d.value === 'ws1' || d.value === 'ws2') && d.ids.some((id) => !this.get(id).b2b) ? 'Wholesale pricing needs a B2B portal account. They’ll get an invite to set one up.' : null,
+        warn: autoVip ? 'Customers who’ve spent $2,000 or more move back to VIP Club automatically. Remove the auto rule in Customer Groups to keep them in Retail.' : (d.value === 'ws1' || d.value === 'ws2') && d.ids.some((id) => !this.get(id).b2b) ? 'Wholesale pricing needs a B2B portal account. They’ll get an invite to set one up.' : null,
         save: () => { d.ids.forEach((id) => this.edit(id, { group: d.value })); this.setState({ gr: null, sel: [] }); this.showToast(one ? one.name + ' moved to ' + g.name : F.plural(n, 'customer') + ' moved to ' + g.name, g.discount ? 'Their next order gets ' + (g.discount === 100 ? 'free product on approval' : g.discount + '% off') + '.' : 'Standard retail prices apply.'); } };
     }
 

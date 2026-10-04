@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="ds/commerceos/shell/shell.js?v=9"></script>
 </head>
 <body>
 <x-dc>
@@ -498,28 +498,28 @@ class Component extends DCLogic {
   }
 }
 
-/* ---------- channel data: Fernhill, Oct 1 2026. Revenue matches the dashboard ($128,450 · 2,846 orders). ---------- */
+/* ---------- channel data: Fernhill, Oct 1 2026. Revenue and orders match the Orders page and the dashboard ($820,443 · 2,846 orders). ---------- */
 var NOW = Date.now();
 var h = window.React.createElement, CommerceOS = window.CommerceOS;
 var STORES = [
   { key: 'all', label: 'All stores', sub: '4 stores · USD', icon: 'store', factor: 1 },
-  { key: 'us', label: 'Fernhill US', sub: 'Shopify · fernhill.co', icon: 'shopping-bag', factor: 0.52 },
-  { key: 'eu', label: 'Fernhill EU', sub: 'Shopify · fernhill.eu', icon: 'shopping-bag', factor: 0.27 },
-  { key: 'wholesale', label: 'Wholesale', sub: 'B2B portal', icon: 'factory', factor: 0.13 },
-  { key: 'amazon', label: 'Amazon US', sub: 'Marketplace', icon: 'tag', factor: 0.08 }
+  { key: 'us', label: 'Fernhill US', sub: 'Shopify · fernhill.co', icon: 'shopping-bag', factor: 0.49 },
+  { key: 'eu', label: 'Fernhill EU', sub: 'Shopify · fernhill.eu', icon: 'shopping-bag', factor: 0.37 },
+  { key: 'wholesale', label: 'Wholesale', sub: 'B2B portal', icon: 'factory', factor: 0.04 },
+  { key: 'amazon', label: 'Amazon US', sub: 'Marketplace', icon: 'tag', factor: 0.10 }
 ];
 var USER = { name: 'Priya Natarajan', role: 'Operations Manager', email: 'priya@fernhill.co', initials: 'PN' };
 function navLabel(path) { var r = window.CommerceOS.navResolve(path); return r.page ? r.page.label : r.module ? r.module.label : path; }
 var WAREHOUSES = ['Dhaka Warehouse', 'Chattogram Warehouse', 'Rotterdam DC', 'Newark, NJ'];
 var MIN = 6e4;
 var CHANNELS = [
-  { key: 'us', name: 'Fernhill US', platform: 'Shopify', domain: 'fernhill.co', currency: 'USD', initials: 'US', color: 0, status: 'active', rev: 66794, prevRev: 63301, orders: 1480, prevOrders: 1385,
+  { key: 'us', name: 'Fernhill US', platform: 'Shopify', domain: 'fernhill.co', currency: 'USD', initials: 'US', color: 0, status: 'active', rev: 213122.5, prevRev: 201972, orders: 1392, prevOrders: 1315,
     listed: 1204, suppressed: 0, sources: ['Newark, NJ', 'Dhaka Warehouse'], buffer: 2, markup: 0, freq: 'realtime', autoImport: true, autoConfirm: true, fulfill: 'nearest', lastSync: NOW - 4 * MIN },
-  { key: 'eu', name: 'Fernhill EU', platform: 'Shopify', domain: 'fernhill.eu', currency: 'EUR', initials: 'EU', color: 1, status: 'active', rev: 34682, prevRev: 31120, orders: 768, prevOrders: 680,
+  { key: 'eu', name: 'Fernhill EU', platform: 'Shopify', domain: 'fernhill.eu', currency: 'EUR', initials: 'EU', color: 1, status: 'active', rev: 161442.5, prevRev: 144862, orders: 1061, prevOrders: 946,
     listed: 1186, suppressed: 0, sources: ['Rotterdam DC', 'Chattogram Warehouse'], buffer: 2, markup: 8, freq: 'realtime', autoImport: true, autoConfirm: true, fulfill: 'Rotterdam DC', lastSync: NOW - 6 * MIN },
-  { key: 'wholesale', name: 'Wholesale', platform: 'CommerceOS B2B portal', domain: 'trade.fernhill.co', currency: 'USD', initials: 'WS', color: 2, status: 'active', rev: 16699, prevRev: 17410, orders: 370, prevOrders: 352,
+  { key: 'wholesale', name: 'Wholesale', platform: 'CommerceOS B2B portal', domain: 'trade.fernhill.co', currency: 'USD', initials: 'WS', color: 2, status: 'active', rev: 401488.45, prevRev: 418580, orders: 111, prevOrders: 108,
     listed: 642, suppressed: 0, sources: ['Dhaka Warehouse', 'Chattogram Warehouse'], buffer: 10, markup: -45, freq: '15m', autoImport: true, autoConfirm: false, fulfill: 'Dhaka Warehouse', lastSync: NOW - 11 * MIN },
-  { key: 'amazon', name: 'Amazon US', platform: 'Amazon Seller Central', domain: 'Seller ID A2F9X4KQ7', currency: 'USD', initials: 'AZ', color: 3, status: 'active', rev: 10275, prevRev: 9120, orders: 228, prevOrders: 196,
+  { key: 'amazon', name: 'Amazon US', platform: 'Amazon Seller Central', domain: 'Seller ID A2F9X4KQ7', currency: 'USD', initials: 'AZ', color: 3, status: 'active', rev: 44389.5, prevRev: 39399, orders: 282, prevOrders: 244,
     listed: 318, suppressed: 14, sources: ['Newark, NJ'], buffer: 5, markup: 12, freq: '15m', autoImport: true, autoConfirm: true, fulfill: 'Newark, NJ', lastSync: NOW - 23 * MIN }
 ];
 var CATALOG = [

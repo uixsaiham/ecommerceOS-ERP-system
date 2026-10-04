@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Finance · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=9"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./procurement.js?v=1"></script>
+<script src="./fulfillment.js?v=1"></script>
+<script src="./returns.js?v=1"></script>
+<script src="./finance.js?v=2"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Finance overview ---------- */
+.fi-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.fi-row{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:start}
+.fi-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.fi-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px;min-width:0}
+.fi-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.fi-head h2{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.fi-head p{margin:2px 0 0;font-size:12px;line-height:16px;color:var(--text-muted)}
+.fi-head a{font-size:13px;white-space:nowrap}
+.fi-pnl{width:100%;border-collapse:collapse;font-size:13px;line-height:20px;font-variant-numeric:tabular-nums}
+.fi-pnl td{padding:6px 0;border-bottom:1px solid var(--border)}
+.fi-pnl td:nth-child(2),.fi-pnl td:nth-child(3){text-align:right;white-space:nowrap}
+.fi-pnl td:nth-child(3){color:var(--text-muted);width:70px}
+.fi-pnl tr.is-sub td{padding-left:16px;color:var(--text-secondary)}
+.fi-pnl tr.is-sub td:nth-child(2){color:var(--text-secondary)}
+.fi-pnl tr.is-total td{font-weight:600;border-bottom:1px solid var(--border-strong)}
+.fi-pnl tr.is-result td{font-weight:600;font-size:15px;border-bottom:0;padding-top:10px}
+.fi-pnl .is-neg{color:var(--danger)}
+.fi-pnl .is-pos{color:var(--success)}
+.fi-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.fi-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:20px}
+.fi-list li:last-child{border-bottom:0}
+.fi-list .pr-cell-main{min-width:0}
+.fi-list .o-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fi-side{display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.fi-big{font-size:18px;line-height:24px;font-weight:600}
+.fi-ico{flex:none;width:32px;height:32px;border-radius:var(--radius-full);display:inline-flex;align-items:center;justify-content:center}
+.fi-ico .cx-icon{width:16px;height:16px}
+.t-danger{background:var(--danger-subtle);color:var(--danger)}
+.t-warning{background:var(--warning-subtle);color:var(--warning)}
+.t-info{background:var(--info-subtle);color:var(--info)}
+.t-brand{background:var(--brand-subtle);color:var(--brand)}
+.fi-task{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.fi-flow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.fi-flow > div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.fi-flow strong{font-size:18px;line-height:24px;font-variant-numeric:tabular-nums}
+.fi-in strong{color:var(--success)}
+.fi-out strong{color:var(--text-primary)}
+.fi-bud{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.fi-bud li{display:grid;grid-template-columns:150px minmax(0,1fr) 150px;gap:12px;align-items:center;font-size:13px;line-height:18px}
+.fi-bud li span:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--text-secondary)}
+.fi-bud .pr-meter > span{background:var(--brand)}
+.fi-bud .pr-meter.is-warn > span{background:var(--warning)}
+.fi-bud .pr-meter.is-bad > span{background:var(--danger)}
+.fi-stores{width:100%;border-collapse:collapse;font-size:13px;line-height:20px;font-variant-numeric:tabular-nums}
+.fi-stores th{padding:6px 8px;font-size:12px;font-weight:500;color:var(--text-secondary);text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+.fi-stores th:first-child,.fi-stores td:first-child{text-align:left;padding-left:0}
+.fi-stores td{padding:9px 8px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+.fi-stores tr:last-child td{border-bottom:0}
+@media (max-width:1279px){ .fi-row{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:1023px){ .fi-kpis{display:flex} }
+@media (max-width:767px){ .fi-bud li{grid-template-columns:110px minmax(0,1fr)} .fi-bud li span:last-child{grid-column:1 / -1;text-align:left} .fi-card{overflow-x:auto} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="finance/overview" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="finance/overview"></x-import>
+<h1>Finance overview</h1>
+<p class="ph-sub">Sales, costs and cash across the four stores and three bank accounts. All amounts in USD.</p>
+<p class="ph-meta"><span>Last 30 days · September books still open</span><span>Today, Oct 1 · 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportPnl}}"><span class="o-export-label">Export P&amp;L</span></x-import>
+</div>
+</div>
+
+<section class="o-kpis fi-kpis" aria-label="Finance summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static">
+<span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span>
+<span class="o-kpi-value">{{k.value}}</span>
+<span class="o-kpi-foot"><span>{{k.cmp}}</span></span>
+</div>
+</sc-for>
+</section>
+
+<div class="fi-row">
+<div class="fi-col">
+<section class="fi-card" aria-label="Profit and loss">
+<div class="fi-head"><div><h2>Profit and loss</h2><p>{{pnlSub}}</p></div><a href="Expenses.dc.html">Expenses</a></div>
+<table class="fi-pnl"><tbody><sc-for list="{{pnl}}" as="l" hint-placeholder-count="16"><tr class="{{l.cls}}"><td>{{l.label}}</td><td class="{{l.valCls}}">{{l.value}}</td><td>{{l.pct}}</td></tr></sc-for></tbody></table>
+</section>
+
+<section class="fi-card" aria-label="Budget">
+<div class="fi-head"><div><h2>September spend against budget</h2><p>{{budgetSub}}</p></div><a href="Expenses.dc.html?tab=budget">Budgets</a></div>
+<ul class="fi-bud"><sc-for list="{{budget}}" as="b" hint-placeholder-count="9"><li><span>{{b.label}}</span><span class="{{b.meter}}"><span style="{{b.w}}"></span></span><span>{{b.value}}</span></li></sc-for></ul>
+</section>
+</div>
+
+<div class="fi-col">
+<section class="fi-card" aria-label="Needs attention">
+<div class="fi-head"><div><h2>Needs attention</h2><p>{{taskSub}}</p></div></div>
+<ul class="fi-list"><sc-for list="{{tasks}}" as="t" hint-placeholder-count="6"><li><span class="fi-task"><span class="{{t.ico}}" aria-hidden="true"><x-import component-from-global-scope="CommerceOS.Icon" name="{{t.icon}}"></x-import></span><span class="pr-cell-main"><span class="td-strong">{{t.title}}</span><span class="o-sub">{{t.sub}}</span></span></span><a href="{{t.href}}" style="font-size: 13px; white-space: nowrap">{{t.action}}</a></li></sc-for></ul>
+</section>
+
+<section class="fi-card" aria-label="Cash">
+<div class="fi-head"><div><h2>Cash</h2><p>Balances after today’s bank feed, converted to USD</p></div><a href="Transactions.dc.html">Transactions</a></div>
+<ul class="fi-list"><sc-for list="{{accounts}}" as="a" hint-placeholder-count="3"><li><span class="pr-cell-main"><span class="td-strong">{{a.name}}</span><span class="o-sub">{{a.use}}</span></span><span class="fi-side"><span class="fi-big">{{a.balance}}</span><span class="o-sub">{{a.sub}}</span></span></li></sc-for></ul>
+</section>
+
+<section class="fi-card" aria-label="Next 14 days">
+<div class="fi-head"><div><h2>Next 14 days</h2><p>Payouts and invoices coming in, bills going out</p></div></div>
+<div class="fi-flow"><div class="fi-in"><span class="o-sub">Coming in</span><strong>{{flow.inTotal}}</strong><span class="o-sub">{{flow.inSub}}</span></div><div class="fi-out"><span class="o-sub">Going out</span><strong>{{flow.outTotal}}</strong><span class="o-sub">{{flow.outSub}}</span></div></div>
+<ul class="fi-list"><sc-for list="{{flow.items}}" as="i" hint-placeholder-count="6"><li><span class="pr-cell-main"><span>{{i.label}}</span><span class="o-sub">{{i.sub}}</span></span><span class="fi-side"><span class="{{i.cls}}">{{i.amount}}</span><span class="o-sub">{{i.when}}</span></span></li></sc-for></ul>
+</section>
+</div>
+</div>
+
+<section class="fi-card" aria-label="By store">
+<div class="fi-head"><div><h2>By store, last 30 days</h2><p>What each store sold, what it cost to take the money, and where it lands</p></div><a href="Payments.dc.html">Payments</a></div>
+<div style="overflow-x: auto"><table class="fi-stores"><thead><tr><th scope="col">Store</th><th scope="col">Orders</th><th scope="col">Sales</th><th scope="col">Refunds</th><th scope="col">Processing fees</th><th scope="col">Fee rate</th><th scope="col">Paid out to</th></tr></thead>
+<tbody><sc-for list="{{stores2}}" as="r" hint-placeholder-count="4"><tr><td><span class="td-strong">{{r.name}}</span></td><td>{{r.orders}}</td><td>{{r.sales}}</td><td>{{r.refunds}}</td><td>{{r.fees}}</td><td>{{r.rate}}</td><td>{{r.account}}</td></tr></sc-for></tbody></table></div>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store);
+    const P = M.PNL, net = P.gross - P.cancelled - P.refunds, gp = net - P.cogs, opex = Object.keys(P.opex).reduce((a, k) => a + P.opex[k], 0), op = gp - P.fees - opex;
+    const pct = (v) => (v / net * 100).toFixed(1) + '%', neg = (v) => '−' + F.money0(v);
+    const usd = (a) => a.balance;   // finance.js keeps every account in USD
+    const cash = M.ACCOUNTS.reduce((a, x) => a + usd(x), 0);
+    const kpis = [
+      { label: 'Net sales, 30 days', dot: 'cx-dot cx-dot-brand', value: F.money0(net), cmp: F.money0(P.gross) + ' gross, less cancellations and refunds' },
+      { label: 'Gross margin', dot: 'cx-dot cx-dot-success', value: (gp / net * 100).toFixed(1) + '%', cmp: F.money0(gp) + ' after cost of goods' },
+      { label: 'Operating profit, September', dot: op >= 0 ? 'cx-dot cx-dot-success' : 'cx-dot cx-dot-danger', value: (op < 0 ? '−' : '') + F.money0(Math.abs(op)), cmp: pct(op) + ' of net sales · books still open' },
+      { label: 'Cash in the bank', dot: 'cx-dot cx-dot-info', value: F.money0(cash), cmp: 'across ' + M.ACCOUNTS.length + ' accounts · ' + F.money0(M.PAYOUTS.filter((p) => p.status === 'in_transit').reduce((a, p) => a + p.net, 0)) + ' in transit' }
+    ];
+    const row = (label, v, cls, sign) => ({ label, value: sign === '-' ? neg(v) : F.money0(v), pct: pct(v), cls: cls || '', valCls: '' });
+    const pnl = [row('Gross sales', P.gross), row('Cancelled and failed payments', P.cancelled, 'is-sub', '-'), row('Refunds', P.refunds, 'is-sub', '-'), Object.assign(row('Net sales', net, 'is-total'), { pct: '100%' }),
+      row('Cost of goods sold', P.cogs, 'is-sub', '-'), row('Gross profit', gp, 'is-total'), row('Payment processing fees', P.fees, 'is-sub', '-')]
+      .concat(M.CATS.filter((c) => c.key !== 'inventory').map((c) => row(c.label, P.opex[c.key], 'is-sub', '-')))
+      .concat([Object.assign(row('Operating profit', Math.abs(op), 'is-result', op < 0 ? '-' : ''), { valCls: op >= 0 ? 'is-pos' : 'is-neg', pct: pct(op) })]);
+
+    const budget = M.CATS.map((c) => { const spent = M.catSpend(c.key, M.SEP1, M.OCT1), r = spent / c.budget;
+      return { label: c.label, w: 'width: ' + Math.min(100, r * 100).toFixed(0) + '%', meter: 'pr-meter' + (r > 1 ? ' is-bad' : r > 0.95 ? ' is-warn' : ''), value: F.money0(spent) + ' of ' + F.money0(c.budget) }; });
+    const totalSpent = M.CATS.reduce((a, c) => a + M.catSpend(c.key, M.SEP1, M.OCT1), 0), totalBud = M.CATS.reduce((a, c) => a + c.budget, 0);
+
+    const appr = M.EXPENSES.filter((e) => e.status === 'approval'), review = M.EXPENSES.filter((e) => e.status === 'review'), rfA = M.REFUNDS.filter((r) => r.status === 'awaiting'), rfF = M.REFUNDS.filter((r) => r.status === 'failed');
+    const un = M.TX.filter((t) => !t.matched), failed = M.PAYMENTS.filter((p) => p.status === 'failed' && F.NOW - p.ts < 7 * F.DAY), overdue = M.INVOICES.filter((p) => p.invoiceStatus === 'overdue');
+    const sum = (l, k) => l.reduce((a, x) => a + (k ? x[k] : x.amount), 0);
+    const tasks = [
+      { icon: 'file-text', ico: 'fi-ico t-warning', title: F.plural(appr.length, 'bill and claim', 'bills and claims') + ' to approve', sub: F.money2(sum(appr)) + ' · ' + appr.filter((e) => e.claim).length + ' expense claims from the team', href: 'Expenses.dc.html', action: 'Review' },
+      { icon: 'alert-triangle', ico: 'fi-ico t-danger', title: F.plural(review.length, 'supplier invoice') + ' that don’t match', sub: F.money2(sum(review)) + ' billed · matched against Goods Received', href: 'GoodsReceived.dc.html', action: 'Review' },
+      { icon: 'rotate-ccw', ico: 'fi-ico t-info', title: F.plural(rfA.length, 'refund') + ' waiting for approval', sub: F.money2(sum(rfA)) + ' · returns received and inspected', href: 'Refunds.dc.html', action: 'Approve' },
+      { icon: 'x', ico: 'fi-ico t-danger', title: F.plural(rfF.length, 'refund') + ' failed', sub: F.money2(sum(rfF)) + ' · bKash wallets closed', href: 'Refunds.dc.html?tab=failed', action: 'Fix' },
+      { icon: 'refresh', ico: 'fi-ico t-brand', title: F.plural(un.length, 'bank transaction') + ' to match', sub: 'including a Stripe chargeback of $312.40', href: 'Transactions.dc.html?tab=unmatched', action: 'Match' },
+      { icon: 'credit-card', ico: 'fi-ico t-warning', title: F.plural(failed.length, 'failed payment') + ' this week', sub: F.money2(sum(failed)) + ' in orders on hold until customers pay', href: 'Payments.dc.html?tab=failed', action: 'View' }
+    ].concat(overdue.length ? [{ icon: 'clock', ico: 'fi-ico t-danger', title: F.plural(overdue.length, 'wholesale invoice') + ' overdue', sub: F.money2(sum(overdue)), href: 'Payments.dc.html?tab=invoices', action: 'Chase' }] : []);
+
+    const accounts = M.ACCOUNTS.map((a) => ({ name: a.name, use: a.use, balance: F.money0(usd(a)), sub: a.currency === 'USD' ? 'USD' : a.currency === 'EUR' ? '€' + F.int(a.balance / EUR) + ' at ' + EUR.toFixed(3) : '৳' + F.int(a.balance * BDT) + ' at ' + BDT }));
+
+    const end = F.NOW + 14 * F.DAY;
+    const ins = M.PAYOUTS.filter((p) => p.status !== 'paid' && p.date <= end).map((p) => ({ label: p.processor + ' payout', sub: M.ACC[p.account].name + (p.reserve ? ' · ' + F.money0(p.reserve) + ' held in reserve' : ''), amount: '+' + F.money0(p.net - (p.reserve || 0)), when: day(p.date), ts: p.date, v: p.net - (p.reserve || 0), cls: 'fi-in-v' }))
+      .concat(M.INVOICES.filter((p) => (p.invoiceStatus === 'open' || p.invoiceStatus === 'overdue') && p.due <= end).map((p) => ({ label: 'Invoice ' + p.invoice, sub: p.customer, amount: '+' + F.money0(p.net), when: 'due ' + day(p.due), ts: p.due, v: p.net, cls: '' })));
+    const outs = M.EXPENSES.filter((e) => (e.status === 'scheduled' || e.status === 'approval') && e.due && e.due <= end).map((e) => ({ label: e.vendor, sub: e.desc, amount: '−' + F.money0(e.amount), when: 'due ' + day(e.due), ts: e.due, v: e.amount, cls: '' }));
+    const items = ins.concat(outs).sort((a, b) => b.v - a.v).slice(0, 6);
+    const flow = { inTotal: F.money0(ins.reduce((a, x) => a + x.v, 0)), inSub: F.plural(ins.length, 'payout and invoice', 'payouts and invoices'), outTotal: F.money0(outs.reduce((a, x) => a + x.v, 0)), outSub: F.plural(outs.length, 'bill'), items };
+
+    const stores2 = ['Fernhill US', 'Fernhill EU', 'Wholesale', 'Amazon US'].map((ch) => { const ps = M.PAYMENTS.filter((p) => p.channel === ch), sales = ps.reduce((a, p) => a + p.amount, 0), fees = ps.reduce((a, p) => a + p.fee, 0), rf = M.REFUNDS.filter((r) => r.channel === ch && r.status !== 'awaiting' && r.status !== 'failed').reduce((a, r) => a + r.amount, 0);
+      const accs = Array.from(new Set(ps.map((p) => M.ACC[p.account].name.split(' ••')[0])));
+      return { name: ch, orders: F.int(ps.length), sales: F.money0(sales), refunds: F.money0(rf), fees: F.money0(fees), rate: (fees / sales * 100).toFixed(2) + '%', account: accs.join(', ') }; });
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      kpis, pnl, pnlSub: 'Sales from the last 30 days of orders; costs from September bills. Inventory is costed at what was sold.',
+      budget, budgetSub: F.money0(totalSpent) + ' of ' + F.money0(totalBud) + ' budgeted · inventory counts invoices received',
+      tasks, taskSub: F.plural(tasks.length, 'thing') + ' for the finance team today', accounts, flow, stores2,
+      exportPnl: () => this.showToast('Exporting the September P&L', 'CSV and PDF with each line broken down by store and category.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- finance overview: Fernhill finance (finance.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, M = window.FernhillFinance, CommerceOS = window.CommerceOS;
+var EUR = 1.084, BDT = 119.6;   /* finance.js keeps balances in USD; EUR and BDT lines also show the local amount at today’s rate */
+function day(ts) { return ts >= F.DAY0 && ts < F.DAY0 + F.DAY ? 'today' : ts >= F.DAY0 + F.DAY && ts < F.DAY0 + 2 * F.DAY ? 'tomorrow' : F.fmtDate(ts).replace(', 2026', ''); }
+</script>
+</body>
+</html>

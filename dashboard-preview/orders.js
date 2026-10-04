@@ -41,7 +41,9 @@
   function fmtDate(ts) { var d = new Date(ts); return MON[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear(); }
   function fmtWhen(ts) { var d = new Date(ts), t = pad2(d.getUTCHours()) + ':' + pad2(d.getUTCMinutes()); if (ts >= DAY0) return 'Today, ' + t; if (ts >= DAY0 - 864e5) return 'Yesterday, ' + t; return MON[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + t; }
   function hoursAgo(ts) { return (NOW - ts) / 36e5; }
-  function buildOrders() {
+  /* only the trade accounts order through Wholesale; retail orders pick a retail store (same random draw as before) */
+function retailChannel(x) { var c = CHANNELS[Math.floor(x * 4)]; return c === 'Wholesale' ? 'Fernhill US' : c; }
+function buildOrders() {
     var r = rng(20261001);
     // age in days drawn per stage, then sorted: newest first. Deterministic in every engine.
     var AGE = { pending: [0, 2.2], confirmed: [0.1, 1.6], processing: [0.3, 3.2], ready_to_ship: [0.6, 2.6], shipped: [1, 16], delivered: [5, 25], returned: [9, 21], cancelled: [0, 30] };
@@ -74,7 +76,7 @@
       if (stage === 'ready_to_ship' && age > 36 && r() < 0.5) { delayed = true; delayNote = 'Missed carrier pickup, waiting ' + Math.round(age) + 'h'; }
       if (stage === 'shipped' && age > 24 * 9 && r() < 0.006) { delayed = true; delayNote = 'Delivery exception reported by carrier'; }
       out.push({ id: '', stage: stage, status: f.status, fulfillment: f.fulfillment, payment: payment, ts: ts, customer: name, email: email, phone: phone, items: items, total: Math.round(total * 100) / 100,
-        skus: skus, warehouse: wh, channel: b2b ? 'Wholesale' : bd ? (r() < 0.5 ? 'Fernhill US' : 'Fernhill EU') : CHANNELS[Math.floor(r() * 4)], payMethod: payMethod, delivery: delivery,
+        skus: skus, warehouse: wh, channel: b2b ? 'Wholesale' : bd ? (r() < 0.5 ? 'Fernhill US' : 'Fernhill EU') : retailChannel(r()), payMethod: payMethod, delivery: delivery,
         carrier: CARRIERS[delivery], delayed: delayed, delayNote: delayNote, owner: TEAM[Math.floor(r() * TEAM.length)] });
     }
     out.sort(function (a, b) { return b.ts - a.ts; });

@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="ds/commerceos/shell/shell.js?v=9"></script>
 </head>
 <body>
 <x-dc>
@@ -738,22 +738,23 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state, D = this.data;
     const store = STORES.find((x) => x.key === s.store);
-    const f = store.factor;
+    /* each store's share of revenue, orders and customers differs (wholesale is few, large orders) */
+    const rf = store.rf, f = store.of, cf = store.cf;
     const R = resolveRange(s, D);
-    const scale = (arr, round) => arr.map((v) => (round ? Math.round(v * f) : v * f));
-    const cur = { rev: scale(R.cur.rev), ord: scale(R.cur.ord, true) };
-    const prev = { rev: scale(R.prev.rev), ord: scale(R.prev.ord, true) };
+    const scale = (arr, k, round) => arr.map((v) => (round ? Math.round(v * k) : v * k));
+    const cur = { rev: scale(R.cur.rev, rf), ord: scale(R.cur.ord, f, true) };
+    const prev = { rev: scale(R.prev.rev, rf), ord: scale(R.prev.ord, f, true) };
     const sum = (a) => a.reduce((x, y) => x + y, 0);
     const sales = sum(cur.rev), pSales = sum(prev.rev), orders = sum(cur.ord), pOrders = sum(prev.ord);
     const aov = orders ? sales / orders : 0, pAov = pOrders ? pSales / pOrders : 0;
-    const cust = Math.round(R.cust.cur * f), pCust = Math.round(R.cust.prev * f);
+    const cust = Math.round(R.cust.cur * cf), pCust = Math.round(R.cust.prev * cf);
     const aovSeries = cur.rev.map((v, i) => (cur.ord[i] ? v / cur.ord[i] : null));
     const pAovSeries = prev.rev.map((v, i) => (prev.ord[i] ? v / prev.ord[i] : null));
 
     const kpis = [
       kpi('Total sales', money0(sales), sales, pSales, 'vs ' + money0(pSales) + ' ' + R.cmpShort, cur.rev, 'Gross sales after discounts, before refunds and tax.'),
       kpi('Orders', int(orders), orders, pOrders, 'vs ' + int(pOrders) + ' ' + R.cmpShort, cur.ord, 'Orders placed, including those cancelled later.'),
-      kpi('Customers', int(cust), cust, pCust, int(cust - pCust) + ' new ' + R.newShort, R.cust.trend.map((v) => v * f), 'Customers with at least one order, all time.'),
+      kpi('Customers', int(cust), cust, pCust, int(cust - pCust) + ' new ' + R.newShort, R.cust.trend.map((v) => v * cf), 'Customers with at least one order, all time.'),
       kpi('Average order value', money2(aov), aov, pAov, 'vs ' + money2(pAov) + ' ' + R.cmpShort, aovSeries.filter((v) => v != null), 'Total sales divided by orders.')
     ];
 
@@ -998,7 +999,7 @@ function buildData() {
     rev.push(base * wk * (1 + 0.06 * Math.sin(i * 1.7) + 0.03 * Math.cos(i * 0.9)) * (promo ? 1.22 : 1));
     ord.push(base * wk * (1 + 0.05 * Math.sin(i * 1.3 + 1)) * (promo ? 1.3 : 1));
   }
-  var R = scaleTo(rev.slice(0, 30), 120951).concat(scaleTo(rev.slice(30), 128450));
+  var R = scaleTo(rev.slice(0, 30), 804813).concat(scaleTo(rev.slice(30), 820443));   // the Orders page's 30 days add up to $820,443
   var O = scaleTo(ord.slice(0, 30), 2613, true).concat(scaleTo(ord.slice(30), 2846, true));
   var N = scaleTo(O.slice(0, 30), 381, true).concat(scaleTo(O.slice(30), 412, true));
   return { rev: R, ord: O, newc: N };
@@ -1044,11 +1045,12 @@ var RANGES = [
   { key: 'month', label: 'This month', sub: 'Oct 1 – today' }, { key: 'custom', label: 'Custom range…', sub: 'Pick start and end dates' }
 ];
 var STORES = [
-  { key: 'all', label: 'All stores', sub: '4 stores · USD', icon: 'store', factor: 1 },
-  { key: 'us', label: 'Fernhill US', sub: 'Shopify · fernhill.co', icon: 'shopping-bag', factor: 0.52 },
-  { key: 'eu', label: 'Fernhill EU', sub: 'Shopify · fernhill.eu', icon: 'shopping-bag', factor: 0.27 },
-  { key: 'wholesale', label: 'Wholesale', sub: 'B2B portal', icon: 'factory', factor: 0.13 },
-  { key: 'amazon', label: 'Amazon US', sub: 'Marketplace', icon: 'tag', factor: 0.08 }
+  /* rf, of, cf: share of revenue, orders and customers, from the Orders page and the customer base */
+  { key: 'all', label: 'All stores', sub: '4 stores · USD', icon: 'store', factor: 1, rf: 1, of: 1, cf: 1 },
+  { key: 'us', label: 'Fernhill US', sub: 'Shopify · fernhill.co', icon: 'shopping-bag', factor: 0.49, rf: 0.2598, of: 0.4891, cf: 0.5516 },
+  { key: 'eu', label: 'Fernhill EU', sub: 'Shopify · fernhill.eu', icon: 'shopping-bag', factor: 0.37, rf: 0.1968, of: 0.3728, cf: 0.3328 },
+  { key: 'wholesale', label: 'Wholesale', sub: 'B2B portal', icon: 'factory', factor: 0.04, rf: 0.4893, of: 0.0390, cf: 0.0008 },
+  { key: 'amazon', label: 'Amazon US', sub: 'Marketplace', icon: 'tag', factor: 0.10, rf: 0.0541, of: 0.0991, cf: 0.1149 }
 ];
 var USER = { name: 'Priya Natarajan', role: 'Operations Manager', email: 'priya@fernhill.co', initials: 'PN' };
 function navLabel(path) { const r = window.CommerceOS.navResolve(path); return r.page ? r.page.label : r.module ? r.module.label : path; }
@@ -1105,10 +1107,10 @@ var SEARCH = [
   { type: 'orders', icon: 'shopping-bag', title: 'SO-48150', code: true, meta: 'Nora Whitfield · Fernhill EU · Sep 18', side: '$152.00', status: 'delivered' },
   { type: 'orders', icon: 'shopping-bag', title: 'SO-48102', code: true, meta: 'Northwind Retail · Wholesale · Sep 9', side: '$6,215.00', status: 'delivered' },
   { type: 'orders', icon: 'shopping-bag', title: 'SO-48061', code: true, meta: 'Northwind Retail · Wholesale · Sep 2', side: '$9,870.00', status: 'delivered' },
-  { type: 'customers', icon: 'users', title: 'Northwind Retail', meta: 'B2B · 46 orders · $182,400 lifetime', side: 'Net 30' },
+  { type: 'customers', icon: 'users', title: 'Northwind Retail', meta: 'B2B · 71 orders · $269,877 lifetime', side: 'Net 30' },
   { type: 'customers', icon: 'users', title: 'Lena Okafor', meta: 'lena.okafor@mail.com · 7 orders · $1,204 lifetime' },
   { type: 'customers', icon: 'users', title: 'Nora Whitfield', meta: 'nora.w@mail.com · 3 orders · $388 lifetime' },
-  { type: 'customers', icon: 'users', title: 'Harbor & Pine Co.', meta: 'B2B · 12 orders · $41,760 lifetime', side: 'Net 30' },
+  { type: 'customers', icon: 'users', title: 'Harbor & Pine Co.', meta: 'B2B · 33 orders · $118,806 lifetime', side: 'Net 30' },
   { type: 'products', icon: 'tag', title: 'North Sea rain shell', meta: '6 variants · 1,140 on hand · overstocked', side: '$148.00' },
   { type: 'products', icon: 'tag', title: 'Merino crew tee', meta: '12 variants · 1,284 on hand', side: '$58.00' },
   { type: 'products', icon: 'tag', title: 'Linen overshirt', meta: '8 variants · 212 on hand', side: '$96.00' },

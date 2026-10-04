@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Transactions · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=9"></script>
+<script src="./catalog.js?v=3"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./procurement.js?v=1"></script>
+<script src="./fulfillment.js?v=1"></script>
+<script src="./returns.js?v=1"></script>
+<script src="./finance.js?v=2"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* ---------- Transactions ---------- */
+.tx-accts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tx-acct{display:flex;flex-direction:column;gap:2px;padding:14px 16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;min-width:0}
+.tx-acct:hover{border-color:var(--border-strong)}
+.tx-acct[aria-pressed="true"]{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.tx-acct:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.tx-acct strong{font-size:22px;line-height:28px;font-weight:600;font-variant-numeric:tabular-nums}
+.tx-acct.is-warn strong{color:var(--warning)}
+.tx-in{color:var(--success);font-weight:500}
+.tx-out{color:var(--text-primary)}
+.tx-bank{font-family:var(--font-mono);font-size:12px}
+.tx-desc{white-space:normal;min-width:240px}
+.tx-sugg{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.tx-sugg li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;line-height:18px}
+.tx-sugg .pr-cell-main{min-width:0}
+@media (max-width:1279px){ .c-bal{display:none} .tx-accts{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:1023px){ .c-acct{display:none} }
+@media (max-width:767px){ .tx-accts{grid-template-columns:1fr 1fr} .o-head-actions{flex-wrap:wrap} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="finance/transactions" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="finance/transactions"></x-import>
+<h1>Transactions</h1>
+<p class="ph-sub">Every movement on the bank accounts, matched to the payout, invoice or bill behind it. Amounts in USD.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Bank feed synced {{synced}}</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="refresh" on-click="{{sync}}">Sync bank feed</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<section class="tx-accts" aria-label="Accounts">
+<sc-for list="{{accounts}}" as="a" hint-placeholder-count="4"><button class="{{a.cls}}" aria-pressed="{{a.on}}" onClick="{{a.pick}}"><span class="o-sub">{{a.name}}</span><strong>{{a.value}}</strong><span class="o-sub">{{a.sub}}</span></button></sc-for>
+</section>
+
+<section class="o-card" aria-label="Transactions">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Transaction type" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1"><div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search bank text, payout, invoice or vendor" label="Search transactions" value="{{query}}" on-change="{{setQuery}}"></x-import></div></div></div>
+<sc-if value="{{shown}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll">
+<table class="o-table" aria-label="Transactions">
+<thead><tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col">Matched to</th><th class="c-acct" scope="col">Account</th><th class="is-right" scope="col">Amount</th><th class="is-right c-bal" scope="col">Balance</th><th class="c-act" scope="col" style="width: auto"><span class="cx-sr">Action</span></th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="15"><tr>
+<td><span>{{r.date}}</span><span class="o-sub">{{r.time}}</span></td>
+<td class="tx-desc"><span class="tx-bank">{{r.bank}}</span><span class="o-sub">{{r.kind}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}" icon="{{r.icon}}">{{r.match}}</x-import><span class="o-sub">{{r.matchSub}}</span></td>
+<td class="c-acct">{{r.account}}</td>
+<td class="is-right"><span class="{{r.amtCls}}">{{r.amount}}</span></td>
+<td class="is-right c-bal">{{r.balance}}</td>
+<td class="c-act" style="width: auto; padding-right: 12px"><x-import component-from-global-scope="CommerceOS.Button" variant="{{r.btnVariant}}" size="sm" on-click="{{r.open}}">{{r.btnLabel}}</x-import></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<ul class="o-m-list" aria-label="Transactions"><sc-for list="{{rows}}" as="r" hint-placeholder-count="8"><li class="o-m-card"><div class="o-m-top"><span class="tx-bank" style="flex: 1">{{r.bank}}</span><span class="{{r.amtCls}}">{{r.amount}}</span></div><div class="o-m-mid"><div><span class="o-sub">{{r.date}} · {{r.account}}</span></div><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}">{{r.match}}</x-import></div></li></sc-for></ul>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="transactions" on-page-change="{{setPage}}" on-page-size-change="{{setPageSize}}"></x-import></div>
+</sc-if>
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="check-circle" title="{{emptyTitle}}" description="{{emptyDesc}}"></x-import></sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close transaction" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="tx-dp-title">
+<div class="o-panel-head"><div class="pr-cell-main"><h2 class="o-panel-title" id="tx-dp-title">{{dp.amount}} · {{dp.account}}</h2><span class="o-sub tx-bank">{{dp.bank}}</span></div><button class="icon-btn" aria-label="Close transaction" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec">
+<div style="display: flex; gap: 8px; align-items: center"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" icon="{{dp.icon}}">{{dp.match}}</x-import><span class="o-sub">{{dp.when}}</span></div>
+<sc-if value="{{dp.hint}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="info" title="Suggestion">{{dp.hint}}</x-import></sc-if>
+<dl class="dp-kv"><sc-for list="{{dp.kv}}" as="k" hint-placeholder-count="5"><dt>{{k.k}}</dt><dd>{{k.v}}</dd></sc-for></dl>
+</section>
+<sc-if value="{{dp.hasSugg}}" hint-placeholder-val="{{false}}">
+<section class="o-panel-sec"><h3>{{dp.suggTitle}}</h3>
+<ul class="tx-sugg"><sc-for list="{{dp.sugg}}" as="g" hint-placeholder-count="3"><li><span class="pr-cell-main"><span class="td-strong">{{g.label}}</span><span class="o-sub">{{g.sub}}</span></span><x-import component-from-global-scope="CommerceOS.Button" variant="{{g.variant}}" size="sm" on-click="{{g.go}}">{{g.cta}}</x-import></li></sc-for></ul>
+</section>
+</sc-if>
+</div>
+<sc-if value="{{dp.unmatched}}" hint-placeholder-val="{{false}}"><div class="o-panel-foot"><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="x" on-click="{{dp.exclude}}">Exclude from books</x-import></div><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="file-text" on-click="{{dp.asExpense}}">Record as expense</x-import></div></div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const q = new URLSearchParams(window.location.search), t = q.get('tab');
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null,
+      account: '', tab: ['all', 'in', 'out', 'unmatched'].indexOf(t) >= 0 ? t : 'all', query: '', page: 1, pageSize: 25, matched: {}, detail: null, syncedAt: F.NOW - 12 * 6e4 };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape') { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+  resolve(t, label, title, msg) { this.setState((s) => ({ matched: Object.assign({}, s.matched, { [t.id]: label }), detail: null })); this.showToast(title, msg); }
+  isMatched(t) { return t.matched || !!this.state.matched[t.id]; }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store);
+    const q = s.query.trim().toLowerCase();
+    const scoped = M.TX.filter((t) => !s.account || t.account === s.account);
+    const inTab = (t, k) => k === 'all' || (k === 'in' ? t.amount > 0 : k === 'out' ? t.amount < 0 : !this.isMatched(t));
+    const searched = scoped.filter((t) => !q || [t.desc, t.match || '', t.cp || ''].some((v) => v.toLowerCase().indexOf(q) >= 0));
+    const list = searched.filter((t) => inTab(t, s.tab));
+    const pages = Math.max(1, Math.ceil(list.length / s.pageSize)), page = Math.min(s.page, pages);
+    const KIND = { payout: 'Processor payout', wire: 'Customer wire', expense: 'Bill payment', refund: 'Refund', transfer: 'Transfer between accounts', fee: 'Bank or processor fee' };
+    const rows = list.slice((page - 1) * s.pageSize, page * s.pageSize).map((t) => { const ok = this.isMatched(t), custom = s.matched[t.id];
+      return { date: day(t.ts), time: new Date(t.ts).toISOString().slice(11, 16) + ' UTC', bank: bankText(t), kind: KIND[t.kind] + (t.cp ? ' · ' + t.cp : ''), match: ok ? (custom || t.match) : 'Unmatched', matchSub: ok ? (custom ? 'matched today' : '') : 'needs a record',
+        tone: ok ? 'success' : 'warning', icon: ok ? 'check' : 'alert-triangle', account: M.ACC[t.account].name, amount: (t.amount > 0 ? '+' : '−') + F.money2(Math.abs(t.amount)), amtCls: t.amount > 0 ? 'tx-in' : 'tx-out', balance: F.money2(t.balance),
+        btnLabel: ok ? 'View' : 'Match', btnVariant: ok ? 'ghost' : 'primary', open: () => this.setState({ detail: t.id }) }; });
+    const un = M.TX.filter((t) => !this.isMatched(t));
+    const accounts = M.ACCOUNTS.map((a) => ({ name: a.name, value: F.money0(a.balance), sub: a.currency + ' account · ' + F.plural(M.TX.filter((t) => t.account === a.key && !this.isMatched(t)).length, 'unmatched', 'unmatched'), on: s.account === a.key, cls: 'tx-acct',
+      pick: () => this.setState({ account: s.account === a.key ? '' : a.key, page: 1 }) }))
+      .concat([{ name: 'To match', value: F.int(un.length), sub: un.length ? F.money2(un.reduce((a, t) => a + Math.abs(t.amount), 0)) + ' in and out' : 'Everything reconciled', on: s.tab === 'unmatched', cls: 'tx-acct' + (un.length ? ' is-warn' : ''), pick: () => this.setState({ tab: 'unmatched', account: '', page: 1 }) }]);
+    const tabs = [{ id: 'all', label: 'All' }, { id: 'in', label: 'Money in' }, { id: 'out', label: 'Money out' }, { id: 'unmatched', label: 'Unmatched' }].map((t) => ({ id: t.id, label: t.label, count: F.int(searched.filter((x) => inTab(x, t.id)).length) }));
+
+    let dp = null;
+    if (s.detail) {
+      const t = M.TX.find((x) => x.id === s.detail), ok = this.isMatched(t);
+      let sugg = [], suggTitle = '';
+      if (!ok) {
+        if (t.kind === 'wire' && t.amount > 0) { suggTitle = 'Open invoices from ' + t.cp;
+          sugg = M.INVOICES.filter((p) => p.customer === t.cp && (p.invoiceStatus === 'open' || p.invoiceStatus === 'overdue')).sort((a, b) => Math.abs(a.amount - t.amount) - Math.abs(b.amount - t.amount)).slice(0, 3)
+            .map((p) => { const part = p.amount > t.amount; return { label: p.invoice + ' · ' + F.money2(p.amount), sub: 'due ' + F.fmtDate(p.due) + (part ? ' · would leave ' + F.money2(p.amount - t.amount) + ' open' : ' · ' + F.money2(t.amount - p.amount) + ' left as account credit'), cta: part ? 'Apply as part payment' : 'Settle it', variant: 'secondary',
+              go: () => this.resolve(t, p.invoice + (part ? ' (part)' : ''), (part ? 'Applied to ' : 'Settled ') + p.invoice, part ? F.money2(t.amount) + ' recorded; ' + F.money2(p.amount - t.amount) + ' is still open on the invoice.' : 'Paid in full; ' + F.money2(t.amount - p.amount) + ' sits on ' + t.cp + (/s$/.test(t.cp) ? '’' : '’s') + ' account for the next invoice.') }; }); }
+        else if (t.kind === 'payout') { suggTitle = 'bKash payouts around that date';
+          sugg = M.PAYOUTS.filter((g) => g.processor === 'bKash').sort((a, b) => Math.abs(a.date - t.ts) - Math.abs(b.date - t.ts)).slice(0, 2).map((g) => ({ label: g.id + ' · ' + F.money2(g.net), sub: day(g.date), cta: 'Match as adjustment', variant: 'secondary',
+            go: () => this.resolve(t, g.id + ' (adj.)', 'Matched to ' + g.id, 'Recorded as a settlement adjustment on that payout.') })); }
+        else if (/DISPUTE/.test(t.desc)) { suggTitle = 'Chargeback';
+          sugg = [{ label: 'Respond with proof of delivery', sub: 'Stripe gives 7 days. The tracking shows it was delivered.', cta: 'Respond', variant: 'primary', go: () => this.resolve(t, 'DP-88213', 'Dispute response sent to Stripe', 'With the order, tracking and delivery scan. Stripe decides within 60 days.') }]; }
+        else { suggTitle = 'Record it';
+          const cat = /LINKEDIN/.test(t.desc) ? 'marketing' : /IKEA/.test(t.desc) ? 'facilities' : 'professional';
+          sugg = [{ label: 'New expense: ' + M.CAT[cat].label, sub: t.cp + ' · ' + F.money2(Math.abs(t.amount)), cta: 'Create and match', variant: 'primary', go: () => this.resolve(t, 'New expense', 'Expense created and matched', t.cp + ' recorded under ' + M.CAT[cat].label + '.') }]; }
+      }
+      const rec = t.kind === 'payout' && t.matched ? M.PAYOUTS.find((g) => g.id === t.match) : null;
+      dp = { amount: (t.amount > 0 ? '+' : '−') + F.money2(Math.abs(t.amount)), account: M.ACC[t.account].name, bank: bankText(t), match: ok ? 'Matched' : 'Unmatched', tone: ok ? 'success' : 'warning', icon: ok ? 'check' : 'alert-triangle', when: F.fmtWhen(t.ts),
+        hint: !ok ? t.hint : null, unmatched: !ok, hasSugg: sugg.length > 0, sugg, suggTitle,
+        kv: [{ k: 'Type', v: KIND[t.kind] }, { k: 'Counterparty', v: t.cp || '—' }, { k: 'Matched to', v: ok ? (s.matched[t.id] || t.match) + (rec ? ' · ' + F.plural(rec.payments.length, 'payment') : '') : 'Nothing yet' }, { k: 'Balance after', v: F.money2(t.balance) }, { k: 'Bank reference', v: t.id }],
+        exclude: () => this.resolve(t, 'Excluded', 'Excluded from the books', 'It stays in the bank feed but won’t count in reports.'),
+        asExpense: () => this.resolve(t, 'New expense', 'Expense created and matched', 'Find it under Expenses to add a category and receipt.') };
+    }
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(scoped.length, 'transaction') + ' in 30 days' + (s.account ? ' · ' + M.ACC[s.account].name : ' · 3 accounts'), synced: F.timeAgo(s.syncedAt),
+      sync: () => { this.setState({ syncedAt: F.NOW - 6e4 }); this.showToast('Bank feeds synced', 'Chase, Wise and BRAC Bank are up to date. Nothing new since 09:30.'); },
+      accounts, tabs, tab: s.tab, setTab: (id) => this.setState({ tab: id, page: 1 }), query: s.query, setQuery: (v) => this.setState({ query: v, page: 1 }),
+      rows, shown: rows.length > 0, empty: rows.length === 0, page, pageSize: s.pageSize, total: list.length, setPage: (n) => this.setState({ page: n }), setPageSize: (n) => this.setState({ pageSize: Number(n), page: 1 }),
+      emptyTitle: s.tab === 'unmatched' ? 'Everything is matched' : 'No transactions match', emptyDesc: s.tab === 'unmatched' ? 'New bank lines appear here until they’re matched to a record.' : 'Try another account or search.',
+      dp, closeDetail: () => this.setState({ detail: null }),
+      exportView: () => this.showToast('Exporting ' + F.plural(list.length, 'transaction'), 'CSV in the bank feed format with the matched record for each line.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- transactions: Fernhill finance (finance.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, M = window.FernhillFinance, CommerceOS = window.CommerceOS;
+function day(ts) { return ts >= F.DAY0 && ts < F.DAY0 + F.DAY ? 'Today' : ts >= F.DAY0 - F.DAY && ts < F.DAY0 ? 'Yesterday' : F.fmtDate(ts).replace(', 2026', ''); }
+/* how the bank feed words it */
+function bankText(t) {
+  if (!t.matched) return t.desc;
+  var d = t.desc.toUpperCase();
+  if (t.kind === 'payout') return (t.cp === 'Stripe' ? 'STRIPE TRANSFER ST-' : t.cp === 'PayPal' ? 'PAYPAL TRANSFER ' : t.cp === 'Amazon' ? 'AMAZON.COM SERVICES PAYMT ' : t.cp === 'bKash' ? 'BKASH MERCHANT SETTL ' : 'PATHAO COD REMIT ') + t.match.split('-').pop();
+  if (t.kind === 'wire') return 'WIRE IN ' + t.cp.toUpperCase().replace(/[^A-Z ]/g, '').slice(0, 18) + ' ' + t.match;
+  if (t.kind === 'expense') return 'ACH DEBIT ' + t.cp.toUpperCase().replace(/[^A-Z ]/g, '').slice(0, 22);
+  if (t.kind === 'refund') return 'BKASH B2C REFUND ' + t.match;
+  return d.slice(0, 40);
+}
+</script>
+</body>
+</html>

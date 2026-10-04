@@ -9,9 +9,10 @@
 <link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=8"></script>
+<script src="ds/commerceos/shell/shell.js?v=9"></script>
 <script src="./catalog.js?v=3"></script>
-<script src="./customers.js?v=1"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./customers.js?v=2"></script>
 </head>
 <body>
 <x-dc>
@@ -222,7 +223,7 @@ class Component extends DCLogic {
     const nonRetail = base.filter((c) => this.groupOf(c) !== 'retail');
     const discount = base.reduce((a, c) => { const g = s.groups.find((x) => x.key === this.groupOf(c)); return a + (g && g.discount && g.discount < 100 ? c.rev30 * g.discount / (100 - g.discount) : 0); }, 0);
     const terms = base.filter((c) => { const g = s.groups.find((x) => x.key === this.groupOf(c)); return g && g.terms.indexOf('Net') === 0; });
-    const vip = by.vip || [], nearVip = base.filter((c) => this.groupOf(c) === 'retail' && c.spent >= 800 && c.spent < 1000);
+    const vip = by.vip || [], nearVip = base.filter((c) => this.groupOf(c) === 'retail' && c.spent >= 1800 && c.spent < 2000);
     const kpis = [
       { label: 'In a group other than Retail', dot: 'cx-dot cx-dot-brand', value: F.int(nonRetail.length), cmp: (nonRetail.length / Math.max(1, n) * 100).toFixed(1) + '% of ' + F.int(n) + ' customers' },
       { label: 'Group discounts, 30 days', dot: 'cx-dot cx-dot-warning', value: F.money0(discount), cmp: 'given at checkout on ' + F.money0(base.filter((c) => this.groupOf(c) !== 'retail').reduce((a, c) => a + c.rev30, 0)) + ' of sales' },
