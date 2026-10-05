@@ -6,9 +6,9 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=10"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
 </head>
 <body>
 <x-dc>
@@ -17,7 +17,7 @@
 body{margin:0;background:var(--bg-canvas)}
 .app{background:var(--bg-canvas);color:var(--text-primary);font-family:var(--font-sans);font-size:14px;line-height:20px}
 .main{display:flex;flex-direction:column}
-.top{position:sticky;top:0;z-index:20;height:56px;display:flex;align-items:center;gap:12px;padding:0 24px;background:var(--bg-surface);border-bottom:1px solid var(--border)}
+.top{position:sticky;top:0;z-index:20;height:56px;display:flex;align-items:center;gap:12px;padding:0 32px;background:var(--bg-surface);border-bottom:1px solid var(--border)}
 .icon-btn{flex:none;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);cursor:pointer}
 .icon-btn:hover{background:var(--bg-muted);color:var(--text-primary)}
 .icon-btn:focus-visible,.search-trigger:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
@@ -31,7 +31,7 @@ body{margin:0;background:var(--bg-canvas)}
 .ph{display:flex;flex-direction:column;gap:6px}
 .ph h1{margin:0;font-size:24px;line-height:32px;font-weight:600;letter-spacing:-0.01em}
 .ph p{margin:0;color:var(--text-secondary)}
-.panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:20px 24px}
+.panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px}
 .panel h2{margin:0 0 12px;font-size:14px;line-height:20px;font-weight:600}
 .loc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0}
 .loc div{padding:12px 16px;border-radius:var(--radius-sm);background:var(--bg-subtle)}
@@ -45,7 +45,7 @@ body{margin:0;background:var(--bg-canvas)}
 .note{color:var(--text-muted);font-size:13px}
 @media (max-width:767px){
   .only-drawer{display:inline-flex}
-  .top{padding:0 8px;gap:4px}
+  .top{padding:0 16px;gap:4px}
   .st-text{display:none}
   .search-trigger{flex:none;width:36px;padding:0;justify-content:center;border:0}
   .page{padding:16px 16px 32px}

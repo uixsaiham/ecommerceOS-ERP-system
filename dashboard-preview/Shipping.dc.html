@@ -6,11 +6,11 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=10"></script>
-<script src="./catalog.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="./catalog.js?v=4"></script>
 <script src="./inventory.js?v=8"></script>
 <script src="./orders.js?v=2"></script>
 <script src="./fulfillment.js?v=1"></script>
@@ -22,7 +22,7 @@
 /* ---------- Shipping ---------- */
 .sh-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
 .sh-slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.sh-slot{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font-size:13px;line-height:18px;min-width:0}
+.sh-slot{display:flex;flex-direction:column;gap:2px;padding:12px 20px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font-size:13px;line-height:18px;min-width:0}
 .sh-slot strong{font-size:18px;line-height:24px;font-variant-numeric:tabular-nums}
 .sh-slot.is-done{background:var(--bg-subtle);color:var(--text-muted)}
 .sh-slot.is-done strong{color:var(--text-muted)}
@@ -30,10 +30,10 @@
 .sh-trk{font-family:var(--font-mono);font-size:12px}
 .sh-bad{color:var(--danger);font-weight:500}
 .sh-row-acts{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
-.sh-sum{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-subtle);font-size:13px;line-height:18px}
+.sh-sum{display:flex;flex-direction:column;gap:6px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-subtle);font-size:13px;line-height:18px}
 .sh-sum div{display:flex;justify-content:space-between;gap:12px}
 .sh-sum strong{font-variant-numeric:tabular-nums}
-.sh-hand{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg-subtle);font-size:13px;flex-wrap:wrap}
+.sh-hand{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg-subtle);font-size:13px;flex-wrap:wrap}
 @media (max-width:1279px){ .c-box{display:none} }
 @media (max-width:1023px){ .sh-kpis{display:flex} .sh-slots{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:767px){ .o-head-actions{flex-wrap:wrap} }

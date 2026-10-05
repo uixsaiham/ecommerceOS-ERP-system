@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Preferences · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="./catalog.js?v=4"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+.pr-wrap{display:flex;flex-direction:column;gap:16px}
+.pr-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0;scroll-margin-top:16px}
+.pr-card-h{padding:16px 20px;border-bottom:1px solid var(--border)}
+.pr-card-h h2{margin:0;font-size:16px;line-height:24px;font-weight:600}
+.pr-card-h p{margin:2px 0 0;font-size:13px;line-height:18px;color:var(--text-secondary)}
+.pr-card-b{padding:16px 20px;display:flex;flex-direction:column;gap:0}
+.pr-row{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:14px 0;border-bottom:1px solid var(--border)}
+.pr-row:first-child{padding-top:0}
+.pr-row:last-child{border-bottom:0;padding-bottom:0}
+.pr-row-l{display:flex;flex-direction:column;gap:2px;font-size:14px;line-height:20px;min-width:0}
+.pr-row-l > .o-sub{font-size:13px;line-height:18px}
+.pr-row-c{flex:none;display:flex;align-items:center;gap:8px}
+.pr-themes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.pr-theme{display:flex;flex-direction:column;gap:8px;padding:8px;border:1px solid var(--border-control);border-radius:var(--radius-md);background:var(--bg-surface);font:inherit;font-size:13px;color:var(--text-primary);cursor:pointer;text-align:left}
+.pr-theme[aria-pressed="true"]{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.pr-theme:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.pr-prev{display:grid;grid-template-columns:28% 1fr;height:72px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid rgba(127,127,127,.25)}
+.pr-prev i{display:block}
+.pr-prev .pv-side{display:flex;flex-direction:column;gap:5px;padding:8px 6px}
+.pr-prev .pv-side i{height:5px;border-radius:3px}
+.pr-prev .pv-main{display:flex;flex-direction:column;gap:6px;padding:8px}
+.pr-prev .pv-main i{height:12px;border-radius:3px}
+.pv-light .pv-side{background:#f3f5f8}.pv-light .pv-side i{background:#d3d8e0}.pv-light .pv-main{background:#fff}.pv-light .pv-main i{background:#eef0f4}.pv-light .pv-main i:first-child{background:#2a78d6;width:40%}
+.pv-dark .pv-side{background:#10141b}.pv-dark .pv-side i{background:#2a3140}.pv-dark .pv-main{background:#151921}.pv-dark .pv-main i{background:#222834}.pv-dark .pv-main i:first-child{background:#3987e5;width:40%}
+.pv-sys{background:linear-gradient(135deg,#fff 50%,#151921 50%)}
+.pv-sys .pv-side{background:transparent}.pv-sys .pv-side i{background:rgba(127,127,127,.45)}.pv-sys .pv-main{background:transparent}.pv-sys .pv-main i{background:rgba(127,127,127,.3)}.pv-sys .pv-main i:first-child{background:#2a78d6;width:40%}
+.pr-seg{display:inline-flex;border:1px solid var(--border-control);border-radius:var(--radius-sm);overflow:hidden}
+.pr-seg button{border:0;border-left:1px solid var(--border-control);background:var(--bg-surface);font:inherit;font-size:13px;padding:6px 12px;cursor:pointer;color:var(--text-secondary)}
+.pr-seg button:first-child{border-left:0}
+.pr-seg button[aria-pressed="true"]{background:var(--brand);color:var(--on-brand);font-weight:500}
+.pr-seg button:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px}
+.pr-sw{flex:none;position:relative;width:36px;height:20px;border:0;border-radius:10px;background:var(--border-strong);cursor:pointer;padding:0;transition:background .15s}
+.pr-sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:left .15s}
+.pr-sw[aria-checked="true"]{background:var(--brand)}
+.pr-sw[aria-checked="true"]::after{left:18px}
+.pr-sw:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.pr-status{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted)}
+.pr-status .cx-icon{width:14px;height:14px;color:var(--success)}
+.pr-sample{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-muted)}
+@media (max-width:767px){ .pr-themes{grid-template-columns:minmax(0,1fr)} .pr-row{flex-direction:column;align-items:flex-start;gap:8px} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="preferences" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<h1>Preferences</h1>
+<p class="ph-sub">How CommerceOS looks and behaves for you. Only you see these; account-wide settings are in Settings.</p>
+<p class="ph-meta"><span class="pr-status"><x-import component-from-global-scope="CommerceOS.Icon" name="check-circle"></x-import>{{status}}</span><span>Saved in this browser</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="rotate-ccw" on-click="{{reset}}" disabled="{{isDefault}}">Reset to defaults</x-import>
+</div>
+</div>
+
+<div class="pr-wrap">
+
+<section class="pr-card" id="appearance" aria-labelledby="pr-ap"><div class="pr-card-h"><h2 id="pr-ap">Appearance</h2><p>Changes apply right away, on every page.</p></div>
+<div class="pr-card-b">
+<div class="pr-themes" role="group" aria-label="Theme"><sc-for list="{{themes}}" as="t" hint-placeholder-count="3"><button type="button" class="pr-theme" aria-pressed="{{t.on}}" onClick="{{t.pick}}"><span class="{{t.prev}}" aria-hidden="true"><span class="pv-side"><i></i><i></i><i></i><i></i></span><span class="pv-main"><i></i><i></i><i></i></span></span><span>{{t.label}}</span></button></sc-for></div>
+<div class="pr-row"><span class="pr-row-l"><span>Density</span><span class="o-sub">Compact fits more rows in tables and tighter cards on dashboards.</span></span><span class="pr-row-c"><div class="pr-seg" role="group" aria-label="Density"><sc-for list="{{density}}" as="o" hint-placeholder-count="2"><button type="button" aria-pressed="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div></span></div>
+<div class="pr-row"><span class="pr-row-l"><span>Reduce motion</span><span class="o-sub">Turns off sliding panels and animated transitions. {{motionNote}}</span></span><span class="pr-row-c"><button type="button" class="pr-sw" role="switch" aria-checked="{{sw.motion}}" aria-label="Reduce motion" onClick="{{tg.motion}}"></button></span></div>
+</div></section>
+
+<section class="pr-card" id="workspace" aria-labelledby="pr-ws"><div class="pr-card-h"><h2 id="pr-ws">Workspace</h2><p>Where you land and what you see first.</p></div>
+<div class="pr-card-b">
+<div class="pr-row"><span class="pr-row-l"><span>Start page</span><span class="o-sub">Where you land after signing in.</span></span><span class="pr-row-c"><x-import component-from-global-scope="CommerceOS.Select" aria-label="Start page" options="{{startOpts}}" value="{{p.start}}" on-value-change="{{setStart}}" width="230px"></x-import></span></div>
+<div class="pr-row"><span class="pr-row-l"><span>Default store</span><span class="o-sub">Every page opens filtered to this store. You can still switch on any page.</span></span><span class="pr-row-c"><x-import component-from-global-scope="CommerceOS.Select" aria-label="Default store" options="{{storeOpts}}" value="{{p.store}}" on-value-change="{{setDefStore}}" width="230px"></x-import></span></div>
+<div class="pr-row"><span class="pr-row-l"><span>Start with the sidebar collapsed</span><span class="o-sub">On wide screens. Pressing [ or the Collapse button also saves your choice.</span></span><span class="pr-row-c"><button type="button" class="pr-sw" role="switch" aria-checked="{{sw.collapsed}}" aria-label="Start with the sidebar collapsed" onClick="{{tg.collapsed}}"></button></span></div>
+<div class="pr-row"><span class="pr-row-l"><span>Language</span><span class="o-sub">{{langNote}}</span></span><span class="pr-row-c"><x-import component-from-global-scope="CommerceOS.Select" aria-label="Language" options="{{langOpts}}" value="{{p.language}}" on-value-change="{{setLang}}" width="230px"></x-import></span></div>
+<div class="pr-row"><span class="pr-row-l"><span>Keyboard shortcuts</span><span class="o-sub">⌘K search, / to search a page, [ for the sidebar, ? for the full list. <a href="Help.dc.html?tab=shortcuts">See all shortcuts</a></span></span><span class="pr-row-c"><button type="button" class="pr-sw" role="switch" aria-checked="{{sw.shortcuts}}" aria-label="Keyboard shortcuts" onClick="{{tg.shortcuts}}"></button></span></div>
+</div></section>
+
+<section class="pr-card" id="notifications" aria-labelledby="pr-nt"><div class="pr-card-h"><h2 id="pr-nt">Your notifications</h2><p>On top of the team alerts set in Settings. These come to {{email}} and the bell in the top bar.</p></div>
+<div class="pr-card-b">
+<sc-for list="{{notify}}" as="n" hint-placeholder-count="5"><div class="pr-row"><span class="pr-row-l"><span>{{n.label}}</span><span class="o-sub">{{n.hint}}</span></span><span class="pr-row-c"><button type="button" class="pr-sw" role="switch" aria-checked="{{n.on}}" aria-label="{{n.label}}" onClick="{{n.toggle}}"></button></span></div></sc-for>
+<div class="pr-row"><span class="pr-row-l"><span>Email digest</span><span class="o-sub">{{digestNote}}</span></span><span class="pr-row-c"><div class="pr-seg" role="group" aria-label="Email digest"><sc-for list="{{digest}}" as="o" hint-placeholder-count="3"><button type="button" aria-pressed="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for></div></span></div>
+</div></section>
+
+</div>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1500}}'>
+const NOTIFY = [['mentions', 'When someone mentions you', 'In order notes, purchase orders and returns.'], ['approvals', 'Things waiting for your approval', 'Refunds, bills, purchase orders and stock adjustments you can approve.'],
+  ['assigned', 'Orders assigned to you', 'When an order’s owner changes to you.'], ['lowStock', 'Low stock at your home site', 'Once a day, the SKUs below their reorder point.'], ['reports', 'Scheduled reports', 'Exports you scheduled from Analytics and Finance.']];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const P = window.CommerceOS.prefs.get();
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, prefs: P, savedAt: null };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+    if (window.location.hash) setTimeout(() => { const el = document.getElementById(window.location.hash.slice(1)); if (el) el.scrollIntoView(); }, 50);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 4000);
+  }
+  save(patch, extra) {
+    const P = window.CommerceOS.prefs.set(patch);
+    this.setState(Object.assign({ prefs: P, savedAt: F.NOW }, extra || {}));
+  }
+
+  renderVals() {
+    const s = this.state, p = s.prefs, CP = window.CommerceOS.prefs, def = CP.defaults;
+    const sw = {}, tg = {}; ['motion', 'collapsed', 'shortcuts'].forEach((k) => { sw[k] = p[k] ? 'true' : 'false'; });
+    tg.motion = () => this.save({ motion: !p.motion });
+    tg.shortcuts = () => { this.save({ shortcuts: !p.shortcuts }); this.showToast(p.shortcuts ? 'Shortcuts off' : 'Shortcuts on', p.shortcuts ? 'Keys like [ and ? now type normally everywhere.' : 'Press ? on any page for the list.', 'info'); };
+    tg.collapsed = () => this.save({ collapsed: !p.collapsed }, { collapsed: !p.collapsed });
+    const themes = [['light', 'Light', 'pr-prev pv-light'], ['dark', 'Dark', 'pr-prev pv-dark'], ['system', 'Match my device', 'pr-prev pv-sys']].map((t) => ({ label: t[1], prev: t[2], on: p.theme === t[0] ? 'true' : 'false',
+      pick: () => { const next = Object.assign({}, p, { theme: t[0] }); this.save({ theme: t[0] }, { dark: CP.prefersDark(next) }); } }));
+    const density = [['comfortable', 'Comfortable'], ['compact', 'Compact']].map((o) => ({ label: o[1], on: p.density === o[0] ? 'true' : 'false', pick: () => this.save({ density: o[0] }) }));
+    const pages = []; window.CommerceOS.NAV.forEach((g) => g.items.forEach((m) => { if (m.href) pages.push({ value: m.href, label: m.label }); (m.children || []).forEach((c) => { if (c.href) pages.push({ value: c.href, label: m.label + ' › ' + c.label }); }); }));
+    const notify = NOTIFY.map((n) => ({ label: n[1], hint: n[2], on: p.notify[n[0]] ? 'true' : 'false', toggle: () => this.save({ notify: Object.assign({}, p.notify, { [n[0]]: !p.notify[n[0]] }) }) }));
+    const digest = [['off', 'Off'], ['daily', 'Daily'], ['weekly', 'Weekly']].map((o) => ({ label: o[1], on: p.digest === o[0] ? 'true' : 'false', pick: () => this.save({ digest: o[0] }) }));
+    const isDefault = JSON.stringify(p) === JSON.stringify(def);
+    const prefersReduced = !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark, prefs: Object.assign({}, x.prefs, { theme: !x.dark ? 'dark' : 'light' }) })),
+      p, sw, tg, themes, density, notify, digest, email: F.USER.email, isDefault,
+      status: s.savedAt ? 'Saved just now' : isDefault ? 'Using the defaults' : 'Your preferences are on',
+      motionNote: prefersReduced ? 'Your device already asks for less motion.' : '',
+      startOpts: pages, setStart: (v) => this.save({ start: v }),
+      storeOpts: F.STORES.map((x) => ({ value: x.key, label: x.label })), setDefStore: (v) => this.save({ store: v }, { store: v }),
+      langOpts: [{ value: 'en-US', label: 'English (US)' }, { value: 'en-GB', label: 'English (UK)' }], setLang: (v) => this.save({ language: v }),
+      langNote: p.language === 'en-GB' ? 'Spellings like “colour” and dates like 1 Oct 2026 in emails sent to you.' : 'Bangla, German and Dutch are coming next.',
+      digestNote: p.digest === 'off' ? 'No summary email. Alerts above still come as they happen.' : p.digest === 'daily' ? 'At 08:00 your time: orders, stock and approvals since yesterday.' : 'Mondays at 08:00 your time: last week’s numbers.',
+      reset: () => { const P = CP.reset(); this.setState({ prefs: P, savedAt: F.NOW, dark: CP.prefersDark(P), collapsed: P.collapsed, store: 'all' }); this.showToast('Preferences reset', 'Everything is back to the defaults.'); },
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- preferences: per-browser, applied by the Sidebar on every page (shell.js) ---------- */
+var F = window.Fernhill, CommerceOS = window.CommerceOS;
+</script>
+</body>
+</html>

@@ -6,9 +6,9 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=10"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
 </head>
 <body>
 <x-dc>
@@ -21,7 +21,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 
 /* top bar */
 .main{min-width:0;display:flex;flex-direction:column}
-.top{position:sticky;top:0;z-index:20;height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 24px;background:var(--bg-surface);border-bottom:1px solid var(--border)}
+.top{position:sticky;top:0;z-index:20;height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 32px;background:var(--bg-surface);border-bottom:1px solid var(--border)}
 .icon-btn{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);cursor:pointer}
 .icon-btn:hover{background:var(--bg-muted);color:var(--text-primary)}
 .icon-btn:focus-visible,.search-trigger:focus-visible,.top-btn:focus-visible,.profile-btn:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
@@ -124,8 +124,8 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 .chart-hint{margin-top:8px;font-size:12px;line-height:16px;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
 /* tasks */
-.tasks{list-style:none;margin:0;padding:4px 0}
-.task{display:flex;align-items:center;gap:12px;padding:12px 24px;text-decoration:none;color:var(--text-primary);border-bottom:1px solid var(--border)}
+.tasks{list-style:none;margin:0;padding:0}
+.task{display:flex;align-items:center;gap:12px;padding:12px 20px;text-decoration:none;color:var(--text-primary);border-bottom:1px solid var(--border)}
 .tasks li:last-child .task{border-bottom:0}
 .task:hover{background:var(--bg-subtle);color:var(--text-primary)}
 .task:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px}
@@ -145,7 +145,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 
 /* pipeline */
 .pipe-wrap{display:flex;flex-direction:column;gap:16px}
-.pipe{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,2fr);gap:16px}
+.pipe{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,2fr);gap:20px}
 .pipe-group{display:flex;flex-direction:column;gap:8px;min-width:0}
 .pipe-label{font-size:11px;line-height:16px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)}
 .stages{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
@@ -176,10 +176,10 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 .order-link{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--link);text-decoration:none}
 .order-link:hover{text-decoration:underline}
 .muted{color:var(--text-secondary)}
-.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 24px;border-bottom:1px solid var(--border)}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border)}
 .toolbar-end{margin-left:auto;font-size:12px;line-height:16px;color:var(--text-muted)}
-.card-foot-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:12px 24px;border-top:1px solid var(--border);font-size:12px;line-height:16px;color:var(--text-muted)}
-.inv-tabs{padding:0 24px;border-bottom:1px solid var(--border)}
+.card-foot-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:12px 20px;border-top:1px solid var(--border);font-size:12px;line-height:16px;color:var(--text-muted)}
+.inv-tabs{padding:0 20px;border-bottom:1px solid var(--border)}
 .inv-tabs .cx-tabs{border-bottom:0}
 .m-list{display:none;list-style:none;margin:0;padding:0}
 .m-card{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text-primary)}
@@ -226,7 +226,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 /* tablet */
 @media (max-width:1279px){
   .page{padding:24px 24px 40px}
-  .top{padding:0 16px 0 24px}
+  .top{padding:0 24px}
   .duo{grid-template-columns:minmax(0,1fr) 320px}
   .col-items{display:none}
 }
@@ -246,7 +246,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 @media (max-width:767px){
   .only-drawer{display:inline-flex}
   .page{padding:16px 16px 32px;gap:16px}
-  .top{padding:0 8px;gap:4px}
+  .top{padding:0 16px;gap:4px}
   .search-trigger{flex:0 0 36px;width:36px;padding:0;justify-content:center;border:0;background:transparent;color:var(--text-secondary)}
   .search-trigger .cx-icon{width:20px;height:20px}
   .st-text,.st-keys{display:none}
@@ -276,6 +276,8 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
   .pal{max-width:none;max-height:none;height:100%;border-radius:0}
   .pal-tip{display:none}
 }
+/* pipeline tiles share row heights, so counts, meters and notes line up even when a tile has a Bottleneck tag */
+@media (min-width:768px){ .stages{grid-template-rows:repeat(5,auto)} .stage{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:subgrid;grid-row:span 5;row-gap:8px;align-content:start} .stage-top{align-self:start;align-content:flex-start} }
 </style>
 </helmet>
 <div class="app cx-shell {{appClass}}" data-theme="{{theme}}" onKeyDown="{{onRootKey}}">
@@ -304,7 +306,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 <button class="cx-menu-item menu-item-2" role="menuitemradio" aria-checked="{{s.selected}}" onClick="{{s.pick}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{s.icon}}"></x-import><span><span>{{s.label}}</span><span class="menu-sub">{{s.sub}}</span></span><sc-if value="{{s.selected}}" hint-placeholder-val="{{false}}"><span class="menu-check"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button>
 </sc-for>
 <div class="cx-menu-sep"></div>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="settings"></x-import><span>Manage stores</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.stores}}"><x-import component-from-global-scope="CommerceOS.Icon" name="settings"></x-import><span>Manage stores</span></button>
 </div>
 </sc-if>
 </div>
@@ -312,11 +314,11 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 <x-import component-from-global-scope="CommerceOS.Tooltip" content="Help" side="bottom"><button class="icon-btn" aria-label="Help" aria-haspopup="menu" aria-expanded="{{open.help}}" onClick="{{toggleHelp}}"><x-import component-from-global-scope="CommerceOS.Icon" name="help-circle"></x-import></button></x-import>
 <sc-if value="{{open.help}}" hint-placeholder-val="{{false}}">
 <div class="cx-menu cx-menu-end" role="menu" aria-label="Help">
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="file-text"></x-import><span>Help center</span></button>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="keyboard"></x-import><span>Keyboard shortcuts</span><span class="cx-menu-shortcut">?</span></button>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="megaphone"></x-import><span>What’s new</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.help}}"><x-import component-from-global-scope="CommerceOS.Icon" name="file-text"></x-import><span>Help center</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.shortcuts}}"><x-import component-from-global-scope="CommerceOS.Icon" name="keyboard"></x-import><span>Keyboard shortcuts</span><span class="cx-menu-shortcut">?</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.news}}"><x-import component-from-global-scope="CommerceOS.Icon" name="megaphone"></x-import><span>What’s new</span></button>
 <div class="cx-menu-sep"></div>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="users"></x-import><span>Contact support</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.contact}}"><x-import component-from-global-scope="CommerceOS.Icon" name="users"></x-import><span>Contact support</span></button>
 </div>
 </sc-if>
 </div>
@@ -330,7 +332,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 <li><a class="np-item" href="#"><span class="np-ico {{n.tone}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{n.icon}}"></x-import></span><span class="np-body"><span>{{n.text}}</span><span class="np-time">{{n.time}}</span></span><span class="{{n.dot}}"></span></a></li>
 </sc-for>
 </ul>
-<div class="np-foot"><a href="#">View all notifications</a></div>
+<div class="np-foot"><a href="Preferences.dc.html#notifications">Notification preferences</a></div>
 </div>
 </sc-if>
 </div>
@@ -345,13 +347,13 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 <div class="cx-menu cx-menu-end" role="menu" aria-label="Account">
 <div class="profile-head"><span class="avatar avatar-lg" aria-hidden="true">PN</span><span class="profile-text"><span class="profile-name">Priya Natarajan</span><span class="profile-role">priya@fernhill.co</span></span></div>
 <div class="cx-menu-sep"></div>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="user"></x-import><span>My profile</span></button>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="settings"></x-import><span>Account settings</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.profile}}"><x-import component-from-global-scope="CommerceOS.Icon" name="user"></x-import><span>My profile</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.preferences}}"><x-import component-from-global-scope="CommerceOS.Icon" name="sliders"></x-import><span>Preferences</span></button>
 <button class="cx-menu-item" role="menuitem" onClick="{{toggleTheme}}"><x-import component-from-global-scope="CommerceOS.Icon" name="eye"></x-import><span>{{themeLabel}}</span></button>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="keyboard"></x-import><span>Keyboard shortcuts</span><span class="cx-menu-shortcut">?</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.shortcuts}}"><x-import component-from-global-scope="CommerceOS.Icon" name="keyboard"></x-import><span>Keyboard shortcuts</span><span class="cx-menu-shortcut">?</span></button>
 <div class="cx-menu-sep"></div>
 <div class="cx-menu-group">Role: Operations Manager</div>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="log-out"></x-import><span>Sign out</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.signout}}"><x-import component-from-global-scope="CommerceOS.Icon" name="log-out"></x-import><span>Sign out</span></button>
 </div>
 </sc-if>
 </div>
@@ -481,7 +483,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 </header>
 <ul class="tasks">
 <sc-for list="{{tasks}}" as="t" hint-placeholder-count="5">
-<li><a class="task" href="#"><span class="task-ico {{t.tone}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{t.icon}}"></x-import></span><span class="task-body"><span class="task-title"><strong>{{t.count}}</strong> {{t.title}}</span><span class="task-meta">{{t.meta}}</span></span><span class="task-go"><span class="task-go-label">{{t.action}}</span><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-right"></x-import></span></a></li>
+<li><a class="task" href="{{t.href}}"><span class="task-ico {{t.tone}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{t.icon}}"></x-import></span><span class="task-body"><span class="task-title"><strong>{{t.count}}</strong> {{t.title}}</span><span class="task-meta">{{t.meta}}</span></span><span class="task-go"><span class="task-go-label">{{t.action}}</span><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-right"></x-import></span></a></li>
 </sc-for>
 </ul>
 <div class="card-foot-row tasks-foot"><span>Sorted by urgency. Counts update every 5 minutes.</span></div>
@@ -494,16 +496,16 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 <h2 class="cx-card-title" id="pipe-title">Order pipeline</h2>
 <p class="cx-card-desc">Open orders by stage right now, with average time in stage against target.</p>
 </div>
-<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="arrow-right" href="#">View all orders</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="arrow-right" href="Orders.dc.html">View all orders</x-import>
 </header>
 <div class="cx-card-body pipe-wrap">
-<x-import component-from-global-scope="CommerceOS.Alert" tone="danger" title="Processing is the bottleneck">{{bottleneck.text}} <a href="#">Review {{bottleneck.late}} late orders</a></x-import>
+<x-import component-from-global-scope="CommerceOS.Alert" tone="danger" title="Processing is the bottleneck">{{bottleneck.text}} <a href="Orders.dc.html?stage=processing">Review {{bottleneck.late}} late orders</a></x-import>
 <div class="pipe">
 <div class="pipe-group">
 <span class="pipe-label">Open now · {{openTotal}} orders</span>
 <div class="stages">
 <sc-for list="{{stagesOpen}}" as="s" hint-placeholder-count="5">
-<a class="stage {{s.cls}}" href="#" aria-label="{{s.aria}}">
+<a class="stage {{s.cls}}" href="Orders.dc.html?stage={{s.key}}" aria-label="{{s.aria}}">
 <span class="stage-top"><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{s.key}}"></x-import><sc-if value="{{s.flag}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Badge" tone="danger">Bottleneck</x-import></sc-if></span>
 <span class="stage-count">{{s.count}}</span>
 <span class="stage-time">Avg {{s.avg}} · target {{s.target}}</span>
@@ -517,7 +519,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 <span class="pipe-label">Closed · {{rangeShort}}</span>
 <div class="stages">
 <sc-for list="{{stagesClosed}}" as="s" hint-placeholder-count="2">
-<a class="stage" href="#" aria-label="{{s.aria}}">
+<a class="stage" href="Orders.dc.html?stage={{s.key}}" aria-label="{{s.aria}}">
 <span class="stage-top"><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{s.key}}"></x-import></span>
 <span class="stage-count">{{s.count}}</span>
 <span class="stage-time">{{s.rate}}</span>
@@ -537,7 +539,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 <h2 class="cx-card-title" id="inv-title">Inventory alerts</h2>
 <p class="cx-card-desc">8 SKUs below reorder level and 3 overstocked. Stock is shared across all stores.</p>
 </div>
-<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="arrow-right" href="#">View inventory</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="arrow-right" href="InventoryOverview.dc.html">View inventory</x-import>
 </header>
 <div class="inv-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Alert type" items="{{invTabs}}" value="{{invTab}}" on-change="{{setInvTab}}"></x-import></div>
 <div class="tbl-scroll">
@@ -548,8 +550,8 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 <tbody>
 <sc-for list="{{invRows}}" as="r" hint-placeholder-count="6">
 <tr>
-<td><a class="prod-name" href="#">{{r.name}}</a><span class="cx-cell-sub">{{r.variant}}</span></td>
-<td><span class="cx-mono muted">{{r.sku}}</span></td>
+<td><a class="prod-name" href="StockLevels.dc.html?q={{r.sku}}">{{r.name}}</a><span class="cx-cell-sub">{{r.variant}}</span></td>
+<td class="cx-mono muted">{{r.sku}}</td>
 <td class="is-right"><span class="stock-cell"><span class="td-strong">{{r.stockLabel}}</span><span class="meter" aria-hidden="true"><span class="{{r.meterCls}}" style="width: {{r.meterW}}"></span></span></span></td>
 <td class="is-right muted">{{r.reorderLabel}}</td>
 <td class="muted">{{r.wh}}</td>
@@ -569,7 +571,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 </div></li>
 </sc-for>
 </ul>
-<div class="card-foot-row"><span>Showing {{invShown}} of {{invTotal}} alerts</span><a href="#">Open inventory planning</a></div>
+<div class="card-foot-row"><span>Showing {{invShown}} of {{invTotal}} alerts</span><a href="StockLevels.dc.html">Open inventory planning</a></div>
 </section>
 
 <section class="cx-card" aria-labelledby="orders-title">
@@ -578,7 +580,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 <h2 class="cx-card-title" id="orders-title">Recent orders</h2>
 <p class="cx-card-desc">The latest orders in {{storeName}}.</p>
 </div>
-<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="arrow-right" href="#">View all orders</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon-right="arrow-right" href="Orders.dc.html">View all orders</x-import>
 </header>
 <div class="toolbar">
 <x-import component-from-global-scope="CommerceOS.SearchField" size="sm" width="260px" placeholder="Search order ID or customer" label="Search recent orders" shortcut="{{none}}" value="{{orderQuery}}" on-change="{{setOrderQuery}}"></x-import>
@@ -605,7 +607,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 <tbody>
 <sc-for list="{{orders}}" as="o" hint-placeholder-count="8">
 <tr>
-<td><a class="order-link" href="#">{{o.id}}</a></td>
+<td><a class="order-link" href="Orders.dc.html?q={{o.id}}">{{o.id}}</a></td>
 <td><span class="cx-cell-primary">{{o.customer}}</span><span class="cx-cell-sub">{{o.channel}}</span></td>
 <td class="is-right col-items">{{o.items}}</td>
 <td class="is-right td-strong">{{o.totalLabel}}</td>
@@ -613,7 +615,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 <td><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{o.fulfillment}}" variant="badge"></x-import></td>
 <td class="muted">{{o.dateLabel}}</td>
 <td><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{o.status}}"></x-import></td>
-<td class="is-right"><x-import component-from-global-scope="CommerceOS.Button" size="sm" variant="ghost" icon="eye" aria-label="View order {{o.id}}">View</x-import></td>
+<td class="is-right"><x-import component-from-global-scope="CommerceOS.Button" size="sm" variant="ghost" icon="eye" aria-label="View order {{o.id}}" href="Orders.dc.html?q={{o.id}}">View</x-import></td>
 </tr>
 </sc-for>
 </tbody>
@@ -621,7 +623,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 </div>
 <ul class="m-list">
 <sc-for list="{{orders}}" as="o" hint-placeholder-count="8">
-<li><a class="m-card" href="#" aria-label="View order {{o.id}}">
+<li><a class="m-card" href="Orders.dc.html?q={{o.id}}" aria-label="View order {{o.id}}">
 <span class="m-row"><span class="order-link">{{o.id}}</span><x-import component-from-global-scope="CommerceOS.StatusIndicator" status="{{o.status}}"></x-import></span>
 <span class="m-row"><span class="m-title">{{o.customer}}</span><span class="m-meta">{{o.dateLabel}}</span></span>
 <span class="m-row"><span class="m-figs"><span><strong>{{o.totalLabel}}</strong></span><span>{{o.items}} items</span><span>{{o.channel}}</span></span></span>
@@ -633,7 +635,7 @@ a{color:var(--link)}a:hover{color:var(--brand-hover)}
 <sc-if value="{{noOrders}}" hint-placeholder-val="{{false}}">
 <x-import component-from-global-scope="CommerceOS.EmptyState" size="sm" icon="search" title="{{emptyTitle}}" description="Check the order ID or customer name, or clear the status filter. Only the latest orders are shown here."><x-import component-from-global-scope="CommerceOS.Button" on-click="{{clearOrderFilters}}">Clear search and filter</x-import></x-import>
 </sc-if>
-<div class="card-foot-row"><span>{{ordersFoot}}</span><a href="#">Open the orders list</a></div>
+<div class="card-foot-row"><span>{{ordersFoot}}</span><a href="Orders.dc.html">Open the orders list</a></div>
 </section>
 
 </main>
@@ -720,9 +722,19 @@ class Component extends DCLogic {
   }
   componentDidMount() {
     this._onDoc = (e) => { if (this.state.menu && !(e.target.closest && e.target.closest('[data-pop]'))) this.setState({ menu: null }); };
+    this._onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); this.setState({ search: true, menu: null }); }
+      else if (e.key === 'Escape' && (this.state.search || this.state.menu)) this.setState({ search: false, menu: null });
+      else if (e.key === '?' && !this.state.search && !(e.target && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))) && (!window.CommerceOS.prefs || window.CommerceOS.prefs.get().shortcuts)) window.location.href = 'Help.dc.html?tab=shortcuts';
+    };
     document.addEventListener('mousedown', this._onDoc);
+    document.addEventListener('keydown', this._onKey);
   }
-  componentWillUnmount() { document.removeEventListener('mousedown', this._onDoc); clearTimeout(this._toastT); }
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this._onDoc);
+    document.removeEventListener('keydown', this._onKey);
+    clearTimeout(this._toastT);
+  }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
     if (prevProps.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
@@ -815,7 +827,7 @@ class Component extends DCLogic {
     // tasks
     const tasks = TASKS.map((t) => {
       const c = t.scoped ? pc(t.count) : t.count;
-      return { icon: t.icon, tone: t.tone, count: int(c), title: c === 1 ? t.one : t.many, meta: t.meta, action: t.action };
+      return { icon: t.icon, tone: t.tone, count: int(c), title: c === 1 ? t.one : t.many, meta: t.meta, action: t.action, href: t.href };
     }).filter((t) => t.count !== '0');
     const taskSummary = tasks.length + ' things to act on now';
 
@@ -881,6 +893,8 @@ class Component extends DCLogic {
 
     return {
       zero: 0, none: null,
+      go: ((H) => ({ help: () => { window.location.href = 'Help.dc.html'; }, shortcuts: () => { window.location.href = 'Help.dc.html?tab=shortcuts'; }, news: () => { window.location.href = 'Help.dc.html?tab=new'; }, contact: () => { window.location.href = 'Help.dc.html?tab=contact'; },
+        stores: () => { window.location.href = H.stores; }, profile: () => { window.location.href = H.profile; }, preferences: () => { window.location.href = H.preferences; }, signout: () => { window.location.href = H.signout; } }))(window.CommerceOS.ACCOUNT_HREF || {}),
       appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light',
       toggleCollapse: () => this.setState((st) => ({ collapsed: !st.collapsed })),
       openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
@@ -1063,11 +1077,11 @@ var PIPE = { open: [
   { key: 'shipped', count: 142, avgH: 52, targetH: 72, note: '3 delivery exceptions' }
 ] };
 var TASKS = [
-  { icon: 'clock', tone: 't-danger', count: 17, scoped: true, many: 'orders past the 24h processing target', one: 'order past the 24h processing target', meta: 'Oldest 41h · mostly Rotterdam DC', action: 'Review' },
-  { icon: 'truck', tone: 't-warning', count: 24, scoped: true, many: 'orders awaiting fulfillment', one: 'order awaiting fulfillment', meta: 'Oldest waiting 19h', action: 'Start picking' },
-  { icon: 'package', tone: 't-warning', count: 8, many: 'products below reorder level', one: 'product below reorder level', meta: '3 out of stock, 5 low', action: 'Create POs' },
-  { icon: 'rotate-ccw', tone: 't-info', count: 5, scoped: true, many: 'pending refunds', one: 'pending refund', meta: '$642.30 total · oldest 3 days', action: 'Review' },
-  { icon: 'clipboard-list', tone: 't-brand', count: 3, many: 'purchase orders awaiting approval', one: 'purchase order awaiting approval', meta: '$18,240.00 total', action: 'Approve' }
+  { icon: 'clock', tone: 't-danger', count: 17, scoped: true, many: 'orders past the 24h processing target', one: 'order past the 24h processing target', meta: 'Oldest 41h · mostly Rotterdam DC', action: 'Review', href: 'Orders.dc.html?stage=processing' },
+  { icon: 'truck', tone: 't-warning', count: 24, scoped: true, many: 'orders awaiting fulfillment', one: 'order awaiting fulfillment', meta: 'Oldest waiting 19h', action: 'Start picking', href: 'Picking.dc.html' },
+  { icon: 'package', tone: 't-warning', count: 8, many: 'products below reorder level', one: 'product below reorder level', meta: '3 out of stock, 5 low', action: 'Create POs', href: 'LowStock.dc.html' },
+  { icon: 'rotate-ccw', tone: 't-info', count: 5, scoped: true, many: 'pending refunds', one: 'pending refund', meta: '$642.30 total · oldest 3 days', action: 'Review', href: 'Refunds.dc.html' },
+  { icon: 'clipboard-list', tone: 't-brand', count: 3, many: 'purchase orders awaiting approval', one: 'purchase order awaiting approval', meta: '$18,240.00 total', action: 'Approve', href: 'PurchaseOrders.dc.html' }
 ];
 var INVENTORY = [
   { name: 'Linen overshirt', variant: 'Sand / L', sku: 'SKU-OVS-SAND-L', stock: 0, reorder: 25, wh: 'Newark, NJ', status: 'out_of_stock' },

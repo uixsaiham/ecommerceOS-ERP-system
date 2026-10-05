@@ -6,11 +6,11 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=10"></script>
-<script src="./catalog.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="./catalog.js?v=4"></script>
 <script src="./inventory.js?v=8"></script>
 <script src="./orders.js?v=2"></script>
 <script src="./fulfillment.js?v=1"></script>
@@ -24,8 +24,8 @@
 .pk-late{color:var(--danger);font-weight:500}
 .pk-zones{display:flex;gap:4px;flex-wrap:wrap}
 .pk-zone{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 4px;border-radius:var(--radius-xs);background:var(--bg-muted);font-size:11px;font-weight:600;color:var(--text-secondary)}
-.pk-lists{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:16px}
-.pk-card{display:flex;flex-direction:column;gap:8px;padding:14px 16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;min-width:0}
+.pk-lists{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:16px 20px 20px}
+.pk-card{display:flex;flex-direction:column;gap:8px;padding:16px 20px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;min-width:0}
 .pk-card:hover{border-color:var(--border-strong)}
 .pk-card:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
 .pk-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -52,7 +52,7 @@
 .pk-sum strong{color:var(--text-primary)}
 @media (max-width:1279px){ .pk-lists{grid-template-columns:repeat(2,minmax(0,1fr))} .c-chan{display:none} }
 @media (max-width:1023px){ .pk-kpis{display:flex} }
-@media (max-width:767px){ .pk-lists{grid-template-columns:minmax(0,1fr);padding:12px} .pk-grid2{grid-template-columns:1fr} .o-head-actions{flex-wrap:wrap} }
+@media (max-width:767px){ .pk-lists{grid-template-columns:minmax(0,1fr);padding:12px} .pk-card{padding:14px 16px} .pk-grid2{grid-template-columns:1fr} .o-head-actions{flex-wrap:wrap} }
 </style>
 </helmet>
 <div class="app cx-shell {{appClass}}" data-theme="{{theme}}">

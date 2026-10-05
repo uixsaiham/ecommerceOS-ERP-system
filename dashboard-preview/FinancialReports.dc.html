@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Financial Reports · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<link rel="stylesheet" href="ds/commerceos/shell/viz.css?v=1">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="ds/commerceos/shell/viz.js?v=2"></script>
+<script src="./catalog.js?v=4"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./procurement.js?v=1"></script>
+<script src="./fulfillment.js?v=1"></script>
+<script src="./returns.js?v=1"></script>
+<script src="./finance.js?v=2"></script>
+<script src="./analytics.js?v=2"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+.fr-tabs{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:0 12px;overflow-x:auto}
+.fr-tabs .cx-tab{white-space:nowrap}
+.fr-tabs .cx-tabs{border-bottom:0}
+.fr-st-wrap{overflow-x:auto}
+.fr-st{width:100%;border-collapse:collapse;font-size:13px;line-height:20px;font-variant-numeric:tabular-nums;min-width:720px}
+.fr-st th{font-size:12px;font-weight:500;color:var(--text-secondary);text-align:right;padding:8px 12px;border-bottom:1px solid var(--border-strong);white-space:nowrap}
+.fr-st th:first-child{text-align:left;padding-left:0}
+.fr-st td{padding:7px 12px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;color:var(--text-primary)}
+.fr-st td:first-child{text-align:left;padding-left:0;white-space:normal}
+.fr-st .is-sel{background:var(--bg-subtle)}
+.fr-st th.is-sel{color:var(--text-primary)}
+.fr-st tr.is-sub td{color:var(--text-secondary)}
+.fr-st tr.is-sub td:first-child{padding-left:18px}
+.fr-st tr.is-sub2 td:first-child{padding-left:34px}
+.fr-st tr.is-sub2 td{color:var(--text-secondary);font-size:12px}
+.fr-st tr.is-total td{font-weight:600;border-bottom-color:var(--border-strong)}
+.fr-st tr.is-ratio td{color:var(--text-muted);font-size:12px;font-style:italic}
+.fr-st tr.is-result td{font-weight:600;font-size:15px;border-bottom:0;padding-top:12px}
+.fr-st td.is-neg{color:var(--danger)}
+.fr-st td.is-pos{color:var(--success)}
+.fr-st .fr-chg.is-good{color:var(--success)}
+.fr-st .fr-chg.is-bad{color:var(--danger)}
+.fr-tog{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.fr-tog:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:2px}
+.fr-tog .cx-icon{width:14px;height:14px;color:var(--text-muted)}
+.fr-note{margin:12px 0 0;font-size:12px;line-height:16px;color:var(--text-muted)}
+.fr-meter{display:block;height:6px;border-radius:3px;background:var(--bg-subtle);overflow:hidden;min-width:90px}
+.fr-meter span{display:block;height:100%;background:var(--series-1);border-radius:3px}
+.fr-meter.is-warn span{background:var(--warning)}
+.fr-meter.is-bad span{background:var(--danger)}
+.fr-kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.fr-kv div{padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.fr-kv div>span{display:block;font-size:12px;color:var(--text-muted)}
+.fr-kv strong{display:block;font-size:17px;line-height:24px;font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums}
+@media (max-width:767px){ .fr-kv{grid-template-columns:minmax(0,1fr)} }
+@media print{ .cx-sidebar,.cx-shell-sidebar,.top,.o-head-actions,.vz-filters,.fr-tabs,.vz-foot{display:none!important} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="analytics/financial" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="analytics/financial"></x-import>
+<h1>Financial Reports</h1>
+<p class="ph-sub">Profit and loss, budget against actual, cash flow, and who owes whom. All amounts in USD.</p>
+<p class="ph-meta"><span>{{periodLabel}}</span><span>September books still open · updated 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="file-text" on-click="{{printView}}">Print</x-import>
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<div class="vz-filters" role="group" aria-label="Filters">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Period" options="{{periodOpts}}" value="{{period}}" on-value-change="{{setPeriod}}" width="190px"></x-import>
+<span class="vz-note">{{periodNote}}</span>
+</div>
+
+<section class="vz-stats" aria-label="Summary">
+<sc-for list="{{stats}}" as="k" hint-placeholder-count="4">
+<div class="vz-stat"><span class="vz-stat-l">{{k.label}}</span><span class="vz-stat-v">{{k.value}}</span><span class="vz-stat-d"><span class="{{k.deltaCls}}">{{k.delta}}</span><span>{{k.cmp}}</span></span></div>
+</sc-for>
+</section>
+
+<div class="fr-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Report" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+
+<!-- ---------- profit and loss ---------- -->
+<sc-if value="{{isPnl}}" hint-placeholder-val="{{true}}">
+<section class="vz-card" aria-label="Profit and loss statement">
+<div class="vz-card-h"><div><h2>Profit and loss statement</h2><p>Fiscal Q3 2026, by month · % of net sales and change for {{selLabel}}</p></div><a href="FinanceOverview.dc.html">Finance Overview</a></div>
+<div class="fr-st-wrap">
+<table class="fr-st" aria-label="Profit and loss statement">
+<thead><tr><th scope="col">Line</th><th class="{{col.jul}}" scope="col">July</th><th class="{{col.aug}}" scope="col">August</th><th class="{{col.sep}}" scope="col">September</th><th class="{{col.q3}}" scope="col">Q3 to date</th><th scope="col">% of net sales</th><th scope="col">{{chgHead}}</th></tr></thead>
+<tbody><sc-for list="{{pnl}}" as="r" hint-placeholder-count="16"><tr class="{{r.cls}}">
+<td><sc-if value="{{r.tog}}" hint-placeholder-val="{{false}}"><button type="button" class="fr-tog" aria-expanded="{{r.open}}" onClick="{{r.onTog}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{r.icon}}"></x-import>{{r.label}}</button></sc-if><sc-if value="{{r.plain}}" hint-placeholder-val="{{true}}">{{r.label}}</sc-if></td>
+<td class="{{r.jc}}">{{r.jul}}</td><td class="{{r.ac}}">{{r.aug}}</td><td class="{{r.sc}}">{{r.sep}}</td><td class="{{r.qc}}">{{r.q3}}</td><td>{{r.pct}}</td><td><span class="{{r.chgCls}}">{{r.chg}}</span></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<p class="fr-note">Sales come from the orders; cost of goods is the catalog cost of what shipped; operating costs are the month’s bills and payroll. Inventory purchases are on the balance sheet, not here.</p>
+</section>
+
+<div class="vz-grid2">
+<section class="vz-card" aria-label="Where net sales went">
+<div class="vz-card-h"><div><h2>Where each dollar of net sales went</h2><p>Cost of goods, fees, operating costs and what was left</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizColumns" title="Net sales by use, per month" labels="{{split.labels}}" full-labels="{{split.full}}" series="{{split.series}}" format="money" height="{{h240}}" x-name="Month"></x-import>
+</section>
+<section class="vz-card" aria-label="Operating costs">
+<div class="vz-card-h"><div><h2>Operating costs, {{selLabel}}</h2><p>Largest first, with change on the month before</p></div><a href="Expenses.dc.html">Expenses</a></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Operating costs by category" items="{{opexRank}}" format="money" label-width="150px" item-name="Category" value-name="Cost" extra-head="% of net sales"></x-import>
+</section>
+</div>
+</sc-if>
+
+<!-- ---------- budget against actual ---------- -->
+<sc-if value="{{isBudget}}" hint-placeholder-val="{{false}}">
+<div class="vz-grid-21">
+<section class="vz-card" aria-label="Budget against actual">
+<div class="vz-card-h"><div><h2>Budget against actual, September</h2><p>{{budgetNote}}</p></div><a href="Expenses.dc.html?tab=budget">Budgets</a></div>
+<div class="fr-st-wrap">
+<table class="fr-st" aria-label="Budget against actual">
+<thead><tr><th scope="col">Category</th><th scope="col">Budget</th><th scope="col">Actual</th><th scope="col">Variance</th><th scope="col">Used</th><th scope="col"><span class="cx-sr">Status</span></th></tr></thead>
+<tbody><sc-for list="{{budget}}" as="b" hint-placeholder-count="9"><tr class="{{b.cls}}">
+<td>{{b.label}}</td><td>{{b.budget}}</td><td>{{b.actual}}</td><td class="{{b.varCls}}">{{b.variance}}</td>
+<td><span style="display: flex; align-items: center; gap: 8px; justify-content: flex-end"><span class="{{b.meterCls}}"><span style="{{b.w}}"></span></span>{{b.used}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{b.tone}}">{{b.status}}</x-import></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<p class="fr-note">Actual is bills and claims dated in September, paid or not, as on the Expenses page. Inventory counts supplier invoices received.</p>
+</section>
+<section class="vz-card" aria-label="Spend against budget">
+<div class="vz-card-h"><div><h2>Share of budget used</h2><p>Over 100% is over budget</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Share of budget used" items="{{budgetRank}}" format="pct" label-width="140px" item-name="Category" value-name="Used" full-values="{{yes}}"></x-import>
+</section>
+</div>
+</sc-if>
+
+<!-- ---------- cash flow ---------- -->
+<sc-if value="{{isCash}}" hint-placeholder-val="{{false}}">
+<div class="vz-grid-21">
+<section class="vz-card" aria-label="Cash balance">
+<div class="vz-card-h"><div><h2>Cash in the bank, day by day</h2><p>September, by account, in USD · rent and supplier runs are the steps down</p></div><a href="Transactions.dc.html">Transactions</a></div>
+<x-import component-from-global-scope="CommerceOS.VizLine" title="Cash balance by account" labels="{{cashLine.labels}}" full-labels="{{cashLine.full}}" series="{{cashLine.series}}" format="money" height="{{h240}}" every="5" x-name="Day"></x-import>
+</section>
+<section class="vz-card" aria-label="Cash flow statement">
+<div class="vz-card-h"><div><h2>Cash flow statement</h2><p>September 1 – October 1, all accounts</p></div></div>
+<table class="fr-st" style="min-width: 0" aria-label="Cash flow statement">
+<tbody><sc-for list="{{cashSt}}" as="r" hint-placeholder-count="9"><tr class="{{r.cls}}"><td>{{r.label}}</td><td class="{{r.vc}}">{{r.value}}</td></tr></sc-for></tbody>
+</table>
+</section>
+</div>
+<div class="vz-grid2">
+<section class="vz-card" aria-label="Cash by account">
+<div class="vz-card-h"><div><h2>By bank account</h2><p>Opening, net movement and closing balance</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Closing balance by account" items="{{accRank}}" format="money" label-width="170px" item-name="Account" value-name="Closing balance" extra-head="Net movement" full-values="{{yes}}"></x-import>
+</section>
+<section class="vz-card" aria-label="Money in and out">
+<div class="vz-card-h"><div><h2>Money in and out</h2><p>September bank lines by kind</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Bank movements by kind" items="{{flowRank}}" format="money" label-width="150px" item-name="Kind" value-name="Amount" extra-head="Lines"></x-import>
+</section>
+</div>
+</sc-if>
+
+<!-- ---------- receivables and payables ---------- -->
+<sc-if value="{{isAging}}" hint-placeholder-val="{{false}}">
+<div class="vz-grid2">
+<section class="vz-card" aria-label="Receivables aging">
+<div class="vz-card-h"><div><h2>Receivables aging</h2><p>Open wholesale invoices by days past due</p></div><a href="Payments.dc.html?tab=invoices">Invoices</a></div>
+<div class="fr-kv"><div><span>Owed to Fernhill</span><strong>{{ar.total}}</strong></div><div><span>Overdue</span><strong>{{ar.overdue}}</strong></div><div><span>Days sales outstanding</span><strong>{{ar.dso}}</strong></div></div>
+<x-import component-from-global-scope="CommerceOS.VizColumns" title="Receivables by days past due" labels="{{ar.labels}}" full-labels="{{ar.full}}" series="{{ar.series}}" format="money" height="{{h200}}" x-name="Days past due"></x-import>
+</section>
+<section class="vz-card" aria-label="Payables aging">
+<div class="vz-card-h"><div><h2>Payables aging</h2><p>Unpaid bills by days until or past due</p></div><a href="Expenses.dc.html">Bills</a></div>
+<div class="fr-kv"><div><span>Fernhill owes</span><strong>{{ap.total}}</strong></div><div><span>Due in 7 days</span><strong>{{ap.week}}</strong></div><div><span>Waiting for approval</span><strong>{{ap.approval}}</strong></div></div>
+<x-import component-from-global-scope="CommerceOS.VizColumns" title="Payables by due date" labels="{{ap.labels}}" full-labels="{{ap.full}}" series="{{ap.series}}" format="money" height="{{h200}}" x-name="Due"></x-import>
+</section>
+</div>
+
+<section class="o-card" aria-label="Open items">
+<div class="o-tools"><div class="o-row1"><div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="{{searchPh}}" label="{{searchPh}}" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Ledger" options="{{ledgerOpts}}" value="{{ledger}}" on-value-change="{{setLedger}}" width="190px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Aging bucket" options="{{bucketOpts}}" value="{{bucket}}" on-value-change="{{setBucket}}" width="190px"></x-import></div></div>
+<div class="o-scroll" style="display: block">
+<table class="o-table" aria-label="Open items">
+<thead><tr><th scope="col">{{docHead}}</th><th scope="col">{{partyHead}}</th><th scope="col">Dated</th><th scope="col">Due</th><th scope="col">Status</th><th class="is-right" scope="col">Amount</th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="12"><tr>
+<td><button class="pr-name" onClick="{{r.open}}">{{r.doc}}</button><span class="o-sub">{{r.docSub}}</span></td>
+<td><span>{{r.party}}</span><span class="o-sub">{{r.partySub}}</span></td>
+<td>{{r.dated}}</td><td><span>{{r.due}}</span><span class="o-sub">{{r.dueSub}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}">{{r.status}}</x-import></td>
+<td class="is-right td-strong">{{r.amount}}</td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="{{itemLabel}}" on-page-change="{{setPage}}" on-page-size-change="{{setPageSize}}"></x-import></div>
+</section>
+</sc-if>
+
+<section class="vz-card" aria-label="What stands out">
+<div class="vz-card-h"><div><h2>What stands out</h2><p>For {{selLabel}}</p></div></div>
+<ul class="vz-insights"><sc-for list="{{insights}}" as="i" hint-placeholder-count="4"><li><x-import component-from-global-scope="CommerceOS.Icon" name="{{i.icon}}"></x-import><span><strong>{{i.lead}}</strong> {{i.text}}</span></li></sc-for></ul>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":2200}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let tab = 'pnl';
+    try { const t = new URLSearchParams(window.location.search).get('tab'); if (['pnl', 'budget', 'cash', 'aging'].indexOf(t) >= 0) tab = t; } catch (e) { /* no query string */ }
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, period: 'sep', tab, opexOpen: true, ledger: 'ar', bucket: '', query: '', page: 1, pageSize: 25 };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+
+  renderVals() {
+    const s = this.state, sum = (l, f) => l.reduce((a, x) => a + (f ? f(x) : x), 0), m0 = (v) => (v < 0 ? '−' : '') + F.money0(Math.abs(v));
+    /* ---------- months: July and August modelled on September’s ratios, September from finance.js ---------- */
+    const MS = A.months(), KEYS = ['jul', 'aug', 'sep'], OPEX = M.CATS.filter((c) => c.key !== 'inventory');
+    const q3 = { label: 'Q3 to date', opex: {} }; ['gross', 'cancelled', 'refunds', 'cogs', 'fees', 'net', 'gp', 'opexTotal', 'op'].forEach((k) => { q3[k] = sum(MS, (m) => m[k]); }); OPEX.forEach((c) => { q3.opex[c.key] = sum(MS, (m) => m.opex[c.key] || 0); });
+    const P = { jul: MS[0], aug: MS[1], sep: MS[2], q3 }, sel = P[s.period], prev = s.period === 'aug' ? P.jul : s.period === 'sep' ? P.aug : null;
+    const selLabel = { jul: 'July', aug: 'August', sep: 'September', q3: 'Q3 to date' }[s.period];
+    const chg = (a, b, costLine, abs) => { if (!prev || !b) return { chg: '', chgCls: '' }; if (abs) return { chg: (a - b >= 0 ? '+' : '−') + F.money0(Math.abs(a - b)), chgCls: 'fr-chg ' + (a >= b ? 'is-good' : 'is-bad') }; const d = (a - b) / Math.abs(b); return { chg: (d >= 0 ? '+' : '−') + Math.abs(d * 100).toFixed(1) + '%', chgCls: 'fr-chg ' + ((d >= 0) !== !!costLine ? 'is-good' : 'is-bad') }; };
+    const dlt = (a, b, costLine) => { if (!prev || !b) return { delta: '', deltaCls: '' }; const d = (a - b) / Math.abs(b), good = (d >= 0) !== !!costLine; return { delta: (d >= 0 ? '↑ ' : '↓ ') + Math.abs(d * 100).toFixed(1) + '%', deltaCls: 'vz-delta ' + (good ? 'is-good' : 'is-bad') }; };
+    const vsPrev = prev ? 'vs ' + prev.label : 'three months';
+    const stats = [
+      Object.assign({ label: 'Net sales', value: F.money0(sel.net), cmp: vsPrev + ' · ' + F.money0(sel.gross) + ' gross' }, dlt(sel.net, prev && prev.net)),
+      Object.assign({ label: 'Gross profit', value: F.money0(sel.gp), cmp: (sel.gp / sel.net * 100).toFixed(1) + '% margin' }, dlt(sel.gp, prev && prev.gp)),
+      Object.assign({ label: 'Operating costs', value: F.money0(sel.opexTotal + sel.fees), cmp: ((sel.opexTotal + sel.fees) / sel.net * 100).toFixed(1) + '% of net sales, with fees' }, dlt(sel.opexTotal + sel.fees, prev && prev.opexTotal + prev.fees, true)),
+      { label: 'Operating profit', value: m0(sel.op), cmp: (sel.op / sel.net * 100).toFixed(1) + '% margin' + (prev ? ' · was ' + m0(prev.op) : ''), delta: prev ? (sel.op >= prev.op ? '↑ ' : '↓ ') + F.money0(Math.abs(sel.op - prev.op)) : '', deltaCls: prev ? 'vz-delta ' + (sel.op >= prev.op ? 'is-good' : 'is-bad') : '' }];
+
+    /* ---------- statement ---------- */
+    const COLS = ['jul', 'aug', 'sep', 'q3'], selC = (k) => k === s.period ? 'is-sel' : '';
+    const col = {}; COLS.forEach((k) => { col[k] = selC(k); });
+    const line = (label, get, cls, opts) => { opts = opts || {}; const r = { label, cls: cls || '', plain: true, tog: false, pct: opts.noPct ? '' : (get(sel) / sel.net * 100).toFixed(1) + '%' };
+      COLS.forEach((k) => { const v = get(P[k]); r[k] = opts.fmt ? opts.fmt(v) : opts.neg ? '−' + F.money0(v) : m0(v); r[k[0] + 'c'] = selC(k) + (opts.sign && v < 0 ? ' is-neg' : opts.sign && v > 0 ? ' is-pos' : ''); });
+      return Object.assign(r, opts.noChg ? { chg: '', chgCls: '' } : chg(get(sel), prev && get(prev), opts.cost, opts.abs)); };
+    const pctF = (v) => (v * 100).toFixed(1) + '%';
+    const togRow = Object.assign(line('Operating costs', (m) => m.opexTotal, 'is-sub', { neg: true, cost: true }), { plain: false, tog: true, open: s.opexOpen ? 'true' : 'false', icon: s.opexOpen ? 'chevron-down' : 'chevron-right', onTog: () => this.setState((x) => ({ opexOpen: !x.opexOpen })) });
+    const pnl = [
+      line('Gross sales', (m) => m.gross),
+      line('Cancelled and failed payments', (m) => m.cancelled, 'is-sub', { neg: true, cost: true }),
+      line('Refunds', (m) => m.refunds, 'is-sub', { neg: true, cost: true }),
+      Object.assign(line('Net sales', (m) => m.net, 'is-total'), { pct: '100%' }),
+      line('Cost of goods sold', (m) => m.cogs, 'is-sub', { neg: true, cost: true }),
+      line('Gross profit', (m) => m.gp, 'is-total'),
+      line('Gross margin', (m) => m.gp / m.net, 'is-ratio', { fmt: pctF, noPct: true, noChg: true }),
+      line('Payment processing fees', (m) => m.fees, 'is-sub', { neg: true, cost: true }),
+      togRow]
+      .concat(s.opexOpen ? OPEX.map((c) => line(c.label, (m) => m.opex[c.key] || 0, 'is-sub2', { neg: true, cost: true })) : [])
+      .concat([line('Operating profit', (m) => m.op, 'is-result', { sign: true, abs: true }), line('Operating margin', (m) => m.op / m.net, 'is-ratio', { fmt: pctF, noPct: true, noChg: true })]);
+
+    const split = { labels: MS.map((m) => m.label.slice(0, 3)), full: MS.map((m) => m.label + ' 2026 · net sales ' + F.money0(m.net)),
+      series: [{ label: 'Cost of goods', values: MS.map((m) => m.cogs) }, { label: 'Operating costs', values: MS.map((m) => m.opexTotal) }, { label: 'Processing fees', values: MS.map((m) => m.fees) }, { label: 'Operating profit', values: MS.map((m) => Math.max(0, m.op)) }] };
+    const opexRank = OPEX.map((c) => { const v = sel.opex[c.key] || 0, p = prev ? prev.opex[c.key] || 0 : 0, d = p ? (v - p) / p : 0;
+      return { label: c.label, value: v, sub: (v / sel.net * 100).toFixed(1) + '% of net sales' + (prev ? ' · ' + (d >= 0 ? '+' : '−') + Math.abs(d * 100).toFixed(0) + '%' : ''), extra: (v / sel.net * 100).toFixed(1) + '%', tip: prev ? [[prev.label, F.money0(p)], [selLabel, F.money0(v)]] : null }; }).sort((a, b) => b.value - a.value);
+
+    /* ---------- budget (September) ---------- */
+    const bl = M.CATS.map((c) => { const a = M.catSpend(c.key, M.SEP1, M.OCT1), r = a / c.budget; return { c, a, r }; });
+    const budget = bl.map((x) => ({ label: x.c.label, budget: F.money0(x.c.budget), actual: F.money0(x.a), variance: (x.c.budget - x.a >= 0 ? '' : '−') + F.money0(Math.abs(x.c.budget - x.a)), varCls: x.a > x.c.budget ? 'is-neg' : '',
+      used: Math.round(x.r * 100) + '%', w: 'width: ' + Math.min(100, x.r * 100).toFixed(0) + '%', meterCls: 'fr-meter' + (x.r > 1 ? ' is-bad' : x.r > 0.95 ? ' is-warn' : ''), cls: '',
+      status: x.r > 1 ? 'Over' : x.r > 0.95 ? 'Near limit' : 'On track', tone: x.r > 1 ? 'danger' : x.r > 0.95 ? 'warning' : 'success' }));
+    const tb = sum(M.CATS, (c) => c.budget), ta = sum(bl, (x) => x.a);
+    budget.push({ label: 'Total', budget: F.money0(tb), actual: F.money0(ta), variance: (tb - ta >= 0 ? '' : '−') + F.money0(Math.abs(tb - ta)), varCls: ta > tb ? 'is-neg' : '', used: Math.round(ta / tb * 100) + '%', w: 'width: ' + Math.min(100, ta / tb * 100).toFixed(0) + '%', meterCls: 'fr-meter', cls: 'is-total', status: ta > tb ? 'Over' : 'Within budget', tone: ta > tb ? 'danger' : 'neutral' });
+    const budgetRank = bl.slice().sort((a, b) => b.r - a.r).map((x) => ({ label: x.c.label, value: x.r, sub: F.money0(x.a) + ' of ' + F.money0(x.c.budget), color: x.r > 1 ? 'var(--series-2)' : x.r > 0.95 ? 'var(--series-4)' : 'var(--series-1)' }));
+    const budgetNote = F.money0(ta) + ' spent of ' + F.money0(tb) + ' budgeted · ' + bl.filter((x) => x.r > 1).length + ' over' + (s.period !== 'sep' ? ' · budgets are kept for the current month only' : '');
+
+    /* ---------- cash (September bank ledger) ---------- */
+    const day0 = M.SEP1, nDays = Math.round((M.OCT1 - M.SEP1) / F.DAY) + 1, dl = (i) => F.fmtDate(day0 + i * F.DAY).replace(/, \d{4}$/, '');
+    const bal = M.ACCOUNTS.map((a) => { let b = a.opening; const tx = M.TX.filter((t) => t.account === a.key).sort((x, y) => x.ts - y.ts); let j = 0;
+      return Array.from({ length: nDays }, (_, i) => { const end = day0 + (i + 1) * F.DAY; while (j < tx.length && tx[j].ts < end) b += tx[j++].amount; return Math.round(b * 100) / 100; }); });
+    bal.forEach((arr, i) => { arr[nDays - 1] = M.ACCOUNTS[i].balance; });
+    const cashLine = { labels: Array.from({ length: nDays }, (_, i) => dl(i)), full: Array.from({ length: nDays }, (_, i) => 'End of ' + dl(i)), series: M.ACCOUNTS.map((a, i) => ({ label: a.name.split(' ••')[0] + ' (' + a.currency + ')', values: bal[i] })) };
+    const KIND = [['payout', 'Processor payouts', 1], ['wire', 'Wholesale wires received', 1], ['transfer', 'Transfers between accounts', 0], ['expense', 'Bills and payroll paid', -1], ['refund', 'Refunds paid out', -1], ['fee', 'Bank fees and chargebacks', -1]];
+    const byKind = {}; M.TX.forEach((t) => { const k = byKind[t.kind] = byKind[t.kind] || { v: 0, n: 0 }; k.v += t.amount; k.n++; });
+    const open = sum(M.ACCOUNTS, (a) => a.opening), close = sum(M.ACCOUNTS, (a) => a.balance);
+    const cashSt = [{ label: 'Opening cash, Sep 1', value: F.money0(open), cls: 'is-total', vc: '' }]
+      .concat(KIND.filter((k) => byKind[k[0]]).map((k) => ({ label: k[1], value: (byKind[k[0]].v >= 0 ? '+' : '−') + F.money0(Math.abs(byKind[k[0]].v)), cls: 'is-sub', vc: byKind[k[0]].v < 0 ? 'is-neg' : '' })))
+      .concat([{ label: 'Net cash flow', value: (close - open >= 0 ? '+' : '−') + F.money0(Math.abs(close - open)), cls: 'is-total', vc: close < open ? 'is-neg' : 'is-pos' }, { label: 'Closing cash, Oct 1', value: F.money0(close), cls: 'is-result', vc: '' }]);
+    const accRank = M.ACCOUNTS.map((a) => ({ label: a.name, value: a.balance, sub: 'from ' + F.money0(a.opening) + ' · ' + a.currency, extra: (a.balance - a.opening >= 0 ? '+' : '−') + F.money0(Math.abs(a.balance - a.opening)), tip: [['Opening', F.money0(a.opening)], ['Net movement', (a.balance - a.opening >= 0 ? '+' : '−') + F.money0(Math.abs(a.balance - a.opening))], ['Used for', a.use]] }));
+    const flowRank = KIND.filter((k) => byKind[k[0]]).map((k) => ({ label: k[1], value: Math.abs(byKind[k[0]].v), sub: (byKind[k[0]].v >= 0 ? 'in' : 'out') + ' · ' + F.plural(byKind[k[0]].n, 'line'), extra: F.int(byKind[k[0]].n), color: byKind[k[0]].v >= 0 ? 'var(--series-3)' : 'var(--series-2)' })).sort((a, b) => b.value - a.value);
+
+    /* ---------- receivables and payables ---------- */
+    const BK = [['nd', 'Not due', -1e9, 0], ['1', '1–30', 1, 30], ['31', '31–60', 31, 60], ['61', '61–90', 61, 90], ['90', '90+', 91, 1e9]];
+    const late = (due) => due ? Math.floor((F.NOW - due) / F.DAY) : -1, bucketOf = (due) => BK.find((b) => late(due) >= b[2] && late(due) <= b[3])[0];
+    const arL = M.INVOICES.filter((p) => p.invoiceStatus === 'open' || p.invoiceStatus === 'overdue'), apL = M.EXPENSES.filter((e) => e.status !== 'paid');
+    const arT = sum(arL, (p) => p.net), arO = sum(arL.filter((p) => late(p.due) > 0), (p) => p.net);
+    const wh30 = sum(M.PAYMENTS.filter((p) => p.processor === 'Bank transfer' && !p.prior && p.status !== 'failed'), (p) => p.net);
+    const ar = { total: F.money0(arT), overdue: F.money0(arO) + ' · ' + arL.filter((p) => late(p.due) > 0).length, dso: Math.round(arT / Math.max(1, wh30) * 30) + ' days',
+      labels: BK.map((b) => b[1]), full: BK.map((b) => b[0] === 'nd' ? 'Not yet due' : b[1] + ' days past due'), series: [{ label: 'Owed', values: BK.map((b) => sum(arL.filter((p) => bucketOf(p.due) === b[0]), (p) => p.net)) }] };
+    const AB = [['ap0', 'Overdue', -1e9, -1], ['ap7', '0–7 days', 0, 7], ['ap30', '8–30 days', 8, 30], ['ap60', '31–60 days', 31, 60], ['apna', 'Not set', null, null]];
+    const until = (e) => e.due ? Math.ceil((e.due - F.NOW) / F.DAY) : null, apB = (e) => { const u = until(e); return u == null ? 'apna' : (AB.find((b) => b[2] != null && u >= b[2] && u <= b[3]) || AB[3])[0]; };
+    const ap = { total: F.money0(sum(apL, (e) => e.amount)), week: F.money0(sum(apL.filter((e) => until(e) != null && until(e) <= 7), (e) => e.amount)), approval: F.money0(sum(apL.filter((e) => e.status === 'approval' || e.status === 'review'), (e) => e.amount)),
+      labels: AB.map((b) => b[1]), full: AB.map((b) => b[0] === 'apna' ? 'No due date until approved' : b[0] === 'ap0' ? 'Past due' : 'Due in ' + b[1]), series: [{ label: 'Owed', values: AB.map((b) => sum(apL.filter((e) => apB(e) === b[0]), (e) => e.amount)) }] };
+    const q = s.query.trim().toLowerCase(), isAr = s.ledger === 'ar';
+    const BUCKETS = isAr ? BK.map((b) => ({ value: b[0], label: b[0] === 'nd' ? 'Not yet due' : b[1] + ' days late' })) : AB.map((b) => ({ value: b[0], label: b[0] === 'apna' ? 'Waiting for approval' : b[1] }));
+    const ESTATUS = { approval: ['Needs approval', 'warning'], review: ['Doesn’t match receipt', 'danger'], scheduled: ['Scheduled', 'info'] };
+    const items = isAr
+      ? arL.filter((p) => (!s.bucket || bucketOf(p.due) === s.bucket) && (!q || p.customer.toLowerCase().indexOf(q) >= 0 || p.invoice.toLowerCase().indexOf(q) >= 0)).sort((a, b) => a.due - b.due)
+        .map((p) => { const l = late(p.due); return { doc: p.invoice, docSub: p.prior ? 'August order' : p.orderId, party: p.customer, partySub: 'Net ' + p.terms, dated: F.fmtDate(p.ts), due: F.fmtDate(p.due), dueSub: l > 0 ? F.plural(l, 'day') + ' late' : 'in ' + F.plural(-l, 'day'), status: l > 0 ? 'Overdue' : 'Open', tone: l > 0 ? 'danger' : 'neutral', amount: F.money2(p.net), open: () => { window.location.href = 'Payments.dc.html?tab=invoices'; } }; })
+      : apL.filter((e) => (!s.bucket || apB(e) === s.bucket) && (!q || e.vendor.toLowerCase().indexOf(q) >= 0 || e.id.toLowerCase().indexOf(q) >= 0)).sort((a, b) => (a.due || 9e15) - (b.due || 9e15))
+        .map((e) => { const u = until(e), cat = M.CAT[e.cat]; return { doc: e.id, docSub: e.desc, party: e.vendor, partySub: cat ? cat.label : '', dated: F.fmtDate(e.date), due: e.due ? F.fmtDate(e.due) : '—', dueSub: u == null ? 'set on approval' : u < 0 ? F.plural(-u, 'day') + ' late' : u === 0 ? 'today' : 'in ' + F.plural(u, 'day'), status: (ESTATUS[e.status] || ['Open', 'neutral'])[0], tone: (ESTATUS[e.status] || ['Open', 'neutral'])[1], amount: F.money2(e.amount), open: () => { window.location.href = 'Expenses.dc.html'; } }; });
+    const pages = Math.max(1, Math.ceil(items.length / s.pageSize)), page = Math.min(s.page, pages), rows = items.slice((page - 1) * s.pageSize, page * s.pageSize);
+
+    /* ---------- what stands out ---------- */
+    const gmSel = sel.gp / sel.net, gmPrev = prev ? prev.gp / prev.net : null, big = OPEX.slice().sort((a, b) => (sel.opex[b.key] || 0) - (sel.opex[a.key] || 0))[0], over = bl.filter((x) => x.r > 1).sort((a, b) => b.r - a.r);
+    const insights = [
+      { icon: 'bar-chart', lead: 'Gross margin ' + (gmSel * 100).toFixed(1) + '%', text: gmPrev != null ? (gmSel >= gmPrev ? 'up ' : 'down ') + Math.abs((gmSel - gmPrev) * 100).toFixed(1) + ' points on ' + prev.label + '. Wholesale sells at 55% of list, so its share of sales moves margin more than prices do.' : 'over the quarter. Wholesale sells at 55% of list, so its share of sales moves margin more than prices do.' },
+      { icon: 'alert-triangle', lead: 'Operating profit is ' + (sel.op / sel.net * 100).toFixed(1) + '% of net sales.', text: big.label + ' is the biggest cost at ' + F.money0(sel.opex[big.key]) + ' (' + (sel.opex[big.key] / sel.net * 100).toFixed(1) + '%). Rent is fixed, so growth in sales goes almost straight to profit.' },
+      over.length ? { icon: 'trending-up', lead: over.map((x) => x.c.label).join(', ') + (over.length > 1 ? ' are' : ' is') + ' over budget', text: 'in September by ' + F.money0(sum(over, (x) => x.a - x.c.budget)) + ' in total.' } : { icon: 'check-circle', lead: 'Every category is within budget', text: 'for September.' },
+      { icon: 'clock', lead: F.money0(arO) + ' of wholesale invoices are overdue', text: 'and ' + F.money0(sum(apL.filter((e) => until(e) != null && until(e) <= 7), (e) => e.amount)) + ' of bills fall due within a week, including October rent.' }];
+
+    return {
+      yes: true, h240: 240, h200: 200,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      periodLabel: { jul: 'July 1 – 31, 2026', aug: 'August 1 – 31, 2026', sep: 'September 1 – 30, 2026', q3: 'July 1 – September 30, 2026' }[s.period] + ' · all stores, consolidated',
+      periodOpts: [{ value: 'sep', label: 'September 2026' }, { value: 'aug', label: 'August 2026' }, { value: 'jul', label: 'July 2026' }, { value: 'q3', label: 'Q3 2026 to date' }], period: s.period, setPeriod: (v) => this.setState({ period: v }),
+      periodNote: s.tab === 'pnl' ? 'Changes compare with the month before' : s.tab === 'aging' ? 'Aging is as of today, Oct 1' : 'Budgets and the bank ledger cover September',
+      selLabel, stats,
+      tabs: [{ id: 'pnl', label: 'Profit and loss' }, { id: 'budget', label: 'Budget against actual', count: over.length ? over.length + ' over' : null }, { id: 'cash', label: 'Cash flow' }, { id: 'aging', label: 'Receivables and payables', count: F.int(arL.length + apL.length) }],
+      tab: s.tab, setTab: (v) => this.setState({ tab: v, page: 1 }), isPnl: s.tab === 'pnl', isBudget: s.tab === 'budget', isCash: s.tab === 'cash', isAging: s.tab === 'aging',
+      col, pnl, chgHead: prev ? 'vs ' + prev.label : 'Change', split, opexRank,
+      budget, budgetRank, budgetNote, cashLine, cashSt, accRank, flowRank,
+      ar, ap, rows, docHead: isAr ? 'Invoice' : 'Bill', partyHead: isAr ? 'Customer' : 'Supplier', itemLabel: isAr ? 'invoices' : 'bills', searchPh: isAr ? 'Search invoice or customer' : 'Search bill or supplier',
+      ledgerOpts: [{ value: 'ar', label: 'Receivables · ' + arL.length }, { value: 'ap', label: 'Payables · ' + apL.length }], ledger: s.ledger, setLedger: (v) => this.setState({ ledger: v, bucket: '', page: 1 }),
+      bucketOpts: [{ value: '', label: 'All due dates' }].concat(BUCKETS), bucket: s.bucket, setBucket: (v) => this.setState({ bucket: v, page: 1 }),
+      query: s.query, setQuery: (v) => this.setState({ query: v, page: 1 }),
+      page, pageSize: s.pageSize, total: items.length, setPage: (p) => this.setState({ page: p }), setPageSize: (p) => this.setState({ pageSize: Number(p), page: 1 }),
+      insights,
+      printView: () => window.print(),
+      exportView: () => this.showToast('Exporting ' + { pnl: 'the profit and loss', budget: 'budget against actual', cash: 'the cash flow statement', aging: 'receivables and payables' }[s.tab], 'CSV and PDF for ' + selLabel + ', with the underlying lines on their own sheet.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- financial reports: September from finance.js, July and August from analytics.js, Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, M = window.FernhillFinance, A = window.FernhillAnalytics, CommerceOS = window.CommerceOS;
+</script>
+</body>
+</html>

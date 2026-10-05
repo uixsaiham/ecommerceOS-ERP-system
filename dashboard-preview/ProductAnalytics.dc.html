@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Product Analytics · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<link rel="stylesheet" href="ds/commerceos/shell/viz.css?v=1">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="ds/commerceos/shell/viz.js?v=2"></script>
+<script src="./catalog.js?v=4"></script>
+<script src="./analytics.js?v=2"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+.pa-table td.c-name{min-width:220px}
+.pa-table .pr-cell{gap:10px}
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="analytics/products" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="analytics/products"></x-import>
+<h1>Product Analytics</h1>
+<p class="ph-sub">Which products earn the money, which ones sell through, and which ones need a push or a price change.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Last 30 days · margins at list cost</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<div class="vz-filters" role="group" aria-label="Filters">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Store" options="{{storeOpts}}" value="{{store}}" on-value-change="{{setStore}}" width="170px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Category" options="{{catOpts}}" value="{{cat}}" on-value-change="{{setCat}}" width="190px"></x-import>
+</div>
+
+<section class="vz-stats" aria-label="Summary">
+<sc-for list="{{stats}}" as="k" hint-placeholder-count="4">
+<div class="vz-stat"><span class="vz-stat-l">{{k.label}}</span><span class="vz-stat-v">{{k.value}}</span><span class="vz-stat-d"><span>{{k.cmp}}</span></span></div>
+</sc-for>
+</section>
+
+<div class="vz-grid-21">
+<section class="vz-card" aria-label="Top products">
+<div class="vz-card-h"><div><h2>Top 10 products by sales</h2><p>{{topNote}}</p></div><a href="Products.dc.html">All Products</a></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Top 10 products by sales" items="{{top}}" parts="{{topParts}}" format="money" label-width="190px" item-name="Product" value-name="Sales"></x-import>
+</section>
+<section class="vz-card" aria-label="Sales by category">
+<div class="vz-card-h"><div><h2>Sales by category</h2><p>Subcategories, with gross margin</p></div><a href="Categories.dc.html">Categories</a></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Sales by category" items="{{cats}}" format="money" label-width="140px" item-name="Category" value-name="Sales" extra-head="Margin"></x-import>
+</section>
+</div>
+
+<section class="vz-card" aria-label="Margin and volume">
+<div class="vz-card-h"><div><h2>Margin against volume</h2><p>Each dot is a product. Top right sells a lot at a good margin; bottom left needs a decision.</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizScatter" title="Gross margin against units sold" points="{{scatter.points}}" x-label="Units sold, 30 days" y-label="Gross margin" x-format="int" y-format="pct" ref-x="{{scatter.refX}}" ref-x-label="{{scatter.refXLabel}}" ref-y="{{scatter.refY}}" ref-y-label="{{scatter.refYLabel}}" y-min="{{scatter.yMin}}" height="300" item-name="Product"></x-import>
+</section>
+
+<div class="vz-grid3">
+<section class="vz-card" aria-label="Slow sellers">
+<div class="vz-card-h"><div><h2>Slowest to sell through</h2><p>Units sold as a share of units sold plus stock</p></div><a href="InventoryAnalytics.dc.html">Inventory</a></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Lowest sell-through" items="{{slow}}" format="pct" label-width="150px" item-name="Product" value-name="Sell-through" extra-head="Stock at cost"></x-import>
+</section>
+<section class="vz-card" aria-label="Lowest rated">
+<div class="vz-card-h"><div><h2>Lowest rated</h2><p>Average stars, products with 20+ reviews</p></div><a href="ProductReviews.dc.html">Reviews</a></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Lowest rated products" items="{{rated}}" format="dec1" label-width="150px" item-name="Product" value-name="Rating" extra-head="Reviews"></x-import>
+</section>
+<section class="vz-card" aria-label="What stands out">
+<div class="vz-card-h"><div><h2>What stands out</h2><p>For the selected store and category</p></div></div>
+<ul class="vz-insights"><sc-for list="{{insights}}" as="i" hint-placeholder-count="4"><li><x-import component-from-global-scope="CommerceOS.Icon" name="{{i.icon}}"></x-import><span><strong>{{i.lead}}</strong> {{i.text}}</span></li></sc-for></ul>
+</section>
+</div>
+
+<section class="o-card" aria-label="Product performance">
+<div class="o-tools"><div class="o-row1"><div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search products" label="Search products" value="{{query}}" on-change="{{setQuery}}"></x-import></div><x-import component-from-global-scope="CommerceOS.Select" aria-label="Sort" options="{{sortOpts}}" value="{{sort}}" on-value-change="{{setSort}}" width="200px"></x-import></div></div>
+<div class="o-scroll" style="display: block">
+<table class="o-table pa-table" aria-label="Product performance">
+<thead><tr><th scope="col">Product</th><th class="is-right" scope="col">Sales</th><th class="is-right" scope="col">Units</th><th class="is-right" scope="col">Margin</th><th class="is-right" scope="col">Sell-through</th><th class="is-right" scope="col">Stock</th><th class="is-right" scope="col">Rating</th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="15"><tr>
+<td class="c-name"><div class="pr-cell"><span class="{{r.thumb}}" aria-hidden="true">{{r.initials}}</span><span class="pr-cell-main"><span class="pr-name">{{r.name}}</span><span class="o-sub">{{r.cat}}</span></span></div></td>
+<td class="is-right td-strong">{{r.rev}}</td><td class="is-right">{{r.units}}</td><td class="is-right">{{r.margin}}</td><td class="is-right">{{r.sell}}</td><td class="is-right">{{r.stock}}</td><td class="is-right">{{r.rating}}</td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="products" on-page-change="{{setPage}}" on-page-size-change="{{setPageSize}}"></x-import></div>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":2200}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, cat: '', query: '', sort: 'rev', page: 1, pageSize: 25 };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), D = A.products(s.store);
+    const list = D.list.filter((x) => !s.cat || x.p.parent === s.cat || x.p.cat === s.cat), sold = list.filter((x) => x.units > 0);
+    const rev = sold.reduce((a, x) => a + x.rev, 0), units = sold.reduce((a, x) => a + x.units, 0), stock = list.reduce((a, x) => a + x.p.stock, 0);
+    const cost = sold.reduce((a, x) => a + x.units * x.p.cost, 0), gm = rev ? (rev - cost) / rev : 0;
+    const stats = [{ label: 'Product sales', value: F.money0(rev), cmp: F.plural(sold.length, 'product') + ' sold at least once' },
+      { label: 'Units sold', value: F.int(units), cmp: F.money2(rev / Math.max(1, units)) + ' a unit on average' },
+      { label: 'Gross margin', value: (gm * 100).toFixed(1) + '%', cmp: F.money0(rev - cost) + ' after product cost' },
+      { label: 'Sell-through', value: (units / Math.max(1, units + stock) * 100).toFixed(1) + '%', cmp: F.int(stock) + ' units still in stock' }];
+    const CH = [['us', 'Fernhill US'], ['eu', 'Fernhill EU'], ['wh', 'Wholesale'], ['amz', 'Amazon US']];
+    const topList = sold.slice().sort((a, b) => b.rev - a.rev).slice(0, 10);
+    const top = topList.map((x) => ({ label: x.p.name, value: x.rev, sub: F.int(x.units) + ' units · ' + Math.round(x.margin * 100) + '% margin', parts: D.store ? null : CH.map((c) => x.p.revCh[c[0]] || 0) }));
+    const topParts = D.store ? null : CH.map((c) => ({ label: c[1] }));
+    const topShare = topList.reduce((a, x) => a + x.rev, 0) / Math.max(1, rev);
+    const sub = {}; sold.forEach((x) => { const k = x.p.cat; sub[k] = sub[k] || { rev: 0, cost: 0, units: 0 }; sub[k].rev += x.rev; sub[k].cost += x.units * x.p.cost; sub[k].units += x.units; });
+    const cats = Object.keys(sub).sort((a, b) => sub[b].rev - sub[a].rev).slice(0, 10).map((k) => ({ label: F.catOf(k).name, value: sub[k].rev, sub: Math.round((sub[k].rev - sub[k].cost) / sub[k].rev * 100) + '% margin · ' + F.int(sub[k].units) + ' units', extra: Math.round((sub[k].rev - sub[k].cost) / sub[k].rev * 100) + '%' }));
+    const med = sold.map((x) => x.units).sort((a, b) => a - b)[Math.floor(sold.length / 2)] || 0;
+    const scatter = { points: sold.map((x) => ({ x: x.units, y: x.margin, label: x.p.name, sub: F.money0(x.rev) + ' · ' + x.top })), refX: med, refXLabel: 'median ' + F.int(med) + ' units', refY: gm, refYLabel: 'average ' + Math.round(gm * 100) + '%', yMin: Math.max(0, Math.floor(Math.min(...sold.map((x) => x.margin), 0.4) * 10) / 10) };
+    const slow = list.filter((x) => x.p.stock > 20).sort((a, b) => a.sell - b.sell).slice(0, 8).map((x) => ({ label: x.p.name, value: x.sell, sub: F.int(x.p.stock) + ' in stock · ' + F.int(x.units) + ' sold', extra: F.money0(x.p.stock * x.p.cost), tip: [['In stock', F.int(x.p.stock)], ['Stock at cost', F.money0(x.p.stock * x.p.cost)]] }));
+    const rated = list.filter((x) => x.p.reviews >= 20).sort((a, b) => a.p.rating - b.p.rating).slice(0, 8).map((x) => ({ label: x.p.name, value: x.p.rating, sub: F.plural(x.p.reviews, 'review'), extra: F.int(x.p.reviews) }));
+    const stars = sold.filter((x) => x.units >= med && x.margin >= gm), weak = sold.filter((x) => x.units < med && x.margin < gm);
+    const insights = [
+      { icon: 'trending-up', lead: 'The top 10 make ' + Math.round(topShare * 100) + '% of product sales.', text: topList[0] ? topList[0].p.name + ' alone brings in ' + F.money0(topList[0].rev) + '.' : '' },
+      { icon: 'check-circle', lead: F.plural(stars.length, 'product') + ' sell above the median at an above-average margin.', text: 'Keep them in stock first when buying.' },
+      { icon: 'alert-triangle', lead: F.plural(weak.length, 'product') + ' sell slowly at a thin margin.', text: 'Candidates to discontinue, bundle or reprice.' }
+    ].concat(slow[0] ? [{ icon: 'package', lead: slow[0].label + ' has sold through ' + (slow[0].value * 100).toFixed(1) + '%.', text: slow[0].extra + ' is tied up in its stock.' }] : []);
+
+    const q = s.query.trim().toLowerCase();
+    const sorters = { rev: (a, b) => b.rev - a.rev, units: (a, b) => b.units - a.units, margin: (a, b) => b.margin - a.margin, sell: (a, b) => a.sell - b.sell, rating: (a, b) => a.p.rating - b.p.rating };
+    const tbl = list.filter((x) => !q || x.p.name.toLowerCase().indexOf(q) >= 0).sort(sorters[s.sort]);
+    const pages = Math.max(1, Math.ceil(tbl.length / s.pageSize)), page = Math.min(s.page, pages);
+    const rows = tbl.slice((page - 1) * s.pageSize, page * s.pageSize).map((x) => ({ name: x.p.name, initials: F.initials(x.p.name), thumb: F.thumbCls(x.p), cat: F.catPath(x.p.cat), rev: F.money0(x.rev), units: F.int(x.units), margin: Math.round(x.margin * 100) + '%', sell: (x.sell * 100).toFixed(1) + '%', stock: F.int(x.p.stock), rating: x.p.reviews ? x.p.rating.toFixed(1) + ' (' + x.p.reviews + ')' : '—' }));
+
+    return {
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k, page: 1 }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(list.length, 'active product') + (s.store === 'all' ? ' · all stores' : ' · ' + store.label),
+      storeOpts: F.STORES.map((x) => ({ value: x.key, label: x.label })), catOpts: [{ value: '', label: 'All categories' }].concat(F.CATEGORIES.filter((c) => !c.parent).map((c) => ({ value: c.key, label: c.name }))), cat: s.cat, setCat: (v) => this.setState({ cat: v, page: 1 }),
+      stats, top, topParts, topNote: D.store ? store.label + ' only' : 'Split by store · wholesale sells at 55% of list', cats, scatter, slow, rated, insights,
+      query: s.query, setQuery: (v) => this.setState({ query: v, page: 1 }), sortOpts: [{ value: 'rev', label: 'Sort: sales' }, { value: 'units', label: 'Sort: units' }, { value: 'margin', label: 'Sort: margin' }, { value: 'sell', label: 'Sort: slowest sell-through' }, { value: 'rating', label: 'Sort: lowest rating' }], sort: s.sort, setSort: (v) => this.setState({ sort: v, page: 1 }),
+      rows, page, pageSize: s.pageSize, total: tbl.length, setPage: (n) => this.setState({ page: n }), setPageSize: (n) => this.setState({ pageSize: Number(n), page: 1 }),
+      exportView: () => this.showToast('Exporting product analytics', 'CSV with sales, units, margin, sell-through, stock and rating for every product.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- product analytics: the Fernhill catalog (catalog.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, A = window.FernhillAnalytics, CommerceOS = window.CommerceOS;
+</script>
+</body>
+</html>

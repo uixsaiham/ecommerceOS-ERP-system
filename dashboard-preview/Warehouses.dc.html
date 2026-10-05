@@ -6,11 +6,11 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=10"></script>
-<script src="./catalog.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="./catalog.js?v=4"></script>
 <script src="./inventory.js?v=8"></script>
 </head>
 <body>
@@ -26,26 +26,26 @@
 .wh-card{display:flex;flex-direction:column;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
 .wh-card.is-busy{border-color:var(--warning)}
 .wh-card.is-paused{background:var(--bg-subtle)}
-.wh-head{display:flex;align-items:flex-start;gap:12px;padding:16px 16px 10px}
+.wh-head{display:flex;align-items:flex-start;gap:12px;padding:16px 20px 12px}
 .wh-logo{flex:none;width:40px;height:40px;border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;background:var(--brand-subtle);color:var(--brand)}
 .wh-logo.is-3pl{background:var(--bg-muted);color:var(--text-secondary)}
 .wh-logo .cx-icon{width:20px;height:20px}
-.wh-titles{flex:1;min-width:0;display:flex;flex-direction:column}
+.wh-titles{flex:1;min-width:0;display:flex;flex-direction:column;min-height:76px}
 .wh-name{border:0;background:none;padding:0;font:inherit;font-size:15px;line-height:22px;font-weight:600;color:var(--text-primary);text-align:left;cursor:pointer}
 .wh-name:hover{color:var(--link);text-decoration:underline}
 .wh-name:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:2px}
-.wh-cap{padding:0 16px 12px;display:flex;flex-direction:column;gap:6px}
+.wh-cap{padding:0 20px 12px;display:flex;flex-direction:column;gap:6px}
 .wh-cap-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)}
 .wh-cap .pr-meter{height:8px}
 .wh-cap .pr-meter > span{background:var(--brand)}
 .wh-cap .pr-meter.is-warn > span{background:var(--warning)}
-.wh-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:12px 16px;border-top:1px solid var(--border)}
+.wh-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:12px 20px;border-top:1px solid var(--border)}
 .wh-metrics dt{font-size:12px;line-height:16px;color:var(--text-muted)}
 .wh-metrics dd{margin:2px 0 0;font-size:16px;line-height:24px;font-weight:600}
 .wh-metrics .is-bad{color:var(--danger)}
-.wh-note{display:flex;gap:8px;align-items:flex-start;margin:0;padding:10px 16px;border-top:1px solid var(--border);font-size:12px;line-height:18px;color:var(--warning)}
+.wh-note{display:flex;gap:8px;align-items:flex-start;margin:0;padding:12px 20px;border-top:1px solid var(--border);font-size:12px;line-height:18px;color:var(--warning)}
 .wh-note .cx-icon{flex:none;width:14px;height:14px;margin-top:2px}
-.wh-foot{display:flex;align-items:center;gap:8px;margin-top:auto;padding:12px 16px;border-top:1px solid var(--border)}
+.wh-foot{display:flex;align-items:center;gap:8px;margin-top:auto;padding:12px 20px;border-top:1px solid var(--border)}
 .wh-foot .o-sub{margin-right:auto}
 /* routing */
 .wh-card-plain{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}

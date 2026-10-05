@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Users & Roles · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="./catalog.js?v=4"></script>
+<script src="./management.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+.us-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.cu-av{border-radius:var(--radius-full)}
+.us-table td.c-name{min-width:240px}
+.us-table .pr-cell{gap:10px}
+.us-2fa{display:inline-flex;align-items:center;gap:6px;font-size:13px}
+.us-2fa .cx-icon{width:16px;height:16px}
+.us-2fa.is-on{color:var(--success)}
+.us-2fa.is-off{color:var(--warning)}
+.us-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.us-roles{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;align-items:start}
+.us-rlist{list-style:none;margin:0;padding:8px;display:flex;flex-direction:column;gap:2px}
+.us-rbtn{width:100%;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:10px 12px;border:0;border-radius:var(--radius-sm);background:none;font:inherit;text-align:left;cursor:pointer;color:var(--text-primary)}
+.us-rbtn:hover{background:var(--bg-subtle)}
+.us-rbtn[aria-current="true"]{background:var(--bg-muted)}
+.us-rbtn:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px}
+.us-rbtn strong{display:block;font-size:14px;line-height:20px;font-weight:500}
+.us-rbtn .o-sub{display:block}
+.us-rcount{flex:none;font-size:12px;color:var(--text-muted);background:var(--bg-subtle);border-radius:var(--radius-full);padding:1px 8px;margin-top:2px}
+.us-rhead{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.us-rhead h2{margin:0;font-size:18px;line-height:26px;font-weight:600;display:flex;align-items:center;gap:8px}
+.us-rhead p{margin:4px 0 0;font-size:13px;line-height:20px;color:var(--text-secondary);max-width:620px}
+.us-ractions{display:flex;gap:8px;flex-wrap:wrap}
+.us-members{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text-secondary)}
+.us-members .pr-thumb{width:28px;height:28px;font-size:11px}
+.us-perm{width:100%;border-collapse:collapse;font-size:13px;line-height:20px}
+.us-perm th{font-size:12px;font-weight:500;color:var(--text-secondary);text-align:left;padding:8px 20px;background:var(--bg-subtle);border-bottom:1px solid var(--border)}
+.us-perm td{padding:10px 20px;border-bottom:1px solid var(--border);vertical-align:middle}
+.us-perm tr:last-child td{border-bottom:0}
+.us-seg{display:inline-flex;border:1px solid var(--border-control);border-radius:var(--radius-sm);overflow:hidden}
+.us-seg button{border:0;border-left:1px solid var(--border-control);background:var(--bg-surface);font:inherit;font-size:12px;padding:4px 10px;cursor:pointer;color:var(--text-secondary);min-width:64px}
+.us-seg button:first-child{border-left:0}
+.us-seg button[aria-pressed="true"]{background:var(--brand);color:var(--on-brand);font-weight:500}
+.us-seg button:disabled{cursor:not-allowed}
+.us-seg button[aria-pressed="true"]:disabled{background:var(--bg-muted);color:var(--text-primary)}
+.us-seg button:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px}
+.us-savebar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;border-top:1px solid var(--border);background:var(--warning-subtle);font-size:13px}
+.us-log{list-style:none;margin:0;padding:0}
+.us-log li{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 20px;border-bottom:1px solid var(--border)}
+.us-log li:last-child{border-bottom:0}
+.us-log .us-ico{width:32px;height:32px;border-radius:var(--radius-full);background:var(--bg-subtle);display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary)}
+.us-log .us-ico .cx-icon{width:16px;height:16px}
+.us-log-t{font-size:13px;line-height:20px;color:var(--text-primary)}
+.us-log-t strong{font-weight:600}
+.us-log-when{font-size:12px;color:var(--text-muted);white-space:nowrap;text-align:right}
+.us-mini{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:18px}
+.us-mini li{display:flex;justify-content:space-between;gap:12px}
+.us-mini .o-sub{white-space:nowrap}
+@media (max-width:1023px){ .us-roles{grid-template-columns:minmax(0,1fr)} .us-kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:767px){ .us-grid2{grid-template-columns:1fr} .us-perm td,.us-perm th{padding-left:12px;padding-right:12px} .us-seg button{min-width:0;padding:4px 7px} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="users" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<h1>Users & Roles</h1>
+<p class="ph-sub">Who can sign in to CommerceOS, what each role can do, and what people changed.</p>
+<p class="ph-meta"><span>{{seatLabel}}</span><span>Signed in as {{me}} · Administrator</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openInvite}}">Invite user</x-import>
+</div>
+</div>
+
+<section class="o-kpis us-kpis" aria-label="Summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static"><span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span><span class="o-kpi-value">{{k.value}}</span><span class="o-kpi-foot">{{k.foot}}</span></div>
+</sc-for>
+</section>
+
+<section class="o-card" aria-label="Users and roles">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="View" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+
+<!-- ---------- team ---------- -->
+<sc-if value="{{isTeam}}" hint-placeholder-val="{{true}}">
+<div class="o-tools"><div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search name, email or title" label="Search users" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Role" options="{{roleOpts}}" value="{{fRole}}" on-value-change="{{setFRole}}" width="200px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Site" options="{{siteOpts}}" value="{{fSite}}" on-value-change="{{setFSite}}" width="170px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Status" options="{{statusOpts}}" value="{{fStatus}}" on-value-change="{{setFStatus}}" width="170px"></x-import>
+</div></div>
+<sc-if value="{{hasRows}}" hint-placeholder-val="{{true}}">
+<div class="o-scroll" style="display: block">
+<table class="o-table us-table" aria-label="Users">
+<thead><tr><th scope="col">User</th><th scope="col">Role</th><th scope="col">Access</th><th scope="col">Two-step sign-in</th><th scope="col">Last active</th><th scope="col">Status</th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="12"><tr>
+<td class="c-name"><div class="pr-cell"><span class="{{r.av}}" aria-hidden="true">{{r.initials}}</span><span class="pr-cell-main"><button class="pr-name" onClick="{{r.open}}">{{r.name}}</button><span class="o-sub">{{r.email}}</span></span></div></td>
+<td><span>{{r.role}}</span><span class="o-sub">{{r.title}}</span></td>
+<td>{{r.scope}}</td>
+<td><span class="{{r.faCls}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{r.faIcon}}"></x-import>{{r.fa}}</span></td>
+<td><span>{{r.last}}</span><span class="o-sub">{{r.via}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}">{{r.status}}</x-import></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+</sc-if>
+<sc-if value="{{noRows}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="search" title="No users match" description="Try another name, role or site."></x-import></sc-if>
+</sc-if>
+
+<!-- ---------- roles ---------- -->
+<sc-if value="{{isRoles}}" hint-placeholder-val="{{false}}">
+<div class="us-roles" style="padding: 16px">
+<div class="o-card"><ul class="us-rlist" aria-label="Roles"><sc-for list="{{roleList}}" as="r" hint-placeholder-count="10"><li><button class="us-rbtn" aria-current="{{r.cur}}" onClick="{{r.pick}}"><span><strong>{{r.name}}</strong><span class="o-sub">{{r.sub}}</span></span><span class="us-rcount">{{r.count}}</span></button></li></sc-for></ul></div>
+<div class="o-card">
+<div class="us-rhead"><div><h2>{{rd.name}}<sc-if value="{{rd.system}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Badge" icon="lock">Built in</x-import></sc-if><sc-if value="{{rd.scoped}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Badge" tone="info" icon="warehouse">Limited to their sites</x-import></sc-if></h2><p>{{rd.desc}}</p></div>
+<div class="us-ractions"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="copy" on-click="{{rd.duplicate}}">Duplicate</x-import><sc-if value="{{rd.custom}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="trash" on-click="{{rd.remove}}">Delete</x-import></sc-if></div></div>
+<div class="us-members"><span>{{rd.memberLabel}}</span><sc-for list="{{rd.members}}" as="m" hint-placeholder-count="5"><span class="{{m.av}}" title="{{m.name}}" aria-label="{{m.name}}">{{m.initials}}</span></sc-for><span>{{rd.more}}</span></div>
+<div class="o-scroll" style="display: block">
+<table class="us-perm" aria-label="Permissions for {{rd.name}}">
+<thead><tr><th scope="col">Module</th><th scope="col">Access</th></tr></thead>
+<tbody><sc-for list="{{rd.perms}}" as="p" hint-placeholder-count="12"><tr>
+<td><span>{{p.label}}</span><span class="o-sub">{{p.desc}}</span></td>
+<td><div class="us-seg" role="group" aria-label="{{p.label}} access"><sc-for list="{{p.opts}}" as="o" hint-placeholder-count="4"><button type="button" aria-pressed="{{o.on}}" disabled="{{o.locked}}" onClick="{{o.set}}">{{o.label}}</button></sc-for></div></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<sc-if value="{{rd.dirty}}" hint-placeholder-val="{{false}}"><div class="us-savebar" role="status"><span>{{rd.dirtyLabel}}</span><span style="display: flex; gap: 8px"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{rd.discard}}">Discard</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{rd.save}}">Save role</x-import></span></div></sc-if>
+</div>
+</div>
+</sc-if>
+
+<!-- ---------- activity log ---------- -->
+<sc-if value="{{isLog}}" hint-placeholder-val="{{false}}">
+<div class="o-tools"><div class="o-row1">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Person" options="{{whoOpts}}" value="{{fWho}}" on-value-change="{{setFWho}}" width="220px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Kind" options="{{kindOpts}}" value="{{fKind}}" on-value-change="{{setFKind}}" width="190px"></x-import>
+<span class="o-sub">{{logNote}}</span>
+</div></div>
+<ul class="us-log" aria-label="Activity"><sc-for list="{{log}}" as="l" hint-placeholder-count="10"><li>
+<span class="us-ico" aria-hidden="true"><x-import component-from-global-scope="CommerceOS.Icon" name="{{l.icon}}"></x-import></span>
+<span class="us-log-t"><strong>{{l.who}}</strong> {{l.text}}<span class="o-sub" style="display: block">{{l.kind}} · {{l.ref}}<sc-if value="{{l.href}}" hint-placeholder-val="{{false}}"> · <a href="{{l.href}}">Open</a></sc-if></span></span>
+<span class="us-log-when">{{l.when}}<span class="o-sub" style="display: block">{{l.ago}}</span></span>
+</li></sc-for></ul>
+</sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<!-- ---------- user panel ---------- -->
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close user" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="us-dp-title">
+<div class="o-panel-head"><div class="pr-cell"><span class="{{dp.av}}" aria-hidden="true">{{dp.initials}}</span><div class="pr-cell-main"><h2 class="o-panel-title" id="us-dp-title">{{dp.name}}</h2><span class="o-sub">{{dp.title}}</span></div></div><button class="icon-btn" aria-label="Close user" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec"><div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}">{{dp.status}}</x-import><sc-if value="{{dp.external}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Badge" tone="info">External</x-import></sc-if><span class="o-sub">{{dp.lastLine}}</span></div>
+<sc-if value="{{dp.alert}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="{{dp.alertTone}}">{{dp.alert}}</x-import></sc-if>
+<dl class="dp-kv"><dt>Email</dt><dd><a href="{{dp.mailto}}">{{dp.email}}</a></dd><dt>Signs in with</dt><dd>{{dp.via}}</dd><dt>Two-step</dt><dd>{{dp.fa}}</dd><dt>Member since</dt><dd>{{dp.since}}</dd><dt>User ID</dt><dd>{{dp.id}}</dd></dl>
+</section>
+<section class="o-panel-sec"><h3>Role and access</h3>
+<x-import component-from-global-scope="CommerceOS.Select" label="Role" options="{{dp.roleOpts}}" value="{{dp.role}}" on-value-change="{{dp.setRole}}" disabled="{{dp.locked}}"></x-import>
+<p class="o-sub" style="margin: 0">{{dp.roleDesc}}</p>
+<sc-if value="{{dp.scoped}}" hint-placeholder-val="{{false}}">
+<span class="o-sub" style="margin-top: 6px">Sites this person can see</span>
+<div class="o-radio-row" role="group" aria-label="Sites"><sc-for list="{{dp.sites}}" as="w" hint-placeholder-count="5"><button type="button" class="o-radio" aria-pressed="{{w.on}}" disabled="{{dp.locked}}" onClick="{{w.toggle}}">{{w.label}}</button></sc-for></div>
+<sc-if value="{{dp.siteError}}" hint-placeholder-val="{{false}}"><span class="o-sub" style="color: var(--danger)">{{dp.siteError}}</span></sc-if>
+</sc-if>
+</section>
+<section class="o-panel-sec"><h3>What this role can do</h3>
+<ul class="us-mini"><sc-for list="{{dp.can}}" as="c" hint-placeholder-count="6"><li><span>{{c.label}}</span><span class="o-sub">{{c.level}}</span></li></sc-for></ul>
+</section>
+<section class="o-panel-sec"><h3>Recent activity</h3>
+<sc-if value="{{dp.hasActs}}" hint-placeholder-val="{{true}}"><ul class="us-mini"><sc-for list="{{dp.acts}}" as="a" hint-placeholder-count="3"><li><span>{{a.text}}</span><span class="o-sub">{{a.ago}}</span></li></sc-for></ul></sc-if>
+<sc-if value="{{dp.noActs}}" hint-placeholder-val="{{false}}"><p class="o-sub" style="margin: 0">Nothing recorded in the last 7 days.</p></sc-if>
+</section>
+<sc-if value="{{dp.showSecurity}}" hint-placeholder-val="{{true}}">
+<section class="o-panel-sec"><h3>Security</h3>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="lock" on-click="{{dp.resetPw}}" disabled="{{dp.locked}}">{{dp.resetLabel}}</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="log-out" on-click="{{dp.signOut}}" disabled="{{dp.locked}}">Sign out everywhere</x-import></div>
+</section>
+</sc-if>
+</div>
+<div class="o-panel-foot"><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="{{dp.stIcon}}" on-click="{{dp.toggleStatus}}" disabled="{{dp.locked}}">{{dp.stLabel}}</x-import></div><div class="dp-foot-end"><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" disabled="{{dp.clean}}" on-click="{{dp.save}}">Save changes</x-import></div></div>
+</div>
+</sc-if>
+
+<!-- ---------- invite ---------- -->
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{invOpen}}" on-close="{{closeInvite}}" size="md" title="Invite a user" description="{{inv.desc}}">
+<div class="o-modal-stack">
+<div class="us-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Full name" value="{{inv.name}}" on-change="{{inv.setName}}" error="{{inv.nameError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Email" type="email" value="{{inv.email}}" on-change="{{inv.setEmail}}" error="{{inv.emailError}}" hint="{{inv.emailHint}}"></x-import></div>
+<div class="us-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Role" options="{{inv.roleOpts}}" value="{{inv.role}}" on-value-change="{{inv.setRole}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Job title" optional="{{yes}}" value="{{inv.title}}" on-change="{{inv.setTitle}}"></x-import></div>
+<p class="o-modal-note">{{inv.roleDesc}}</p>
+<sc-if value="{{inv.scoped}}" hint-placeholder-val="{{false}}">
+<div><span class="o-sub">Sites this person can see</span><div class="o-radio-row" role="group" aria-label="Sites" style="margin-top: 6px"><sc-for list="{{inv.sites}}" as="w" hint-placeholder-count="5"><button type="button" class="o-radio" aria-pressed="{{w.on}}" onClick="{{w.toggle}}">{{w.label}}</button></sc-for></div>
+<sc-if value="{{inv.siteError}}" hint-placeholder-val="{{false}}"><span class="o-sub" style="color: var(--danger)">{{inv.siteError}}</span></sc-if></div>
+</sc-if>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Require two-step sign-in from the first sign-in" checked="{{inv.twofa}}" on-change="{{inv.setTwofa}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeInvite}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" disabled="{{inv.full}}" on-click="{{inv.send}}">Send invite</x-import></div>
+</div>
+</x-import>
+
+<!-- ---------- confirm ---------- -->
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{cfOpen}}" on-close="{{closeCf}}" size="sm" tone="{{cf.tone}}" title="{{cf.title}}" description="{{cf.desc}}">
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeCf}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="{{cf.variant}}" on-click="{{cf.go}}">{{cf.cta}}</x-import></div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"demo":{"editor":"enum","options":["none","detail","invite","roles","log"],"default":"none","section":"State"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let tab = 'team', detail = null;
+    try { const q = new URLSearchParams(window.location.search); if (['team', 'roles', 'log'].indexOf(q.get('tab')) >= 0) tab = q.get('tab'); detail = q.get('u') || null; } catch (e) { /* no query string */ }
+    const demo = props.demo || 'none';
+    if (demo === 'roles') tab = 'roles'; if (demo === 'log') tab = 'log';
+    this.state = {
+      collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, tab,
+      users: M.USERS.map((x) => Object.assign({}, x, { scope: x.scope ? x.scope.slice() : null })), roles: M.ROLES.map((r) => Object.assign({}, r, { perms: Object.assign({}, r.perms) })),
+      audit: M.AUDIT.slice(), query: '', fRole: '', fSite: '', fStatus: '', fWho: '', fKind: '',
+      detail, ed: null, inv: demo === 'invite' ? this.blankInv() : null, role: 'whmgr', draft: null, cf: null
+    };
+    if (demo === 'detail') this.state.detail = this.state.users.find((u) => u.name === 'Marcus Reed').id;
+  }
+  blankInv() { return { name: '', email: '', role: 'whstaff', title: '', sites: [], twofa: true, tried: false }; }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.inv && !this.state.cf) { if (this.state.detail) this.setState({ detail: null, ed: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+  log(kind, text, ref) { this.setState((s) => ({ audit: [{ ts: F.NOW, who: F.USER.name, kind, text, ref: ref || '', href: '' }].concat(s.audit) })); }
+  updUser(id, patch) { this.setState((s) => ({ users: s.users.map((u) => u.id === id ? Object.assign({}, u, patch) : u) })); }
+
+  renderVals() {
+    const s = this.state, ROLE = {}; s.roles.forEach((r) => { ROLE[r.key] = r; });
+    const me = F.USER.name, LV = {}; M.LEVELS.forEach((l) => { LV[l.key] = l; });
+    const av = (u) => 'pr-thumb cu-av th-' + (u.external ? 1 : u.role === 'owner' || u.role === 'admin' ? 0 : ['whmgr', 'whstaff'].indexOf(u.role) >= 0 ? 2 : u.role === 'finance' ? 3 : 4);
+    const scopeLabel = (u) => ROLE[u.role] && ROLE[u.role].scoped ? (u.scope && u.scope.length ? u.scope.map((w) => M.WH[w]).join(', ') : 'No sites yet') : 'All stores and sites';
+    const ST = { active: ['Active', 'success'], invited: ['Invite sent', 'info'], deactivated: ['Deactivated', 'neutral'] };
+    const active = s.users.filter((u) => u.status === 'active'), invited = s.users.filter((u) => u.status === 'invited'), seats = active.length + invited.length;
+    const no2fa = active.filter((u) => !u.twofa), today = active.filter((u) => F.NOW - u.lastActive < 24 * 36e5);
+    const kpis = [
+      { label: 'Active users', dot: 'cx-dot cx-dot-success', value: F.int(active.length), foot: F.int(today.length) + ' signed in during the last 24 hours' },
+      { label: 'Invites waiting', dot: 'cx-dot cx-dot-info', value: F.int(invited.length), foot: invited.length ? 'Oldest sent ' + F.timeAgo(Math.min(...invited.map((u) => u.created))) : 'None pending' },
+      { label: 'Without two-step sign-in', dot: no2fa.length ? 'cx-dot cx-dot-warning' : 'cx-dot cx-dot-success', value: F.int(no2fa.length), foot: no2fa.filter((u) => ['owner', 'admin', 'finance', 'whmgr'].indexOf(u.role) >= 0).length + ' of them can approve or pay' },
+      { label: 'Seats used', dot: seats >= M.PLAN.seats ? 'cx-dot cx-dot-danger' : 'cx-dot cx-dot-brand', value: seats + ' of ' + M.PLAN.seats, foot: M.PLAN.name + ' plan · invites count as seats' }];
+
+    /* ---------- team table ---------- */
+    const q = s.query.trim().toLowerCase();
+    const list = s.users.filter((u) => (!q || (u.name + ' ' + u.email + ' ' + u.title).toLowerCase().indexOf(q) >= 0) && (!s.fRole || u.role === s.fRole) && (!s.fStatus || u.status === s.fStatus)
+      && (!s.fSite || (s.fSite === 'all' ? !ROLE[u.role].scoped : u.scope && u.scope.indexOf(s.fSite) >= 0)))
+      .sort((a, b) => { const w = (u) => u.role === 'owner' ? 0 : u.role === 'admin' ? 1 : 2; return w(a) - w(b) || (a.status === 'deactivated') - (b.status === 'deactivated') || (a.status === 'invited') - (b.status === 'invited') || b.lastActive - a.lastActive; });
+    const rows = list.map((u) => ({ name: u.name + (u.name === me ? ' (you)' : ''), email: u.email, initials: u.initials, av: av(u), role: ROLE[u.role].name, title: u.title, scope: scopeLabel(u),
+      fa: u.status === 'invited' ? 'At first sign-in' : u.twofa ? 'On' : 'Off', faIcon: u.twofa ? 'shield-check' : 'alert-triangle', faCls: 'us-2fa ' + (u.status === 'invited' ? '' : u.twofa ? 'is-on' : 'is-off'),
+      last: u.status === 'invited' ? 'Invited ' + F.timeAgo(u.created) : u.lastActive ? F.timeAgo(u.lastActive) : '—', via: u.status === 'invited' ? 'by ' + u.invitedBy : u.sso ? 'Google sign-in' : 'Email and password',
+      status: ST[u.status][0], tone: ST[u.status][1], open: () => this.setState({ detail: u.id, ed: null }) }));
+
+    /* ---------- user panel ---------- */
+    let dp = false;
+    const du = s.detail && s.users.find((u) => u.id === s.detail);
+    if (du) {
+      const ed = s.ed || { role: du.role, scope: du.scope ? du.scope.slice() : [] }, r = ROLE[ed.role], locked = du.role === 'owner' || du.name === me;
+      const dirty = ed.role !== du.role || (r.scoped && JSON.stringify((ed.scope || []).slice().sort()) !== JSON.stringify((du.scope || []).slice().sort()));
+      const setEd = (patch) => this.setState((st) => ({ ed: Object.assign({}, st.ed || { role: du.role, scope: du.scope ? du.scope.slice() : [] }, patch) }));
+      const siteError = r.scoped && !(ed.scope || []).length ? 'Pick at least one site.' : '';
+      const acts = s.audit.filter((a) => a.who === du.name).slice(0, 5);
+      dp = {
+        name: du.name, title: du.title, initials: du.initials, av: av(du) + ' is-lg', status: ST[du.status][0], tone: ST[du.status][1], external: du.external, email: du.email, mailto: 'mailto:' + du.email, id: du.id,
+        lastLine: du.status === 'invited' ? 'Invited by ' + du.invitedBy + ' ' + F.timeAgo(du.created) : du.lastActive ? 'Last active ' + F.timeAgo(du.lastActive) : '',
+        via: du.sso ? 'Google Workspace (single sign-on)' : 'Email and password', fa: du.twofa ? 'On, authenticator app' : du.status === 'invited' ? 'Set up at first sign-in' : 'Off', since: F.fmtDate(du.created),
+        alert: du.role === 'owner' ? 'The owner’s role can only be changed by transferring ownership in Settings.' : du.name === me ? 'You can’t change your own role or deactivate yourself. Ask the owner.' : !du.twofa && du.status === 'active' ? 'Two-step sign-in is off. Settings require it for administrators; turning it on for everyone protects payouts and refunds.' : '',
+        alertTone: du.role === 'owner' || du.name === me ? 'info' : 'warning', locked,
+        roleOpts: s.roles.filter((x) => x.key !== 'owner').map((x) => ({ value: x.key, label: x.name })).concat(du.role === 'owner' ? [{ value: 'owner', label: 'Owner' }] : []), role: ed.role, roleDesc: r.desc,
+        setRole: (v) => setEd({ role: v, scope: ROLE[v].scoped ? (ed.scope && ed.scope.length ? ed.scope : []) : [] }),
+        scoped: r.scoped, siteError, sites: Object.keys(M.WH).map((w) => ({ label: M.WH[w], on: (ed.scope || []).indexOf(w) >= 0 ? 'true' : 'false', toggle: () => setEd({ scope: (ed.scope || []).indexOf(w) >= 0 ? ed.scope.filter((x) => x !== w) : (ed.scope || []).concat([w]) }) })),
+        can: M.MODULES.filter((m) => r.perms[m.key] !== 'none').map((m) => ({ label: m.label, level: LV[r.perms[m.key]].label + (r.scoped && ['inventory', 'warehouses', 'fulfillment'].indexOf(m.key) >= 0 ? ', their sites' : '') })),
+        acts: acts.map((a) => ({ text: a.text, ago: F.timeAgo(a.ts) })), hasActs: acts.length > 0, noActs: !acts.length,
+        showSecurity: du.status === 'active', resetLabel: du.sso ? 'Reset two-step sign-in' : 'Send password reset',
+        resetPw: () => { this.log('security', (du.sso ? 'Reset two-step sign-in for ' : 'Sent a password reset to ') + du.name, du.name); this.showToast(du.sso ? 'Two-step sign-in reset' : 'Password reset sent', du.sso ? du.name + ' sets it up again at the next sign-in.' : 'Sent to ' + du.email + '. The link works for 24 hours.'); },
+        signOut: () => { this.log('security', 'Signed ' + du.name + ' out of every device', du.name); this.showToast('Signed out everywhere', du.name + ' has to sign in again on every device.'); },
+        stLabel: du.status === 'deactivated' ? 'Reactivate' : du.status === 'invited' ? 'Cancel invite' : 'Deactivate', stIcon: du.status === 'deactivated' ? 'refresh' : 'x',
+        toggleStatus: () => {
+          if (du.status === 'deactivated') {
+            if (seats >= M.PLAN.seats) return this.showToast('No seats left', 'All ' + M.PLAN.seats + ' seats are in use. Deactivate someone or add seats in Settings.', 'warning');
+            this.updUser(du.id, { status: 'active', lastActive: du.lastActive }); this.log('user', 'Reactivated ' + du.name, du.name); return this.showToast(du.name + ' reactivated', 'They can sign in again with the same role and sites.');
+          }
+          this.setState({ cf: du.status === 'invited'
+            ? { title: 'Cancel the invite to ' + du.name + '?', desc: 'The link in their email stops working and the seat is freed.', cta: 'Cancel invite', go: () => { this.setState((st) => ({ users: st.users.filter((x) => x.id !== du.id), detail: null, cf: null })); this.log('user', 'Cancelled the invite to ' + du.name, du.name); this.showToast('Invite cancelled', du.email + ' can no longer join.'); } }
+            : { title: 'Deactivate ' + du.name + '?', desc: 'They’re signed out everywhere and can’t sign in. Their history stays in the activity log, and you can reactivate them later.', cta: 'Deactivate', go: () => { this.updUser(du.id, { status: 'deactivated' }); this.setState({ cf: null }); this.log('user', 'Deactivated ' + du.name, du.name); this.showToast(du.name + ' deactivated', 'Their seat is free.'); } } });
+        },
+        clean: !dirty || !!siteError,
+        save: () => { if (siteError) return; this.updUser(du.id, { role: ed.role, scope: r.scoped ? ed.scope.slice() : null }); this.setState({ ed: null });
+          this.log('user', 'Changed ' + du.name + '’s role to ' + r.name + (r.scoped ? ' (' + ed.scope.map((w) => M.WH[w]).join(', ') + ')' : ''), du.name);
+          this.showToast('Access updated', du.name + ' is now ' + r.name + (r.scoped ? ' at ' + ed.scope.map((w) => M.WH[w]).join(', ') : '') + '. It applies at their next page load.'); }
+      };
+    }
+
+    /* ---------- roles ---------- */
+    const rk = ROLE[s.role] ? s.role : 'admin', R = ROLE[rk], draft = s.draft && s.draft.key === rk ? s.draft.perms : null, P = draft || R.perms;
+    const members = s.users.filter((u) => u.role === rk && u.status !== 'deactivated');
+    const changes = draft ? M.MODULES.filter((m) => draft[m.key] !== R.perms[m.key]).length : 0;
+    const roleList = s.roles.map((r) => { const n = s.users.filter((u) => u.role === r.key && u.status !== 'deactivated').length; return { name: r.name, sub: r.system ? 'Built in' : r.scoped ? 'Per site' : 'All sites', count: n, cur: r.key === rk ? 'true' : 'false', pick: () => this.setState({ role: r.key, draft: null }) }; });
+    const rd = {
+      name: R.name, desc: R.desc, system: R.system, scoped: R.scoped, custom: !!R.custom,
+      memberLabel: members.length ? F.plural(members.length, 'person', 'people') + ' with this role' : 'Nobody has this role yet',
+      members: members.slice(0, 12).map((u) => ({ name: u.name, initials: u.initials, av: av(u) })), more: members.length > 12 ? '+' + (members.length - 12) + ' more' : '',
+      perms: M.MODULES.map((m) => ({ label: m.label, desc: m.desc, opts: M.LEVELS.map((l) => ({ label: l.label, on: P[m.key] === l.key ? 'true' : 'false', locked: R.system,
+        set: () => this.setState((st) => ({ draft: { key: rk, perms: Object.assign({}, st.draft && st.draft.key === rk ? st.draft.perms : R.perms, { [m.key]: l.key }) } })) })) })),
+      dirty: changes > 0, dirtyLabel: F.plural(changes, 'unsaved change') + ' · applies to ' + F.plural(members.length, 'person', 'people') + ' at their next page load',
+      discard: () => this.setState({ draft: null }),
+      save: () => { this.setState((st) => ({ roles: st.roles.map((r) => r.key === rk ? Object.assign({}, r, { perms: Object.assign({}, draft) }) : r), draft: null })); this.log('user', 'Changed the permissions of the ' + R.name + ' role (' + F.plural(changes, 'module') + ')', R.name); this.showToast(R.name + ' saved', F.plural(members.length, 'person', 'people') + ' get the new access at their next page load.'); },
+      duplicate: () => { const key = 'custom' + Date.now().toString(36), name = R.name + ' (copy)';
+        this.setState((st) => ({ roles: st.roles.concat([{ key, name, desc: 'Copy of ' + R.name + '. Change the access below and save.', system: false, custom: true, scoped: R.scoped, perms: Object.assign({}, P) }]), role: key, draft: null }));
+        this.log('user', 'Created the role ' + name, name); this.showToast('Role created', name + ' starts with the same access. Change it and save.'); },
+      remove: () => { if (members.length) return this.showToast('Can’t delete ' + R.name, 'Move its ' + F.plural(members.length, 'person', 'people') + ' to another role first.', 'warning');
+        this.setState({ cf: { title: 'Delete ' + R.name + '?', desc: 'Nobody has this role, so nothing else changes.', cta: 'Delete role', go: () => { this.setState((st) => ({ roles: st.roles.filter((r) => r.key !== rk), role: 'admin', draft: null, cf: null })); this.log('user', 'Deleted the role ' + R.name, R.name); this.showToast('Role deleted', R.name + ' is gone.'); } } }); }
+    };
+
+    /* ---------- activity log ---------- */
+    const logL = s.audit.filter((a) => (!s.fWho || a.who === s.fWho) && (!s.fKind || a.kind === s.fKind));
+    const log = logL.map((a) => ({ who: a.who, text: a.text.charAt(0).toLowerCase() + a.text.slice(1), icon: (M.AUDIT_KINDS[a.kind] || ['', 'info'])[1], kind: (M.AUDIT_KINDS[a.kind] || ['Other'])[0], ref: a.ref, href: a.href, when: F.fmtWhen(a.ts), ago: F.timeAgo(a.ts) }));
+    const whoSet = Array.from(new Set(s.audit.map((a) => a.who))).sort();
+
+    /* ---------- invite ---------- */
+    let inv = {};
+    if (s.inv) {
+      const d = s.inv, r = ROLE[d.role], em = d.email.trim().toLowerCase(), set = (k) => (e) => { const v = e.target.value; this.setState((st) => ({ inv: Object.assign({}, st.inv, { [k]: v }) })); };
+      const dup = s.users.find((u) => u.email.toLowerCase() === em && u.status !== 'deactivated');
+      const nameError = d.tried && !d.name.trim() ? 'Enter their name.' : '', emailError = d.tried && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em) ? 'Enter a valid email address.' : dup ? dup.name + ' already uses this email.' : '';
+      const siteError = d.tried && r.scoped && !d.sites.length ? 'Pick at least one site.' : '', full = seats >= M.PLAN.seats;
+      inv = { name: d.name, email: d.email, title: d.title, role: d.role, twofa: d.twofa, nameError, emailError, siteError, scoped: r.scoped, roleDesc: r.desc, full,
+        emailHint: em && !/@fernhill\.co$/.test(em) ? 'Outside fernhill.co: they’ll sign in with email and password and show as External.' : 'fernhill.co addresses sign in with Google.',
+        desc: full ? 'All ' + M.PLAN.seats + ' seats are in use. Deactivate someone or add seats in Settings first.' : (M.PLAN.seats - seats) + ' of ' + M.PLAN.seats + ' seats left. The invite link works for 7 days.',
+        setName: set('name'), setEmail: set('email'), setTitle: set('title'), setTwofa: (v) => this.setState((st) => ({ inv: Object.assign({}, st.inv, { twofa: v }) })),
+        roleOpts: s.roles.filter((x) => x.key !== 'owner').map((x) => ({ value: x.key, label: x.name })), setRole: (v) => this.setState((st) => ({ inv: Object.assign({}, st.inv, { role: v }) })),
+        sites: Object.keys(M.WH).map((w) => ({ label: M.WH[w], on: d.sites.indexOf(w) >= 0 ? 'true' : 'false', toggle: () => this.setState((st) => ({ inv: Object.assign({}, st.inv, { sites: st.inv.sites.indexOf(w) >= 0 ? st.inv.sites.filter((x) => x !== w) : st.inv.sites.concat([w]) }) })) })),
+        send: () => {
+          const ok = d.name.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em) && !dup && !(r.scoped && !d.sites.length);
+          if (!ok) return this.setState((st) => ({ inv: Object.assign({}, st.inv, { tried: true }) }));
+          const ext = !/@fernhill\.co$/.test(em), nu = { id: 'USR-' + (9000 + s.users.length), name: d.name.trim(), title: d.title.trim() || r.name, role: d.role, email: em, scope: r.scoped ? d.sites.slice() : null, status: 'invited', twofa: false, sso: !ext, lastActive: 0, created: F.NOW, external: ext, invitedBy: me, initials: F.initials(d.name.trim()) };
+          this.setState((st) => ({ users: st.users.concat([nu]), inv: null })); this.log('user', 'Invited ' + nu.name + ' as ' + r.name, nu.name);
+          this.showToast('Invite sent to ' + nu.email, nu.name + ' joins as ' + r.name + (r.scoped ? ' at ' + d.sites.map((w) => M.WH[w]).join(', ') : '') + '. The link works for 7 days.');
+        } };
+    }
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      me, seatLabel: seats + ' of ' + M.PLAN.seats + ' seats used · ' + M.PLAN.name + ' plan', kpis,
+      tabs: [{ id: 'team', label: 'Team', count: F.int(s.users.filter((u) => u.status !== 'deactivated').length) }, { id: 'roles', label: 'Roles', count: F.int(s.roles.length) }, { id: 'log', label: 'Activity log' }],
+      tab: s.tab, setTab: (v) => this.setState({ tab: v }), isTeam: s.tab === 'team', isRoles: s.tab === 'roles', isLog: s.tab === 'log',
+      query: s.query, setQuery: (v) => this.setState({ query: v }),
+      roleOpts: [{ value: '', label: 'All roles' }].concat(s.roles.map((r) => ({ value: r.key, label: r.name }))), fRole: s.fRole, setFRole: (v) => this.setState({ fRole: v }),
+      siteOpts: [{ value: '', label: 'Any site' }, { value: 'all', label: 'All-site access' }].concat(Object.keys(M.WH).map((w) => ({ value: w, label: M.WH[w] }))), fSite: s.fSite, setFSite: (v) => this.setState({ fSite: v }),
+      statusOpts: [{ value: '', label: 'Any status' }, { value: 'active', label: 'Active' }, { value: 'invited', label: 'Invite sent' }, { value: 'deactivated', label: 'Deactivated' }], fStatus: s.fStatus, setFStatus: (v) => this.setState({ fStatus: v }),
+      rows, hasRows: rows.length > 0, noRows: !rows.length,
+      roleList, rd,
+      whoOpts: [{ value: '', label: 'Everyone' }].concat(whoSet.map((w) => ({ value: w, label: w }))), fWho: s.fWho, setFWho: (v) => this.setState({ fWho: v }),
+      kindOpts: [{ value: '', label: 'Every kind' }].concat(Object.keys(M.AUDIT_KINDS).map((k) => ({ value: k, label: M.AUDIT_KINDS[k][0] }))), fKind: s.fKind, setFKind: (v) => this.setState({ fKind: v }),
+      log, logNote: F.plural(logL.length, 'event') + ' in the last 7 days · kept for a year on the ' + M.PLAN.name + ' plan',
+      dp, closeDetail: () => this.setState({ detail: null, ed: null }),
+      invOpen: !!s.inv, inv, openInvite: () => this.setState({ inv: this.blankInv() }), closeInvite: () => this.setState({ inv: null }),
+      cfOpen: !!s.cf, cf: s.cf ? Object.assign({ tone: 'danger', variant: 'danger' }, s.cf) : { title: '', desc: '', cta: '', go: () => {} }, closeCf: () => this.setState({ cf: null }),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- users and roles: the Fernhill team (management.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, M = window.FernhillManagement, CommerceOS = window.CommerceOS;
+</script>
+</body>
+</html>

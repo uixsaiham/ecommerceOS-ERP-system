@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Customer Analytics · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<link rel="stylesheet" href="ds/commerceos/shell/viz.css?v=1">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="ds/commerceos/shell/viz.js?v=2"></script>
+<script src="./catalog.js?v=4"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./customers.js?v=2"></script>
+<script src="./analytics.js?v=2"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+.ca-table td.c-name{min-width:230px}
+.ca-table .pr-cell{gap:10px}
+.cu-av{border-radius:var(--radius-full)}
+.ca-stages{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px}
+.ca-stages a{white-space:nowrap}
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="analytics/customers" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="analytics/customers"></x-import>
+<h1>Customer Analytics</h1>
+<p class="ph-sub">Who buys, how they found you, whether they come back, and who is slipping away.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Updated 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<div class="vz-filters" role="group" aria-label="Filters">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Store" options="{{storeOpts}}" value="{{store}}" on-value-change="{{setStore}}" width="170px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Customer group" options="{{groupOpts}}" value="{{group}}" on-value-change="{{setGroup}}" width="190px"></x-import>
+</div>
+
+<section class="vz-stats" aria-label="Summary">
+<sc-for list="{{stats}}" as="k" hint-placeholder-count="4">
+<div class="vz-stat"><span class="vz-stat-l">{{k.label}}</span><span class="vz-stat-v">{{k.value}}</span><span class="vz-stat-d"><span class="{{k.deltaCls}}">{{k.delta}}</span><span>{{k.cmp}}</span></span></div>
+</sc-for>
+</section>
+
+<div class="vz-grid-21">
+<section class="vz-card" aria-label="New customers by month">
+<div class="vz-card-h"><div><h2>New customers by month</h2><p>{{newNote}}</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizColumns" title="New customers by month" labels="{{newM.labels}}" full-labels="{{newM.full}}" series="{{newM.series}}" format="int" height="{{chartH}}" x-name="Month"></x-import>
+</section>
+<section class="vz-card" aria-label="Lifecycle">
+<div class="vz-card-h"><div><h2>Lifecycle</h2><p>Every customer is in one stage</p></div><a href="Segments.dc.html">Segments</a></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Customers by lifecycle stage" items="{{stages}}" format="int" label-width="120px" item-name="Stage" value-name="Customers" extra-head="Lifetime sales" full-values="{{yes}}"></x-import>
+<ul class="ca-stages" aria-label="Open a stage as a segment"><sc-for list="{{stageLinks}}" as="l" hint-placeholder-count="5"><li><a href="{{l.href}}">{{l.label}}</a></li></sc-for></ul>
+</section>
+</div>
+
+<section class="vz-card" aria-label="Retention cohorts">
+<div class="vz-card-h"><div><h2>Do new customers come back?</h2><p>Share of each month’s new retail customers who ordered again 1 to 8 months later · {{cohortNote}}</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizHeat" title="Retention by first-order month" rows="{{cohort.rows}}" cols="{{cohort.cols}}" col-full="{{cohort.colFull}}" values="{{cohort.values}}" format="pct" value-name="Ordered again" low-label="Fewer return" high-label="{{cohort.high}}"></x-import>
+</section>
+
+<div class="vz-grid3">
+<section class="vz-card" aria-label="Acquisition source">
+<div class="vz-card-h"><div><h2>How they found you</h2><p>Customers by first-touch source</p></div><a href="Campaigns.dc.html">Marketing</a></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Customers by acquisition source" items="{{sources}}" format="int" label-width="120px" item-name="Source" value-name="Customers" extra-head="Average lifetime value" full-values="{{yes}}"></x-import>
+</section>
+<section class="vz-card" aria-label="Orders per customer">
+<div class="vz-card-h"><div><h2>Orders per customer</h2><p>Customers by number of orders, all time</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizColumns" title="Customers by number of orders" labels="{{freq.labels}}" full-labels="{{freq.full}}" series="{{freq.series}}" format="int" height="{{chartH}}" x-name="Orders"></x-import>
+</section>
+<section class="vz-card" aria-label="Countries">
+<div class="vz-card-h"><div><h2>Where they are</h2><p>Top countries by customers</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Customers by country" items="{{countries}}" format="int" label-width="120px" item-name="Country" value-name="Customers" extra-head="Lifetime sales" full-values="{{yes}}"></x-import>
+</section>
+</div>
+
+<div class="vz-grid2">
+<section class="vz-card" aria-label="Customer groups">
+<div class="vz-card-h"><div><h2>Sales by customer group</h2><p>Last 30 days · price lists and terms come from the group</p></div><a href="CustomerGroups.dc.html">Customer Groups</a></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="30-day sales by customer group" items="{{groups}}" format="money" label-width="140px" item-name="Group" value-name="Sales, 30 days" extra-head="Customers"></x-import>
+</section>
+<section class="vz-card" aria-label="What stands out">
+<div class="vz-card-h"><div><h2>What stands out</h2><p>For the selected store and group</p></div></div>
+<ul class="vz-insights"><sc-for list="{{insights}}" as="i" hint-placeholder-count="4"><li><x-import component-from-global-scope="CommerceOS.Icon" name="{{i.icon}}"></x-import><span><strong>{{i.lead}}</strong> {{i.text}}</span></li></sc-for></ul>
+</section>
+</div>
+
+<section class="o-card" aria-label="Customer value">
+<div class="o-tools"><div class="o-row1"><div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search customers" label="Search customers" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Lifecycle stage" options="{{stageOpts}}" value="{{stage}}" on-value-change="{{setStage}}" width="170px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Sort" options="{{sortOpts}}" value="{{sort}}" on-value-change="{{setSort}}" width="210px"></x-import></div></div>
+<div class="o-scroll" style="display: block">
+<table class="o-table ca-table" aria-label="Customer value">
+<thead><tr><th scope="col">Customer</th><th scope="col">Store</th><th scope="col">Stage</th><th class="is-right" scope="col">Orders</th><th class="is-right" scope="col">Lifetime value</th><th class="is-right" scope="col">Average order</th><th class="is-right" scope="col">Last 30 days</th><th scope="col">Last order</th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="15"><tr>
+<td class="c-name"><div class="pr-cell"><span class="{{r.avCls}}" aria-hidden="true">{{r.initials}}</span><span class="pr-cell-main"><button class="pr-name" onClick="{{r.open}}">{{r.name}}</button><span class="o-sub">{{r.sub}}</span></span></div></td>
+<td><span>{{r.channel}}</span><span class="o-sub">{{r.group}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}">{{r.stage}}</x-import></td>
+<td class="is-right">{{r.orders}}</td><td class="is-right td-strong">{{r.spent}}</td><td class="is-right">{{r.aov}}</td><td class="is-right">{{r.rev30}}</td>
+<td><span>{{r.last}}</span><span class="o-sub">{{r.since}}</span></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="customers" on-page-change="{{setPage}}" on-page-size-change="{{setPageSize}}"></x-import></div>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":2400}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', group: '', toast: null, query: '', stage: '', sort: 'spent', page: 1, pageSize: 25 };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), list = A.customers(s.store, s.group), n = list.length;
+    const sum = (l, f) => l.reduce((a, x) => a + f(x), 0), pct = (v) => (v * 100).toFixed(1) + '%';
+    const nu = list.filter((c) => F.NOW - c.firstTs <= 30 * F.DAY), nuPrev = list.filter((c) => F.NOW - c.firstTs > 30 * F.DAY && F.NOW - c.firstTs <= 60 * F.DAY);
+    const act = list.filter((c) => c.ord30 > 0), rep = list.filter((c) => c.orders >= 2), spent = sum(list, (c) => c.spent), orders = sum(list, (c) => c.orders);
+    const d = nuPrev.length ? (nu.length - nuPrev.length) / nuPrev.length : 0;
+    const stats = [
+      { label: 'Customers', value: F.int(n), cmp: F.int(act.length) + ' ordered in the last 30 days', delta: '', deltaCls: '' },
+      { label: 'New in 30 days', value: F.int(nu.length), cmp: 'vs ' + F.int(nuPrev.length) + ' in the 30 days before', delta: nuPrev.length ? (d >= 0 ? '↑ ' : '↓ ') + Math.abs(d * 100).toFixed(1) + '%' : '', deltaCls: 'vz-delta ' + (d >= 0 ? 'is-good' : 'is-bad') },
+      { label: 'Repeat customers', value: n ? pct(rep.length / n) : '—', cmp: F.int(rep.length) + ' have ordered twice or more', delta: '', deltaCls: '' },
+      { label: 'Average lifetime value', value: F.money2(spent / Math.max(1, n)), cmp: F.money2(spent / Math.max(1, orders)) + ' an order · ' + (orders / Math.max(1, n)).toFixed(1) + ' orders each', delta: '', deltaCls: '' }];
+
+    /* new customers per month, Oct ’25 – Sep ’26, split by store */
+    const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], mStart = (k) => Date.UTC(2025, 9 + k, 1);
+    const mIdx = (ts) => { const t = new Date(ts); return (t.getUTCFullYear() - 2025) * 12 + t.getUTCMonth() - 9; };
+    const CH = [['us', 'Fernhill US'], ['eu', 'Fernhill EU'], ['wh', 'Wholesale'], ['amz', 'Amazon US']].filter((c) => list.some((x) => x.channel === c[0]));
+    const counts = CH.map(() => Array(12).fill(0)); list.forEach((c) => { const k = mIdx(c.firstTs); if (k >= 0 && k < 12) counts[CH.findIndex((x) => x[0] === c.channel)][k]++; });
+    const mLab = Array.from({ length: 12 }, (_, k) => { const t = new Date(mStart(k)); return MON[t.getUTCMonth()]; });
+    const newM = { labels: mLab, full: Array.from({ length: 12 }, (_, k) => { const t = new Date(mStart(k)); return MON[t.getUTCMonth()] + ' ' + t.getUTCFullYear() ; }),
+      series: CH.map((c, i) => ({ label: c[1], values: counts[i] })) };
+    const tot12 = Array.from({ length: 12 }, (_, k) => counts.reduce((a, r) => a + r[k], 0)), best = tot12.indexOf(Math.max(...tot12));
+    const newNote = F.int(tot12.reduce((a, b) => a + b, 0)) + ' first orders in 12 months · most in ' + newM.full[best] + ' (' + F.int(tot12[best]) + ')';
+
+    /* lifecycle */
+    const by = {}; A.STAGES.forEach((g) => { by[g.key] = { n: 0, spent: 0 }; }); list.forEach((c) => { const g = by[A.stageOf(c)]; g.n++; g.spent += c.spent; });
+    const stages = A.STAGES.map((g) => ({ label: g.label, value: by[g.key].n, sub: (n ? Math.round(by[g.key].n / n * 100) : 0) + '% of customers', extra: F.money0(by[g.key].spent),
+      color: { new: 'var(--series-1)', active: 'var(--series-3)', onetime: 'var(--series-muted)', risk: 'var(--series-4)', lapsed: 'var(--series-2)' }[g.key], tip: [['Rule', g.desc], ['Lifetime sales', F.money0(by[g.key].spent)]] }));
+    const stageLinks = A.STAGES.map((g) => ({ label: 'Open ' + g.label.toLowerCase() + ' as a segment', href: 'Segments.dc.html?segment=' + g.seg }));
+
+    /* retention cohorts (retail only) */
+    const co = A.cohorts(s.store === 'wholesale' ? 'all' : s.store);
+    const cohort = { rows: co.labels.map((l, i) => l + ' · ' + F.int(co.size[i])), cols: Array.from({ length: 8 }, (_, k) => '+' + (k + 1)), colFull: Array.from({ length: 8 }, (_, k) => (k + 1) + (k ? ' months' : ' month') + ' after the first order'),
+      values: co.pct.map((r) => r.slice(1)) };
+    const m1 = co.pct.map((r) => r[1]).filter((v) => v != null), avgM1 = m1.reduce((a, b) => a + b, 0) / Math.max(1, m1.length);
+    const flat = [].concat(...cohort.values).filter((v) => v != null); cohort.high = flat.length ? Math.round(Math.max(...flat) * 100) + '% ordered again' : '';
+    const cohortNote = (s.store === 'wholesale' ? 'wholesale accounts aren’t in cohorts, so this shows all retail stores · ' : '') + 'on average ' + Math.round(avgM1 * 100) + '% order again the month after';
+
+    /* sources, order frequency, countries, groups */
+    const grp = (key) => { const m = {}; list.forEach((c) => { const k = c[key]; m[k] = m[k] || { n: 0, spent: 0, rev30: 0, ord: 0 }; m[k].n++; m[k].spent += c.spent; m[k].rev30 += c.rev30; m[k].ord += c.orders; }); return m; };
+    const src = grp('source'), sources = Object.keys(src).sort((a, b) => src[b].n - src[a].n).map((k) => ({ label: k, value: src[k].n, sub: F.money0(src[k].spent / src[k].n) + ' lifetime value · ' + (src[k].ord / src[k].n).toFixed(1) + ' orders', extra: F.money2(src[k].spent / src[k].n), tip: [['Average lifetime value', F.money2(src[k].spent / src[k].n)], ['Orders each', (src[k].ord / src[k].n).toFixed(1)]] }));
+    const FB = [[1, 1, '1'], [2, 2, '2'], [3, 3, '3'], [4, 5, '4–5'], [6, 10, '6–10'], [11, 1e9, '11+']];
+    const fb = FB.map((b) => list.filter((c) => c.orders >= b[0] && c.orders <= b[1]));
+    const freq = { labels: FB.map((b) => b[2]), full: FB.map((b) => b[2] === '1' ? 'One order' : b[2] + ' orders'), series: [{ label: 'Customers', values: fb.map((l) => l.length) }] };
+    const cc = grp('country'), countries = Object.keys(cc).sort((a, b) => cc[b].n - cc[a].n).slice(0, 8).map((k) => ({ label: k, value: cc[k].n, sub: F.money0(cc[k].spent) + ' lifetime · ' + Math.round(cc[k].n / n * 100) + '%', extra: F.money0(cc[k].spent) }));
+    const gp = grp('group'), groups = C.GROUPS.filter((g) => gp[g.key]).map((g) => ({ label: g.name, value: gp[g.key].rev30, sub: F.plural(gp[g.key].n, 'customer') + (g.discount ? ' · ' + g.discount + '% off' : '') + (g.terms !== 'Pay at checkout' ? ' · ' + g.terms : ''), extra: F.int(gp[g.key].n), tip: [['Customers', F.int(gp[g.key].n)], ['Lifetime sales', F.money0(gp[g.key].spent)]] })).sort((a, b) => b.value - a.value);
+
+    /* what stands out */
+    const top10 = list.slice().sort((a, b) => b.spent - a.spent).slice(0, Math.max(1, Math.round(n / 10))), top10Share = sum(top10, (c) => c.spent) / Math.max(1, spent);
+    const bestSrc = sources.slice().filter((x) => x.value >= 50).sort((a, b) => src[b.label].spent / src[b.label].n - src[a.label].spent / src[a.label].n)[0];
+    const insights = [
+      { icon: 'users', lead: 'The top 10% of customers', text: 'account for ' + Math.round(top10Share * 100) + '% of lifetime sales. Protect them first when stock is short.' },
+      { icon: 'alert-triangle', lead: F.int(by.risk.n) + ' repeat customers are at risk', text: 'with ' + F.money0(by.risk.spent) + ' in past spend. The “We miss you” email targets them.' },
+      { icon: 'refresh', lead: Math.round(avgM1 * 100) + '% of new customers order again', text: 'within a month. The second-order nudge is the cheapest growth lever.' }
+    ].concat(bestSrc ? [{ icon: 'trending-up', lead: bestSrc.label + ' brings the most valuable customers', text: 'at ' + F.money0(src[bestSrc.label].spent / src[bestSrc.label].n) + ' lifetime value each, against ' + F.money0(spent / Math.max(1, n)) + ' on average.' }] : []);
+
+    /* table */
+    const q = s.query.trim().toLowerCase(), STAGE = {}; A.STAGES.forEach((g) => { STAGE[g.key] = g; });
+    const TONE = { new: 'info', active: 'success', onetime: 'neutral', risk: 'warning', lapsed: 'neutral' };
+    const sorters = { spent: (a, b) => b.spent - a.spent, rev30: (a, b) => b.rev30 - a.rev30, orders: (a, b) => b.orders - a.orders, aov: (a, b) => b.aov - a.aov, recent: (a, b) => b.lastTs - a.lastTs, idle: (a, b) => a.lastTs - b.lastTs };
+    const tbl = list.filter((c) => (!q || c.nameLower.indexOf(q) >= 0 || c.emailLower.indexOf(q) >= 0) && (!s.stage || A.stageOf(c) === s.stage)).sort(sorters[s.sort]);
+    const pages = Math.max(1, Math.ceil(tbl.length / s.pageSize)), page = Math.min(s.page, pages);
+    const rows = tbl.slice((page - 1) * s.pageSize, page * s.pageSize).map((c) => { const g = A.stageOf(c), days = Math.floor((F.NOW - c.lastTs) / F.DAY);
+      return { name: c.name, sub: c.city + ', ' + c.country, initials: F.initials(c.name), avCls: 'pr-thumb cu-av th-' + (c.b2b ? 2 : c.group === 'vip' ? 0 : Number(c.id.slice(-1)) % 5),
+        channel: C.CHANNEL_LABEL[c.channel], group: (C.GROUP[c.group] || {}).name || '', stage: STAGE[g].label, tone: TONE[g], orders: F.int(c.orders), spent: F.money2(c.spent), aov: F.money2(c.aov || c.spent / Math.max(1, c.orders)),
+        rev30: c.rev30 ? F.money2(c.rev30) : '—', last: F.fmtDate(c.lastTs), since: days < 1 ? 'today' : F.plural(days, 'day') + ' ago', open: () => { window.location.href = 'Customers.dc.html?c=' + encodeURIComponent(c.id); } }; });
+
+    return {
+      yes: true, chartH: 220,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, user: F.USER, setStore: (k) => this.setState({ store: k, page: 1 }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(n, 'customer') + ' with an order' + (s.store === 'all' ? ' · all stores' : ' · ' + store.label) + (s.group ? ' · ' + C.GROUP[s.group].name : ''),
+      storeOpts: F.STORES.map((x) => ({ value: x.key, label: x.label })), groupOpts: [{ value: '', label: 'All customer groups' }].concat(C.GROUPS.map((g) => ({ value: g.key, label: g.name }))), group: s.group, setGroup: (v) => this.setState({ group: v, page: 1 }),
+      stats, newM, newNote, stages, stageLinks, cohort, cohortNote, sources, freq, countries, groups, insights,
+      query: s.query, setQuery: (v) => this.setState({ query: v, page: 1 }),
+      stageOpts: [{ value: '', label: 'All stages' }].concat(A.STAGES.map((g) => ({ value: g.key, label: g.label }))), stage: s.stage, setStage: (v) => this.setState({ stage: v, page: 1 }),
+      sortOpts: [{ value: 'spent', label: 'Sort: lifetime value' }, { value: 'rev30', label: 'Sort: last 30 days' }, { value: 'orders', label: 'Sort: most orders' }, { value: 'aov', label: 'Sort: average order' }, { value: 'recent', label: 'Sort: ordered most recently' }, { value: 'idle', label: 'Sort: longest without an order' }], sort: s.sort, setSort: (v) => this.setState({ sort: v, page: 1 }),
+      rows, page, pageSize: s.pageSize, total: tbl.length, setPage: (p) => this.setState({ page: p }), setPageSize: (p) => this.setState({ pageSize: Number(p), page: 1 }),
+      exportView: () => this.showToast('Exporting customer analytics', F.plural(tbl.length, 'customer') + ' with stage, orders and lifetime value, plus the cohort and source tables.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- customer analytics: the Fernhill customers (customers.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, C = window.FernhillCustomers, A = window.FernhillAnalytics, CommerceOS = window.CommerceOS;
+</script>
+</body>
+</html>

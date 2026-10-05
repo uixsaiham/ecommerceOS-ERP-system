@@ -6,11 +6,11 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=10"></script>
-<script src="./catalog.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="./catalog.js?v=4"></script>
 <script src="./inventory.js?v=8"></script>
 <script src="./orders.js?v=2"></script>
 <script src="./fulfillment.js?v=1"></script>
@@ -22,7 +22,7 @@
 /* ---------- Fulfillment overview ---------- */
 .fo-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
 .fo-flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
-.fo-stage{position:relative;display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text-primary);text-decoration:none;min-width:0}
+.fo-stage{position:relative;display:flex;flex-direction:column;gap:2px;padding:12px 20px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text-primary);text-decoration:none;min-width:0}
 .fo-stage:hover{border-color:var(--border-strong)}
 .fo-stage:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
 .fo-stage strong{font-size:22px;line-height:28px;font-weight:600}
@@ -63,7 +63,7 @@
 .fo-dot.is-next{background:var(--brand);box-shadow:0 0 0 3px var(--brand-subtle)}
 @media (max-width:1279px){ .fo-row{grid-template-columns:minmax(0,1fr)} .fo-flow{grid-template-columns:repeat(3,minmax(0,1fr))} .c-hide{display:none} }
 @media (max-width:1023px){ .fo-kpis{display:flex} }
-@media (max-width:767px){ .fo-flow{grid-template-columns:repeat(2,minmax(0,1fr))} .fo-card{padding:12px 14px;overflow-x:auto} }
+@media (max-width:767px){ .fo-flow{grid-template-columns:repeat(2,minmax(0,1fr))} .fo-card{padding:16px;overflow-x:auto} }
 </style>
 </helmet>
 <div class="app cx-shell {{appClass}}" data-theme="{{theme}}">

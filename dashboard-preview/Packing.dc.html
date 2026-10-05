@@ -6,11 +6,11 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=10"></script>
-<script src="./catalog.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="./catalog.js?v=4"></script>
 <script src="./inventory.js?v=8"></script>
 <script src="./orders.js?v=2"></script>
 <script src="./fulfillment.js?v=1"></script>
@@ -23,7 +23,7 @@
 .pa-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
 .pa-late{color:var(--danger);font-weight:500}
 .pa-stations{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
-.pa-st{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0;font-size:13px;line-height:18px}
+.pa-st{display:flex;flex-direction:column;gap:2px;padding:12px 20px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0;font-size:13px;line-height:18px}
 .pa-st strong{font-size:13px}
 .pa-st .o-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pa-st.is-busy{border-color:var(--brand);box-shadow:inset 3px 0 0 var(--brand)}
@@ -46,7 +46,7 @@
 .pa-box:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
 @media (max-width:1279px){ .pa-stations{grid-template-columns:repeat(3,minmax(0,1fr))} .c-pick{display:none} }
 @media (max-width:1023px){ .pa-kpis{display:flex} }
-@media (max-width:767px){ .pa-stations{grid-template-columns:repeat(2,minmax(0,1fr))} .pa-grid2,.pa-boxes{grid-template-columns:1fr 1fr} }
+@media (max-width:767px){ .pa-stations{grid-template-columns:repeat(2,minmax(0,1fr))} .pa-st{padding:12px 16px} .pa-grid2,.pa-boxes{grid-template-columns:1fr 1fr} }
 </style>
 </helmet>
 <div class="app cx-shell {{appClass}}" data-theme="{{theme}}">

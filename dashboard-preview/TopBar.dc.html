@@ -15,7 +15,7 @@
 /* Shared top bar: search, store selector, help, notifications, profile. Same design as the Orders page header. */
 .sc-host[data-sc-name="TopBar"]{display:contents}
 /* top bar */
-.top{position:sticky;top:0;z-index:20;height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 24px;background:var(--bg-surface);border-bottom:1px solid var(--border)}
+.top{position:sticky;top:0;z-index:20;height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 32px;background:var(--bg-surface);border-bottom:1px solid var(--border)}
 .icon-btn{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);cursor:pointer}
 .icon-btn:hover{background:var(--bg-muted);color:var(--text-primary)}
 .icon-btn:focus-visible,.search-trigger:focus-visible,.top-btn:focus-visible,.profile-btn:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
@@ -101,7 +101,7 @@
 .pal-tip code{font-family:var(--font-mono);color:var(--text-secondary)}
 
 @media (max-width:1279px){
-  .top{padding:0 16px 0 24px}
+  .top{padding:0 24px}
 }
 @media (max-width:1023px){
   .profile-text,.profile-btn > .cx-icon,.top-sep,.store-name{display:none}
@@ -109,7 +109,7 @@
 }
 @media (max-width:767px){
   .only-drawer{display:inline-flex}
-  .top{padding:0 8px;gap:4px}
+  .top{padding:0 16px;gap:4px}
   .search-trigger{flex:0 0 36px;width:36px;padding:0;justify-content:center;border:0;background:transparent;color:var(--text-secondary)}
   .search-trigger .cx-icon{width:20px;height:20px}
   .st-text,.st-keys{display:none}
@@ -140,7 +140,7 @@
 <button class="cx-menu-item menu-item-2" role="menuitemradio" aria-checked="{{s.selected}}" onClick="{{s.pick}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{s.icon}}"></x-import><span><span>{{s.label}}</span><span class="menu-sub">{{s.sub}}</span></span><sc-if value="{{s.selected}}" hint-placeholder-val="{{false}}"><span class="menu-check"><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import></span></sc-if></button>
 </sc-for>
 <div class="cx-menu-sep"></div>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="settings"></x-import><span>Manage stores</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.stores}}"><x-import component-from-global-scope="CommerceOS.Icon" name="settings"></x-import><span>Manage stores</span></button>
 </div>
 </sc-if>
 </div>
@@ -148,11 +148,11 @@
 <x-import component-from-global-scope="CommerceOS.Tooltip" content="Help" side="bottom"><button class="icon-btn" aria-label="Help" aria-haspopup="menu" aria-expanded="{{open.help}}" onClick="{{toggleHelp}}"><x-import component-from-global-scope="CommerceOS.Icon" name="help-circle"></x-import></button></x-import>
 <sc-if value="{{open.help}}" hint-placeholder-val="{{false}}">
 <div class="cx-menu cx-menu-end" role="menu" aria-label="Help">
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="file-text"></x-import><span>Help center</span></button>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="keyboard"></x-import><span>Keyboard shortcuts</span><span class="cx-menu-shortcut">?</span></button>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="megaphone"></x-import><span>What’s new</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.help}}"><x-import component-from-global-scope="CommerceOS.Icon" name="file-text"></x-import><span>Help center</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.shortcuts}}"><x-import component-from-global-scope="CommerceOS.Icon" name="keyboard"></x-import><span>Keyboard shortcuts</span><span class="cx-menu-shortcut">?</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.news}}"><x-import component-from-global-scope="CommerceOS.Icon" name="megaphone"></x-import><span>What’s new</span></button>
 <div class="cx-menu-sep"></div>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="users"></x-import><span>Contact support</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.contact}}"><x-import component-from-global-scope="CommerceOS.Icon" name="users"></x-import><span>Contact support</span></button>
 </div>
 </sc-if>
 </div>
@@ -166,7 +166,7 @@
 <li><a class="np-item" href="#"><span class="np-ico {{n.tone}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{n.icon}}"></x-import></span><span class="np-body"><span>{{n.text}}</span><span class="np-time">{{n.time}}</span></span><span class="{{n.dot}}"></span></a></li>
 </sc-for>
 </ul>
-<div class="np-foot"><a href="#">View all notifications</a></div>
+<div class="np-foot"><a href="Preferences.dc.html#notifications">Notification preferences</a></div>
 </div>
 </sc-if>
 </div>
@@ -181,13 +181,13 @@
 <div class="cx-menu cx-menu-end" role="menu" aria-label="Account">
 <div class="profile-head"><span class="avatar avatar-lg" aria-hidden="true">PN</span><span class="profile-text"><span class="profile-name">Priya Natarajan</span><span class="profile-role">priya@fernhill.co</span></span></div>
 <div class="cx-menu-sep"></div>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="user"></x-import><span>My profile</span></button>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="settings"></x-import><span>Account settings</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.profile}}"><x-import component-from-global-scope="CommerceOS.Icon" name="user"></x-import><span>My profile</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.preferences}}"><x-import component-from-global-scope="CommerceOS.Icon" name="sliders"></x-import><span>Preferences</span></button>
 <button class="cx-menu-item" role="menuitem" onClick="{{toggleTheme}}"><x-import component-from-global-scope="CommerceOS.Icon" name="eye"></x-import><span>{{themeLabel}}</span></button>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="keyboard"></x-import><span>Keyboard shortcuts</span><span class="cx-menu-shortcut">?</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.shortcuts}}"><x-import component-from-global-scope="CommerceOS.Icon" name="keyboard"></x-import><span>Keyboard shortcuts</span><span class="cx-menu-shortcut">?</span></button>
 <div class="cx-menu-sep"></div>
 <div class="cx-menu-group">Role: Operations Manager</div>
-<button class="cx-menu-item" role="menuitem"><x-import component-from-global-scope="CommerceOS.Icon" name="log-out"></x-import><span>Sign out</span></button>
+<button class="cx-menu-item" role="menuitem" onClick="{{go.signout}}"><x-import component-from-global-scope="CommerceOS.Icon" name="log-out"></x-import><span>Sign out</span></button>
 </div>
 </sc-if>
 </div>
@@ -252,6 +252,7 @@ class Component extends DCLogic {
     this._onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); this.setState({ search: true, menu: null }); }
       else if (e.key === 'Escape' && (this.state.search || this.state.menu)) this.setState({ search: false, menu: null });
+      else if (e.key === '?' && !this.state.search && !(e.target && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))) && (!window.CommerceOS.prefs || window.CommerceOS.prefs.get().shortcuts)) window.location.href = 'Help.dc.html?tab=shortcuts';
     };
     document.addEventListener('mousedown', this._onDoc);
     document.addEventListener('keydown', this._onKey);
@@ -282,6 +283,8 @@ class Component extends DCLogic {
     this._flatCount = flat;
     return {
       none: null,
+      go: ((H) => ({ help: () => { window.location.href = 'Help.dc.html'; }, shortcuts: () => { window.location.href = 'Help.dc.html?tab=shortcuts'; }, news: () => { window.location.href = 'Help.dc.html?tab=new'; }, contact: () => { window.location.href = 'Help.dc.html?tab=contact'; },
+        stores: () => { window.location.href = H.stores; }, profile: () => { window.location.href = H.profile; }, preferences: () => { window.location.href = H.preferences; }, signout: () => { window.location.href = H.signout; } }))(window.CommerceOS.ACCOUNT_HREF || {}),
       open: { storeTop: s.menu === 'storeTop', help: s.menu === 'help', notif: s.menu === 'notif', profile: s.menu === 'profile' },
       openDrawer: () => { if (p.onOpenDrawer) p.onOpenDrawer(); },
       toggleStoreTop: this.toggleMenu('storeTop'), toggleHelp: this.toggleMenu('help'), toggleNotif: this.toggleMenu('notif'), toggleProfile: this.toggleMenu('profile'),

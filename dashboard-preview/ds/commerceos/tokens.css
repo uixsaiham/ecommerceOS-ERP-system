@@ -79,6 +79,7 @@
   --space-8: 8px;
   --space-12: 12px;
   --space-16: 16px;
+  --space-20: 20px;   /* card inset: every card, table, toolbar and tile starts its content 20px in */
   --space-24: 24px;
   --space-32: 32px;
   --space-40: 40px;

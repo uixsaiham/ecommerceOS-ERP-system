@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Integrations · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="./catalog.js?v=4"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./management.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+.in-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.in-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:16px 20px 20px}
+.in-card{display:flex;flex-direction:column;gap:10px;padding:16px 20px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-surface);min-width:0}
+.in-card.is-warn{border-color:var(--warning)}
+.in-top{display:flex;align-items:flex-start;gap:12px}
+.in-mono{flex:none;width:40px;height:40px;border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:-0.02em}
+.in-mono.is-lg{width:48px;height:48px;font-size:15px}
+.in-name{display:flex;flex-direction:column;min-width:0;flex:1}
+.in-name button{border:0;background:none;padding:0;font:inherit;font-size:14px;line-height:20px;font-weight:600;color:var(--text-primary);text-align:left;cursor:pointer}
+.in-name button:hover{text-decoration:underline}
+.in-name button:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:2px}
+.in-desc{margin:0;font-size:13px;line-height:20px;color:var(--text-secondary);flex:1}
+.in-issue{margin:0;font-size:12px;line-height:18px;color:var(--warning);display:flex;gap:6px}
+.in-issue .cx-icon{flex:none;width:14px;height:14px;margin-top:2px}
+.in-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;line-height:16px;color:var(--text-muted)}
+.in-foot span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.in-section{padding:16px 20px;border-bottom:1px solid var(--border)}
+.in-section:last-child{border-bottom:0}
+.in-section-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.in-section-h h2{margin:0;font-size:15px;line-height:22px;font-weight:600}
+.in-section-h p{margin:2px 0 0;font-size:12px;line-height:16px;color:var(--text-muted)}
+.in-code{font-family:var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace);font-size:12px;background:var(--bg-subtle);padding:2px 6px;border-radius:var(--radius-xs);word-break:break-all}
+.in-sw-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:6px 0}
+.in-sw-row span.o-sub{display:block}
+.in-sw{flex:none;position:relative;width:36px;height:20px;border:0;border-radius:10px;background:var(--border-strong);cursor:pointer;padding:0;transition:background .15s}
+.in-sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:left .15s}
+.in-sw[aria-checked="true"]{background:var(--brand)}
+.in-sw[aria-checked="true"]::after{left:18px}
+.in-sw:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.in-sw:disabled{opacity:.5;cursor:not-allowed}
+.in-scopes{display:flex;flex-wrap:wrap;gap:6px}
+.in-log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:18px}
+.in-log li{display:flex;gap:10px;align-items:flex-start}
+.in-log .cx-dot{margin-top:6px;flex:none}
+.in-log .o-sub{margin-left:auto;white-space:nowrap}
+.in-checks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.in-bad{color:var(--danger);font-weight:600}
+.in-reveal{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+@media (max-width:1279px){ .in-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:1023px){ .in-kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:767px){ .in-grid{grid-template-columns:minmax(0,1fr)} .in-checks{grid-template-columns:1fr} }
+/* cards in a row share section heights (header, description, issue, footer) */
+.in-card{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:subgrid;grid-row:span 4;row-gap:10px}
+.in-issue.is-empty{display:block;margin:0}
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="integrations" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<h1>Integrations</h1>
+<p class="ph-sub">The stores, payment processors, carriers and tools CommerceOS exchanges data with.</p>
+<p class="ph-meta"><span>{{metaLine}}</span><span>Updated 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="refresh" on-click="{{syncAll}}">Sync all now</x-import>
+</div>
+</div>
+
+<section class="o-kpis in-kpis" aria-label="Summary">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div class="o-kpi is-static"><span class="o-kpi-label"><span class="{{k.dot}}"></span>{{k.label}}</span><span class="o-kpi-value">{{k.value}}</span><span class="o-kpi-foot">{{k.foot}}</span></div>
+</sc-for>
+</section>
+
+<section class="o-card" aria-label="Integrations">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="View" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+
+<sc-if value="{{isApps}}" hint-placeholder-val="{{true}}">
+<div class="o-tools"><div class="o-row1">
+<div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search apps" label="Search apps" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Category" options="{{catOpts}}" value="{{cat}}" on-value-change="{{setCat}}" width="220px"></x-import>
+</div></div>
+<sc-if value="{{hasCards}}" hint-placeholder-val="{{true}}">
+<div class="in-grid"><sc-for list="{{cards}}" as="c" hint-placeholder-count="9">
+<article class="{{c.cls}}">
+<div class="in-top"><span class="{{c.mono}}" aria-hidden="true">{{c.initials}}</span><div class="in-name"><button onClick="{{c.open}}">{{c.name}}</button><span class="o-sub">{{c.catLabel}}</span></div><x-import component-from-global-scope="CommerceOS.Badge" tone="{{c.tone}}" dot="{{yes}}">{{c.status}}</x-import></div>
+<p class="in-desc">{{c.desc}}</p>
+<p class="{{c.issueCls}}"><sc-if value="{{c.issue}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Icon" name="alert-triangle"></x-import><span>{{c.issue}}</span></sc-if></p>
+<div class="in-foot"><span>{{c.foot}}</span><x-import component-from-global-scope="CommerceOS.Button" variant="{{c.btnVariant}}" size="sm" on-click="{{c.act}}">{{c.btn}}</x-import></div>
+</article>
+</sc-for></div>
+</sc-if>
+<sc-if value="{{noCards}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="search" title="No apps match" description="Try another name or category."></x-import></sc-if>
+</sc-if>
+
+<sc-if value="{{isApi}}" hint-placeholder-val="{{false}}">
+<div class="in-section">
+<div class="in-section-h"><div><h2>API keys</h2><p>For your own scripts and tools. Keys act with the scopes you give them, not as a person.</p></div><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="plus" on-click="{{openKey}}">Create API key</x-import></div>
+<sc-if value="{{newKey}}" hint-placeholder-val="{{false}}"><div style="margin-bottom: 12px"><x-import component-from-global-scope="CommerceOS.Alert" tone="success" title="Copy this key now"><span class="in-reveal"><span>You won’t see it again.</span><code class="in-code">{{newKey}}</code><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="copy" on-click="{{copyKey}}">Copy</x-import></span></x-import></div></sc-if>
+<div class="o-scroll" style="display: block">
+<table class="o-table" aria-label="API keys">
+<thead><tr><th scope="col">Name</th><th scope="col">Key</th><th scope="col">Scopes</th><th scope="col">Created</th><th scope="col">Last used</th><th scope="col"><span class="cx-sr">Actions</span></th></tr></thead>
+<tbody><sc-for list="{{keys}}" as="k" hint-placeholder-count="3"><tr>
+<td><span class="td-strong">{{k.name}}</span><span class="o-sub">by {{k.by}}</span></td><td><code class="in-code">{{k.prefix}}</code></td><td style="white-space: normal">{{k.scopes}}</td><td>{{k.created}}</td>
+<td><span>{{k.used}}</span><span class="o-sub">{{k.usedNote}}</span></td>
+<td class="is-right"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="trash" on-click="{{k.revoke}}">Revoke</x-import></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+</div>
+<div class="in-section">
+<div class="in-section-h"><div><h2>Webhooks</h2><p>CommerceOS posts a signed JSON event to these URLs. Failed deliveries are retried for 24 hours.</p></div><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="plus" on-click="{{openHook}}">Add webhook</x-import></div>
+<div class="o-scroll" style="display: block">
+<table class="o-table" aria-label="Webhooks">
+<thead><tr><th scope="col">Endpoint</th><th scope="col">Events</th><th scope="col">Delivered</th><th scope="col">Last delivery</th><th scope="col">On</th><th scope="col"><span class="cx-sr">Actions</span></th></tr></thead>
+<tbody><sc-for list="{{hooks}}" as="w" hint-placeholder-count="3"><tr>
+<td style="white-space: normal"><code class="in-code">{{w.url}}</code></td><td style="white-space: normal">{{w.events}}</td>
+<td><span class="{{w.okCls}}">{{w.ok}}</span></td><td>{{w.last}}</td>
+<td><button type="button" class="in-sw" role="switch" aria-checked="{{w.on}}" aria-label="{{w.swLabel}}" onClick="{{w.toggle}}"></button></td>
+<td class="is-right"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="trash" on-click="{{w.remove}}">Delete</x-import></td>
+</tr></sc-for></tbody>
+</table>
+</div>
+</div>
+<div class="in-section">
+<div class="in-section-h"><div><h2>Usage this month</h2><p>{{usageNote}}</p></div><a href="Settings.dc.html?section=billing">Plan and billing</a></div>
+<span class="pr-meter" style="height: 8px"><span style="{{usageW}}"></span></span>
+</div>
+</sc-if>
+</section>
+
+</main>
+</div>
+</div>
+
+<!-- ---------- app panel ---------- -->
+<sc-if value="{{dp}}" hint-placeholder-val="{{false}}">
+<button class="o-panel-scrim" aria-label="Close" onClick="{{closeDetail}}"></button>
+<div class="o-panel dp-wide" role="dialog" aria-modal="true" aria-labelledby="in-dp-title">
+<div class="o-panel-head"><div class="pr-cell"><span class="{{dp.mono}}" aria-hidden="true">{{dp.initials}}</span><div class="pr-cell-main"><h2 class="o-panel-title" id="in-dp-title">{{dp.name}}</h2><span class="o-sub">{{dp.catLabel}}</span></div></div><button class="icon-btn" aria-label="Close" onClick="{{closeDetail}}"><x-import component-from-global-scope="CommerceOS.Icon" name="x"></x-import></button></div>
+<div class="o-panel-body">
+<section class="o-panel-sec"><div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"><x-import component-from-global-scope="CommerceOS.Badge" tone="{{dp.tone}}" dot="{{yes}}">{{dp.status}}</x-import><span class="o-sub">{{dp.syncLine}}</span></div>
+<p class="o-modal-note">{{dp.desc}}</p>
+<sc-if value="{{dp.issue}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">{{dp.issue}}</x-import></sc-if>
+<sc-if value="{{dp.connected}}" hint-placeholder-val="{{true}}"><dl class="dp-kv"><dt>Account</dt><dd>{{dp.account}}</dd><dt>Connected by</dt><dd>{{dp.by}}</dd><dt>Since</dt><dd>{{dp.since}}</dd><dt>Syncs</dt><dd>{{dp.every}}</dd><dt>Pricing</dt><dd>{{dp.price}}</dd><dt>Last 30 days</dt><dd>{{dp.count}}</dd></dl></sc-if>
+<sc-if value="{{dp.available}}" hint-placeholder-val="{{false}}"><dl class="dp-kv"><dt>Pricing</dt><dd>Free to connect · the app’s own plan applies</dd><dt>Built by</dt><dd>CommerceOS</dd><dt>Access</dt><dd>Administrators can connect apps</dd></dl></sc-if>
+</section>
+<sc-if value="{{dp.hasToggles}}" hint-placeholder-val="{{true}}">
+<section class="o-panel-sec"><h3>What syncs</h3>
+<sc-for list="{{dp.toggles}}" as="t" hint-placeholder-count="4"><div class="in-sw-row"><span><span>{{t.label}}</span><span class="o-sub">{{t.hint}}</span></span><button type="button" class="in-sw" role="switch" aria-checked="{{t.on}}" aria-label="{{t.label}}" disabled="{{dp.paused}}" onClick="{{t.toggle}}"></button></div></sc-for>
+</section>
+</sc-if>
+<sc-if value="{{dp.hasScopes}}" hint-placeholder-val="{{true}}">
+<section class="o-panel-sec"><h3>Permissions granted</h3><div class="in-scopes"><sc-for list="{{dp.scopes}}" as="sc" hint-placeholder-count="3"><x-import component-from-global-scope="CommerceOS.Badge">{{sc}}</x-import></sc-for></div></section>
+</sc-if>
+<sc-if value="{{dp.hasLog}}" hint-placeholder-val="{{true}}">
+<section class="o-panel-sec"><h3>Recent syncs</h3><ul class="in-log"><sc-for list="{{dp.log}}" as="l" hint-placeholder-count="3"><li><span class="{{l.dot}}" aria-hidden="true"></span><span>{{l.text}}</span><span class="o-sub">{{l.ago}}</span></li></sc-for></ul></section>
+</sc-if>
+</div>
+<div class="o-panel-foot">
+<div class="dp-foot-end"><sc-if value="{{dp.canDisconnect}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" icon="x" on-click="{{dp.disconnect}}">Disconnect</x-import></sc-if></div>
+<div class="dp-foot-end">
+<sc-if value="{{dp.connected}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="{{dp.pauseIcon}}" on-click="{{dp.pause}}">{{dp.pauseLabel}}</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="refresh" on-click="{{dp.primary}}" disabled="{{dp.paused}}">{{dp.primaryLabel}}</x-import></sc-if>
+<sc-if value="{{dp.available}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plug" on-click="{{dp.connect}}">Connect</x-import></sc-if>
+</div>
+</div>
+</div>
+</sc-if>
+
+<!-- ---------- connect ---------- -->
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{cnOpen}}" on-close="{{closeCn}}" size="md" title="{{cn.title}}" description="{{cn.desc}}">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Input" label="{{cn.label}}" value="{{cn.account}}" on-change="{{cn.setAccount}}" error="{{cn.error}}" hint="{{cn.hint}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Start the first full sync right away" checked="{{cn.syncNow}}" on-change="{{cn.setSyncNow}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeCn}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plug" on-click="{{cn.go}}">{{cn.cta}}</x-import></div>
+</div>
+</x-import>
+
+<!-- ---------- API key ---------- -->
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{kyOpen}}" on-close="{{closeKey}}" size="md" title="Create an API key" description="Give it a name you’ll recognise and only the scopes it needs.">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Input" label="Name" value="{{ky.name}}" on-change="{{ky.setName}}" error="{{ky.nameError}}" hint="For example: Label printer, Rotterdam"></x-import>
+<div><span class="o-sub">Scopes</span><div class="in-checks" style="margin-top: 6px"><sc-for list="{{ky.scopes}}" as="sc" hint-placeholder-count="6"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{sc.label}}" checked="{{sc.on}}" on-change="{{sc.toggle}}"></x-import></sc-for></div>
+<sc-if value="{{ky.scopeError}}" hint-placeholder-val="{{false}}"><span class="o-sub" style="color: var(--danger)">{{ky.scopeError}}</span></sc-if></div>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeKey}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{ky.go}}">Create key</x-import></div>
+</div>
+</x-import>
+
+<!-- ---------- webhook ---------- -->
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{hkOpen}}" on-close="{{closeHook}}" size="md" title="Add a webhook" description="We’ll send a test event when you save.">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Input" label="Endpoint URL" value="{{hk.url}}" on-change="{{hk.setUrl}}" error="{{hk.urlError}}" hint="Must start with https://"></x-import>
+<div><span class="o-sub">Events</span><div class="in-checks" style="margin-top: 6px"><sc-for list="{{hk.events}}" as="ev" hint-placeholder-count="8"><x-import component-from-global-scope="CommerceOS.Checkbox" label="{{ev.label}}" checked="{{ev.on}}" on-change="{{ev.toggle}}"></x-import></sc-for></div>
+<sc-if value="{{hk.evError}}" hint-placeholder-val="{{false}}"><span class="o-sub" style="color: var(--danger)">{{hk.evError}}</span></sc-if></div>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeHook}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{hk.go}}">Add webhook</x-import></div>
+</div>
+</x-import>
+
+<!-- ---------- confirm ---------- -->
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{cfOpen}}" on-close="{{closeCf}}" size="sm" tone="danger" title="{{cf.title}}" description="{{cf.desc}}">
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeCf}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="danger" on-click="{{cf.go}}">{{cf.cta}}</x-import></div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1600}}'>
+const KEY_SCOPES = ['Read orders', 'Write orders', 'Read inventory', 'Write inventory', 'Read products', 'Write products', 'Read customers', 'Write fulfillment', 'Read finance'];
+const EVENTS = ['order.created', 'order.updated', 'order.cancelled', 'order.shipped', 'inventory.updated', 'product.updated', 'refund.created', 'customer.created'];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let tab = 'connected', detail = null;
+    try { const q = new URLSearchParams(window.location.search); if (['connected', 'available', 'api'].indexOf(q.get('tab')) >= 0) tab = q.get('tab'); detail = q.get('i') || null; } catch (e) { /* no query string */ }
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, tab, detail, query: '', cat: '',
+      apps: M.APPS.map((a) => Object.assign({}, a, { toggles: a.toggles.map((t) => Object.assign({}, t)), log: a.log.slice(), paused: false })),
+      keys: M.API_KEYS.slice(), hooks: M.WEBHOOKS.map((w) => Object.assign({}, w)), cn: null, ky: null, hk: null, cf: null, newKey: null, calls: 1312480 };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && !this.state.cn && !this.state.cf && !this.state.ky && !this.state.hk) { if (this.state.detail) this.setState({ detail: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+  upd(key, fn) { this.setState((s) => ({ apps: s.apps.map((a) => a.key === key ? Object.assign({}, a, fn(a)) : a) })); }
+
+  renderVals() {
+    const s = this.state, O = window.FernhillOrders.ORDERS, CAT = {}; M.CATS.forEach((c) => { CAT[c.key] = c.label; });
+    const isOn = (a) => a.status !== 'available', live = s.apps.filter(isOn), warn = live.filter((a) => a.status === 'warning' || a.status === 'error'), paused = live.filter((a) => a.paused);
+    const recent = live.filter((a) => !a.paused && a.lastSync && F.NOW - a.lastSync < 36e5);
+    const countOf = (a) => { if (!a.count) return null; const c = a.count; return O.filter((o) => c.channel ? o.channel === c.channel : c.pay ? o.payMethod === c.pay : o.carrier === c.carrier).length; };
+    const TONE = (a) => a.paused ? ['Paused', 'neutral'] : a.status === 'connected' ? ['Connected', 'success'] : a.status === 'warning' ? ['Needs attention', 'warning'] : a.status === 'error' ? ['Error', 'danger'] : ['Not connected', 'neutral'];
+    const MONO = ['th-0', 'th-1', 'th-2', 'th-3', 'th-4'], mono = (a) => 'in-mono ' + MONO[M.CATS.findIndex((c) => c.key === a.cat) % 5];
+    const kpis = [
+      { label: 'Connected apps', dot: 'cx-dot cx-dot-success', value: F.int(live.length), foot: M.CATS.filter((c) => live.some((a) => a.cat === c.key)).length + ' categories · ' + (s.apps.length - live.length) + ' more available' },
+      { label: 'Need attention', dot: warn.length ? 'cx-dot cx-dot-warning' : 'cx-dot cx-dot-success', value: F.int(warn.length), foot: warn.length ? warn.map((a) => a.name.split(' ·')[0].split(' (')[0]).join(', ') : 'Everything is syncing' },
+      { label: 'Synced in the last hour', dot: 'cx-dot cx-dot-info', value: recent.length + ' of ' + live.length, foot: paused.length ? F.plural(paused.length, 'app') + ' paused' : 'The rest sync daily or by hand' },
+      { label: 'API calls this month', dot: 'cx-dot cx-dot-brand', value: (s.calls / 1e6).toFixed(2) + 'M', foot: 'of 2M on the ' + M.PLAN.name + ' plan · resets Nov 1' }];
+
+    const q = s.query.trim().toLowerCase();
+    const pool = s.apps.filter((a) => (s.tab === 'available' ? !isOn(a) : isOn(a)) && (!s.cat || a.cat === s.cat) && (!q || (a.name + ' ' + a.desc).toLowerCase().indexOf(q) >= 0))
+      .sort((a, b) => ((b.status === 'warning') - (a.status === 'warning')) || M.CATS.findIndex((c) => c.key === a.cat) - M.CATS.findIndex((c) => c.key === b.cat));
+    const cards = pool.map((a) => { const t = TONE(a), n = countOf(a);
+      return { name: a.name, initials: a.mono, mono: mono(a), catLabel: CAT[a.cat], desc: a.desc, status: t[0], tone: t[1], issue: a.paused ? '' : a.issue, issueCls: 'in-issue' + (a.issue && !a.paused ? '' : ' is-empty'), cls: 'in-card' + (a.issue && !a.paused ? ' is-warn' : ''),
+        foot: isOn(a) ? (a.paused ? 'Paused by you' : 'Synced ' + F.timeAgo(a.lastSync)) + (n != null ? ' · ' + F.int(n) + ' ' + a.count.label : '') : 'Free to connect',
+        btn: isOn(a) ? 'Manage' : 'Connect', btnVariant: isOn(a) ? 'secondary' : 'primary', open: () => this.setState({ detail: a.key }), act: () => isOn(a) ? this.setState({ detail: a.key }) : this.setState({ cn: { key: a.key, account: '', syncNow: true, tried: false } }) }; });
+
+    /* ---------- panel ---------- */
+    let dp = false; const da = s.detail && s.apps.find((a) => a.key === s.detail);
+    if (da) {
+      const t = TONE(da), n = countOf(da), on = isOn(da), reconnect = da.status === 'warning' && /token|key/i.test(da.issue);
+      dp = { name: da.name, initials: da.mono, mono: mono(da) + ' is-lg', catLabel: CAT[da.cat], status: t[0], tone: t[1], desc: da.desc, issue: on && !da.paused ? da.issue : '',
+        syncLine: on ? (da.paused ? 'Paused · nothing syncs until you resume' : 'Last sync ' + F.timeAgo(da.lastSync)) : '', connected: on, available: !on, paused: da.paused,
+        account: da.account, by: da.by, since: da.since ? F.fmtDate(da.since) : '—', every: da.every, price: da.price, count: n != null ? F.int(n) + ' ' + da.count.label : '—',
+        toggles: da.toggles.map((tg, i) => ({ label: tg.label, hint: tg.hint, on: tg.on ? 'true' : 'false', toggle: () => { this.upd(da.key, (a) => ({ toggles: a.toggles.map((x, j) => j === i ? Object.assign({}, x, { on: !x.on }) : x) })); this.showToast(tg.label + (tg.on ? ' turned off' : ' turned on'), da.name + (tg.on ? ' stops this from the next sync.' : ' starts this at the next sync.'), 'info'); } })),
+        hasToggles: on && da.toggles.length > 0, scopes: da.scopes, hasScopes: on && da.scopes.length > 0,
+        log: da.log.slice(0, 5).map((l) => ({ text: l.text, ago: F.timeAgo(l.ts), dot: 'cx-dot cx-dot-' + (l.tone === 'warning' ? 'warning' : l.tone === 'danger' ? 'danger' : l.tone === 'info' ? 'info' : 'success') })), hasLog: on && da.log.length > 0,
+        canDisconnect: on && da.key !== 'wholesale',
+        pauseLabel: da.paused ? 'Resume' : 'Pause', pauseIcon: da.paused ? 'refresh' : 'minus',
+        pause: () => { this.upd(da.key, (a) => ({ paused: !a.paused })); this.showToast(da.name + (da.paused ? ' resumed' : ' paused'), da.paused ? 'It catches up on everything it missed.' : 'Nothing syncs until you resume. Orders from this app won’t come in.', da.paused ? 'success' : 'warning'); },
+        primaryLabel: reconnect ? 'Reconnect' : 'Sync now',
+        primary: () => {
+          if (reconnect) { this.upd(da.key, (a) => ({ status: 'connected', issue: '', lastSync: F.NOW, log: [{ ts: F.NOW, text: 'Reconnected by ' + F.USER.name + ', new token valid for 60 days', tone: 'info' }].concat(a.log) })); return this.showToast(da.name + ' reconnected', 'A new token is valid for 60 days.'); }
+          this.upd(da.key, (a) => ({ lastSync: F.NOW, log: [{ ts: F.NOW, text: 'Manual sync by ' + F.USER.name, tone: 'success' }].concat(a.log) })); this.setState((st) => ({ calls: st.calls + 120 })); this.showToast(da.name + ' synced', 'Everything is up to date as of now.');
+        },
+        connect: () => this.setState({ cn: { key: da.key, account: '', syncNow: true, tried: false } }),
+        disconnect: () => this.setState({ cf: { title: 'Disconnect ' + da.name + '?', desc: da.cat === 'channels' ? 'Orders from this store stop coming in and stock stops updating there. Past orders stay in CommerceOS.' : 'Syncing stops and the saved credentials are deleted. Past data stays in CommerceOS.', cta: 'Disconnect',
+          go: () => { this.upd(da.key, () => ({ status: 'available', account: '', by: '', since: null, lastSync: null, issue: '', paused: false })); this.setState({ cf: null, detail: null }); this.showToast(da.name + ' disconnected', 'You can connect it again from Available apps.', 'info'); } } })
+      };
+    }
+
+    /* ---------- connect modal ---------- */
+    let cn = { title: '', desc: '', label: '', account: '', hint: '', error: '', syncNow: true, cta: '', go: () => {}, setAccount: () => {}, setSyncNow: () => {} };
+    if (s.cn) { const a = s.apps.find((x) => x.key === s.cn.key), d = s.cn;
+      const label = a.cat === 'channels' ? 'Store URL or seller ID' : a.cat === 'payments' ? 'Merchant account ID' : a.cat === 'finance' ? 'Organisation or account name' : 'Account or workspace';
+      cn = { title: 'Connect ' + a.name, desc: 'You’ll be sent to ' + a.name.split(' ·')[0] + ' to approve access, then brought back here.', label, account: d.account, hint: 'You can change what syncs after connecting.',
+        error: d.tried && d.account.trim().length < 3 ? 'Enter the ' + label.toLowerCase() + '.' : '', syncNow: d.syncNow, cta: 'Continue to ' + a.name.split(' ·')[0].split(' (')[0],
+        setAccount: (e) => { const v = e.target.value; this.setState((st) => ({ cn: Object.assign({}, st.cn, { account: v }) })); }, setSyncNow: (v) => this.setState((st) => ({ cn: Object.assign({}, st.cn, { syncNow: v }) })),
+        go: () => { if (d.account.trim().length < 3) return this.setState((st) => ({ cn: Object.assign({}, st.cn, { tried: true }) }));
+          this.upd(a.key, () => ({ status: 'connected', account: d.account.trim(), by: F.USER.name, since: F.NOW, lastSync: d.syncNow ? F.NOW : null, every: 'Every hour', toggles: [{ label: 'Import data', on: true, hint: '' }, { label: 'Send updates back', on: false, hint: '' }], scopes: ['Read', 'Write'],
+            log: [{ ts: F.NOW, text: 'Connected by ' + F.USER.name + (d.syncNow ? ', first full sync started' : ''), tone: 'info' }] }));
+          this.setState({ cn: null, detail: a.key, tab: 'connected' }); this.showToast(a.name + ' connected', d.syncNow ? 'The first full sync is running. Large catalogs take a few minutes.' : 'Turn on what should sync, then press Sync now.'); } };
+    }
+
+    /* ---------- API keys and webhooks ---------- */
+    const keys = s.keys.map((k) => { const idle = F.NOW - k.used > 90 * F.DAY;
+      return { name: k.name, by: k.by, prefix: k.prefix + '••••••••', scopes: k.scopes.join(', '), created: F.fmtDate(k.created), used: F.timeAgo(k.used), usedNote: idle ? 'Unused for 90+ days, consider revoking' : '',
+        revoke: () => this.setState({ cf: { title: 'Revoke “' + k.name + '”?', desc: 'Anything using this key stops working immediately. This can’t be undone.', cta: 'Revoke key', go: () => { this.setState((st) => ({ keys: st.keys.filter((x) => x.id !== k.id), cf: null })); this.showToast('Key revoked', k.name + ' no longer works.', 'info'); } } }) }; });
+    const hooks = s.hooks.map((w) => ({ url: w.url, events: w.events.join(', '), ok: (w.ok * 100).toFixed(1) + '%', okCls: w.ok < 0.9 ? 'in-bad' : '', last: w.last ? F.timeAgo(w.last) : 'Not yet', on: w.on ? 'true' : 'false', swLabel: (w.on ? 'Turn off ' : 'Turn on ') + w.url,
+      toggle: () => { this.setState((st) => ({ hooks: st.hooks.map((x) => x.id === w.id ? Object.assign({}, x, { on: !x.on }) : x) })); this.showToast(w.on ? 'Webhook turned off' : 'Webhook turned on', w.url, 'info'); },
+      remove: () => this.setState({ cf: { title: 'Delete this webhook?', desc: w.url + ' stops receiving events.', cta: 'Delete webhook', go: () => { this.setState((st) => ({ hooks: st.hooks.filter((x) => x.id !== w.id), cf: null })); this.showToast('Webhook deleted', w.url, 'info'); } } }) }));
+    let ky = {}; if (s.ky) { const d = s.ky;
+      ky = { name: d.name, nameError: d.tried && !d.name.trim() ? 'Give the key a name.' : '', scopeError: d.tried && !d.scopes.length ? 'Pick at least one scope.' : '',
+        setName: (e) => { const v = e.target.value; this.setState((st) => ({ ky: Object.assign({}, st.ky, { name: v }) })); },
+        scopes: KEY_SCOPES.map((sc) => ({ label: sc, on: d.scopes.indexOf(sc) >= 0, toggle: (v) => this.setState((st) => ({ ky: Object.assign({}, st.ky, { scopes: v ? st.ky.scopes.concat([sc]) : st.ky.scopes.filter((x) => x !== sc) }) })) })),
+        go: () => { if (!d.name.trim() || !d.scopes.length) return this.setState((st) => ({ ky: Object.assign({}, st.ky, { tried: true }) }));
+          const rnd = Array.from({ length: 28 }, (_, i) => 'abcdef0123456789'[(F.NOW / 1000 + i * 7 + d.name.length * 13 + s.keys.length * 31) % 16 | 0]).join(''), full = 'cos_live_' + rnd;
+          this.setState((st) => ({ keys: [{ id: 'key_' + rnd.slice(0, 6), name: d.name.trim(), prefix: full.slice(0, 13), scopes: d.scopes.slice(), by: F.USER.name, created: F.NOW, used: F.NOW }].concat(st.keys), ky: null, newKey: full }));
+          this.showToast('API key created', 'Copy it from the box above the table. It’s shown only once.'); } }; }
+    let hk = {}; if (s.hk) { const d = s.hk, okUrl = /^https:\/\/[^\s/]+\.[^\s]+/.test(d.url.trim());
+      hk = { url: d.url, urlError: d.tried && !okUrl ? 'Enter a full https:// URL.' : '', evError: d.tried && !d.events.length ? 'Pick at least one event.' : '',
+        setUrl: (e) => { const v = e.target.value; this.setState((st) => ({ hk: Object.assign({}, st.hk, { url: v }) })); },
+        events: EVENTS.map((ev) => ({ label: ev, on: d.events.indexOf(ev) >= 0, toggle: (v) => this.setState((st) => ({ hk: Object.assign({}, st.hk, { events: v ? st.hk.events.concat([ev]) : st.hk.events.filter((x) => x !== ev) }) })) })),
+        go: () => { if (!okUrl || !d.events.length) return this.setState((st) => ({ hk: Object.assign({}, st.hk, { tried: true }) }));
+          this.setState((st) => ({ hooks: st.hooks.concat([{ id: 'wh_' + (st.hooks.length + 10), url: d.url.trim(), events: d.events.slice(), on: true, ok: 1, last: F.NOW }]), hk: null })); this.showToast('Webhook added', 'A test event was delivered to ' + d.url.trim() + '.'); } }; }
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaLine: F.plural(live.length, 'app') + ' connected · ' + F.plural(warn.length, 'needs', 'need') + ' attention', kpis,
+      syncAll: () => { const n = live.filter((a) => !a.paused).length; this.setState((st) => ({ apps: st.apps.map((a) => isOn(a) && !a.paused ? Object.assign({}, a, { lastSync: F.NOW }) : a), calls: st.calls + n * 120 })); this.showToast('Syncing ' + F.plural(n, 'app'), 'Paused apps were skipped. Bank feeds only refresh once a day.'); },
+      tabs: [{ id: 'connected', label: 'Connected', count: F.int(live.length) }, { id: 'available', label: 'Available', count: F.int(s.apps.length - live.length) }, { id: 'api', label: 'API and webhooks' }],
+      tab: s.tab, setTab: (v) => this.setState({ tab: v }), isApps: s.tab !== 'api', isApi: s.tab === 'api',
+      query: s.query, setQuery: (v) => this.setState({ query: v }), catOpts: [{ value: '', label: 'All categories' }].concat(M.CATS.map((c) => ({ value: c.key, label: c.label }))), cat: s.cat, setCat: (v) => this.setState({ cat: v }),
+      cards, hasCards: cards.length > 0, noCards: !cards.length,
+      dp, closeDetail: () => this.setState({ detail: null }),
+      cnOpen: !!s.cn, cn, closeCn: () => this.setState({ cn: null }),
+      keys, hooks, newKey: s.newKey, copyKey: () => { try { navigator.clipboard.writeText(s.newKey); } catch (e) { /* clipboard blocked */ } this.showToast('Copied', 'Store it in your password manager.'); },
+      kyOpen: !!s.ky, ky, openKey: () => this.setState({ ky: { name: '', scopes: ['Read orders'], tried: false } }), closeKey: () => this.setState({ ky: null }),
+      hkOpen: !!s.hk, hk, openHook: () => this.setState({ hk: { url: '', events: ['order.created'], tried: false } }), closeHook: () => this.setState({ hk: null }),
+      usageNote: F.int(s.calls) + ' of 2,000,000 API calls · Shopify and Amazon syncs use most of them', usageW: 'width: ' + Math.min(100, s.calls / 2e6 * 100).toFixed(1) + '%',
+      cfOpen: !!s.cf, cf: s.cf || { title: '', desc: '', cta: '', go: () => {} }, closeCf: () => this.setState({ cf: null }),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- integrations: connected apps (management.js) with live counts from the orders (orders.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, M = window.FernhillManagement, CommerceOS = window.CommerceOS;
+</script>
+</body>
+</html>

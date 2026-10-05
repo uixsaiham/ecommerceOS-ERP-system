@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sales Analytics · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<link rel="stylesheet" href="ds/commerceos/shell/viz.css?v=1">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="ds/commerceos/shell/viz.js?v=2"></script>
+<script src="./catalog.js?v=4"></script>
+<script src="./orders.js?v=2"></script>
+<script src="./customers.js?v=2"></script>
+<script src="./marketing.js?v=1"></script>
+<script src="./analytics.js?v=2"></script>
+</head>
+<body>
+<x-dc>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="analytics/sales" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="analytics/sales"></x-import>
+<h1>Sales Analytics</h1>
+<p class="ph-sub">How much sold, when, through which store, and how customers paid.</p>
+<p class="ph-meta"><span>{{periodLabel}}</span><span>Updated 09:42 UTC</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<div class="vz-filters" role="group" aria-label="Filters">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Period" options="{{periodOpts}}" value="{{period}}" on-value-change="{{setPeriod}}" width="170px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Store" options="{{storeOpts}}" value="{{store}}" on-value-change="{{setStore}}" width="170px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Compare with the previous period" checked="{{compare}}" on-change="{{setCompare}}"></x-import>
+</div>
+
+<section class="vz-stats" aria-label="Summary">
+<sc-for list="{{stats}}" as="k" hint-placeholder-count="4">
+<div class="vz-stat"><span class="vz-stat-l">{{k.label}}</span><span class="vz-stat-v">{{k.value}}</span><span class="vz-stat-d"><span class="{{k.deltaCls}}">{{k.delta}}</span><span>{{k.cmp}}</span></span><x-import component-from-global-scope="CommerceOS.VizSpark" values="{{k.spark}}"></x-import></div>
+</sc-for>
+</section>
+
+<section class="vz-card" aria-label="Sales by day">
+<div class="vz-card-h"><div><h2>Sales by day</h2><p>{{dayNote}}</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizLine" title="Sales by day" labels="{{day.labels}}" full-labels="{{day.full}}" series="{{day.series}}" format="money" area="{{yes}}" height="{{day.h}}" every="{{day.every}}" x-name="Day"></x-import>
+</section>
+
+<div class="vz-grid2">
+<section class="vz-card" aria-label="Sales by store and week">
+<div class="vz-card-h"><div><h2>Sales by store, week by week</h2><p>From the orders themselves · wholesale is a few large orders</p></div><a href="SalesChannels.dc.html">Sales Channels</a></div>
+<x-import component-from-global-scope="CommerceOS.VizColumns" title="Sales by store and week" labels="{{week.labels}}" full-labels="{{week.full}}" series="{{week.series}}" format="money" height="{{week.h}}" x-name="Week"></x-import>
+</section>
+<section class="vz-card" aria-label="Orders by weekday and hour">
+<div class="vz-card-h"><div><h2>When orders come in</h2><p>Average orders in each hour, UTC · {{heatNote}}</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizHeat" title="Orders by weekday and hour" rows="{{heat.rows}}" cols="{{heat.cols}}" col-full="{{heat.colFull}}" values="{{heat.values}}" format="dec1" col-every="3" value-name="Orders, average" low-label="Fewer orders" high-label="{{heat.high}}"></x-import>
+</section>
+</div>
+
+<div class="vz-grid3">
+<section class="vz-card" aria-label="Payment methods">
+<div class="vz-card-h"><div><h2>How customers paid</h2><p>Sales by payment method</p></div><a href="Payments.dc.html">Payments</a></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Sales by payment method" items="{{methods}}" format="money" label-width="130px" item-name="Method" value-name="Sales" extra-head="Orders"></x-import>
+</section>
+<section class="vz-card" aria-label="Ships from">
+<div class="vz-card-h"><div><h2>Where it ships from</h2><p>Sales by warehouse</p></div><a href="FulfillmentOverview.dc.html">Fulfillment</a></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Sales by warehouse" items="{{warehouses}}" format="money" label-width="150px" item-name="Warehouse" value-name="Sales" extra-head="Orders"></x-import>
+</section>
+<section class="vz-card" aria-label="Order size">
+<div class="vz-card-h"><div><h2>Order size</h2><p>Number of orders by order total</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizColumns" title="Orders by order total" labels="{{sizes.labels}}" full-labels="{{sizes.full}}" series="{{sizes.series}}" format="int" height="{{sizes.h}}" x-name="Order total"></x-import>
+</section>
+</div>
+
+<div class="vz-grid2">
+<section class="vz-card" aria-label="Delivery method">
+<div class="vz-card-h"><div><h2>Delivery method</h2><p>Sales by what customers picked at checkout</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Sales by delivery method" items="{{delivery}}" format="money" label-width="130px" item-name="Delivery" value-name="Sales" extra-head="Orders"></x-import>
+</section>
+<section class="vz-card" aria-label="What stands out">
+<div class="vz-card-h"><div><h2>What stands out</h2><p>For the selected period and store</p></div></div>
+<ul class="vz-insights"><sc-for list="{{insights}}" as="i" hint-placeholder-count="4"><li><x-import component-from-global-scope="CommerceOS.Icon" name="{{i.icon}}"></x-import><span><strong>{{i.lead}}</strong> {{i.text}}</span></li></sc-for></ul>
+</section>
+</div>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, period: '30', compare: true };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+
+  renderVals() {
+    const s = this.state, store = F.STORES.find((x) => x.key === s.store), days = Number(s.period);
+    const S = A.sales(s.store, days), sum = (a) => a.reduce((x, y) => x + y, 0);
+    const rev = sum(S.cur.rev), prev = sum(S.prev.rev), ord = sum(S.cur.ord), pOrd = sum(S.prev.ord), units = S.orders.reduce((a, o) => a + o.items, 0);
+    const delta = (a, b) => { const d = b ? (a - b) / b : 0; return { delta: (d >= 0 ? '↑ ' : '↓ ') + Math.abs(d * 100).toFixed(1) + '%', deltaCls: 'vz-delta ' + (d >= 0 ? 'is-good' : 'is-bad') }; };
+    const vs = 'vs previous ' + days + ' days';
+    const stats = [
+      Object.assign({ label: 'Sales', value: F.money0(rev), cmp: vs, spark: S.cur.rev }, delta(rev, prev)),
+      Object.assign({ label: 'Orders', value: F.int(ord), cmp: vs, spark: S.cur.ord }, delta(ord, pOrd)),
+      Object.assign({ label: 'Average order', value: F.money2(rev / ord), cmp: vs, spark: S.cur.rev.map((v, i) => v / Math.max(1, S.cur.ord[i])) }, delta(rev / ord, prev / pOrd)),
+      Object.assign({ label: 'Units sold', value: F.int(units), cmp: F.int(units / Math.max(1, S.orders.length) * 10 / 10) + ' per order on average', spark: S.cur.ord, delta: '', deltaCls: '' })
+    ];
+    const curLabel = 'Last ' + days + ' days', prevLabel = 'Previous ' + days + ' days';
+    const day = { labels: S.labels, full: S.labels.map((l, i) => l + (s.compare ? ' vs ' + S.prevLabels[i] : '')), h: 240, every: days > 10 ? 5 : 1,
+      series: [{ label: curLabel, values: S.cur.rev }].concat(s.compare ? [{ label: prevLabel, values: S.prev.rev, dashed: true, muted: true }] : []) };
+    const peak = S.cur.rev.indexOf(Math.max(...S.cur.rev));
+    const dayNote = F.money0(rev) + ' in ' + days + ' days · best day ' + S.labels[peak] + ' (' + F.money0(S.cur.rev[peak]) + (S.labels[peak] === 'Sep 19' || S.labels[peak] === 'Sep 20' ? ', weekend flash sale' : '') + ')';
+    const week = { labels: S.weekLabels, full: S.weekFull, h: 220, series: S.byWeek.map((x) => ({ label: x.label, values: x.values })) };
+    const H = S.heat, flat = [].concat(...H), mx = Math.max(...flat), loc = (h, off) => ((h + off + 24) % 24 < 10 ? '0' : '') + ((h + off + 24) % 24) + ':00';
+    let best = [0, 0]; H.forEach((r, i) => r.forEach((v, j) => { if (v > H[best[0]][best[1]]) best = [i, j]; }));
+    const heat = { rows: S.dow, cols: Array.from({ length: 24 }, (_, i) => (i < 10 ? '0' : '') + i), colFull: Array.from({ length: 24 }, (_, i) => (i < 10 ? '0' : '') + i + ':00–' + (i < 9 ? '0' : '') + (i + 1) + ':00'), values: H, high: mx.toFixed(1) + ' orders an hour' };
+    const total = S.orders.reduce((a, o) => a + o.total, 0);
+    const rank = (l) => l.map((x) => ({ label: x.label, value: x.value, sub: F.plural(x.n, 'order') + ' · ' + (x.value / total * 100).toFixed(0) + '%', extra: F.int(x.n), tip: [['Orders', F.int(x.n)], ['Average order', F.money2(x.value / x.n)]] }));
+    const sizes = { labels: S.sizes.map((x) => x.label), full: S.sizes.map((x) => x.full), h: 200, series: [{ label: 'Orders', values: S.sizes.map((x) => x.n) }] };
+    const discShare = S.discounted.length / Math.max(1, S.orders.filter((o) => o.channel === 'Fernhill US' || o.channel === 'Fernhill EU').length);
+    const wh = S.byChannel.find((x) => x.label === 'Wholesale');
+    const insights = [
+      { icon: 'trending-up', lead: delta(rev, prev).delta.replace('↑ ', '+').replace('↓ ', '−') + ' sales', text: 'on the previous ' + days + ' days, with ' + delta(ord, pOrd).delta.replace('↑ ', '+').replace('↓ ', '−') + ' orders.' },
+      { icon: 'clock', lead: S.dow[best[0]] + 's at ' + loc(best[1], 0) + ' UTC', text: 'are the busiest hour of the week, about ' + H[best[0]][best[1]].toFixed(1) + ' orders. That’s ' + loc(best[1], 2) + ' in Rotterdam and ' + loc(best[1], -4) + ' in New York; schedule emails an hour before.' },
+      { icon: 'tag', lead: Math.round(discShare * 100) + '% of retail orders', text: 'used a discount or code. See Marketing for what each one cost.' }
+    ].concat(wh && s.store === 'all' ? [{ icon: 'factory', lead: 'Wholesale is ' + Math.round(wh.value / total * 100) + '% of sales', text: 'from just ' + F.plural(wh.n, 'order') + '. One delayed trade order moves the weekly total more than a busy retail weekend.' }] : []);
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, storeName: store.label, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      periodLabel: (days === 30 ? 'Sep 1 – Sep 30' : 'Sep 24 – Sep 30') + (s.store === 'all' ? ' · all stores' : ' · ' + store.label),
+      periodOpts: [{ value: '7', label: 'Last 7 days' }, { value: '30', label: 'Last 30 days' }], period: s.period, setPeriod: (v) => this.setState({ period: v }),
+      storeOpts: F.STORES.map((x) => ({ value: x.key, label: x.label })), compare: s.compare, setCompare: (v) => this.setState({ compare: v }),
+      stats, day, dayNote, week, heat, heatNote: 'busiest ' + S.dow[best[0]] + ' ' + heat.colFull[best[1]],
+      methods: rank(S.byMethod), warehouses: rank(S.byWarehouse), delivery: rank(S.byDelivery), sizes, insights,
+      exportView: () => this.showToast('Exporting sales analytics', 'CSV with daily sales and orders, plus each breakdown on its own sheet.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- sales analytics: dashboard curve (analytics.js) and the Orders page’s orders (orders.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, A = window.FernhillAnalytics, CommerceOS = window.CommerceOS;
+</script>
+</body>
+</html>

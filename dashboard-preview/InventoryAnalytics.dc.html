@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inventory Analytics · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<link rel="stylesheet" href="ds/commerceos/shell/viz.css?v=1">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="ds/commerceos/shell/viz.js?v=2"></script>
+<script src="./catalog.js?v=4"></script>
+<script src="./inventory.js?v=8"></script>
+<script src="./analytics.js?v=2"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+.ia-table td.c-name{min-width:230px}
+.ia-table .pr-cell{gap:10px}
+.ia-abc{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px;font-size:12px;line-height:16px;color:var(--text-muted)}
+.ia-abc strong{color:var(--text-primary);font-weight:600}
+.ia-cls{display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;border-radius:var(--radius-xs);font-size:12px;font-weight:600;background:var(--bg-subtle);color:var(--text-secondary)}
+.ia-cls.is-a{background:var(--series-1);color:#fff}
+.ia-cls.is-b{background:var(--seq-2);color:var(--seq-7)}
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="analytics/inventory" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<x-import component-from-global-scope="CommerceOS.PageTrail" current="analytics/inventory"></x-import>
+<h1>Inventory Analytics</h1>
+<p class="ph-sub">What the stock is worth, how fast it turns, what is ageing, and what to reorder next.</p>
+<p class="ph-meta"><span>{{metaCount}}</span><span>Valued at cost · sales rate from the last 30 days</span></p>
+</div>
+<div class="o-head-actions">
+<x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>
+</div>
+</div>
+
+<div class="vz-filters" role="group" aria-label="Filters">
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Warehouse" options="{{whOpts}}" value="{{wh}}" on-value-change="{{setWh}}" width="200px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Category" options="{{grpOpts}}" value="{{grp}}" on-value-change="{{setGrp}}" width="200px"></x-import>
+</div>
+
+<section class="vz-stats" aria-label="Summary">
+<sc-for list="{{stats}}" as="k" hint-placeholder-count="4">
+<div class="vz-stat"><span class="vz-stat-l">{{k.label}}</span><span class="vz-stat-v">{{k.value}}</span><span class="vz-stat-d"><span class="{{k.deltaCls}}">{{k.delta}}</span><span>{{k.cmp}}</span></span></div>
+</sc-for>
+</section>
+
+<div class="vz-grid-21">
+<section class="vz-card" aria-label="Stock value trend">
+<div class="vz-card-h"><div><h2>Stock value, last 12 weeks</h2><p>{{trendNote}}</p></div><a href="InventoryOverview.dc.html">Inventory Overview</a></div>
+<x-import component-from-global-scope="CommerceOS.VizLine" title="Stock value by week" labels="{{trend.labels}}" full-labels="{{trend.full}}" series="{{trend.series}}" format="money" area="{{yes}}" height="{{h220}}" every="2" x-name="Week" min="{{trend.min}}"></x-import>
+</section>
+<section class="vz-card" aria-label="Stock value by location">
+<div class="vz-card-h"><div><h2>{{whTitle}}</h2><p>{{whNote}}</p></div><a href="StockByWarehouse.dc.html">By warehouse</a></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="{{whTitle}}" items="{{byWh}}" parts="{{byWhParts}}" format="money" label-width="120px" item-name="Location" value-name="Stock value"></x-import>
+</section>
+</div>
+
+<div class="vz-grid2">
+<section class="vz-card" aria-label="Stock age">
+<div class="vz-card-h"><div><h2>How old the stock is</h2><p>Stock value by days since it was received</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Stock value by age" items="{{age}}" parts="{{ageParts}}" format="money" label-width="140px" item-name="{{ageItem}}" value-name="Stock value"></x-import>
+</section>
+<section class="vz-card" aria-label="Days of cover">
+<div class="vz-card-h"><div><h2>Days of cover</h2><p>Stock value by how long it lasts at the current sales rate</p></div><a href="LowStock.dc.html">Low Stock</a></div>
+<x-import component-from-global-scope="CommerceOS.VizColumns" title="Stock value by days of cover" labels="{{cover.labels}}" full-labels="{{cover.full}}" series="{{cover.series}}" format="money" height="{{h220}}" x-name="Days of cover"></x-import>
+</section>
+</div>
+
+<div class="vz-grid3">
+<section class="vz-card" aria-label="ABC analysis">
+<div class="vz-card-h"><div><h2>ABC classes</h2><p>SKUs ranked by 30-day cost of goods sold</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Stock value by ABC class" items="{{abc}}" format="money" label-width="110px" item-name="Class" value-name="Stock value" extra-head="SKUs"></x-import>
+<ul class="ia-abc"><li><strong>A</strong> the SKUs behind 80% of cost of goods sold. Count often, never run out.</li><li><strong>B</strong> the next 15%. Reorder on the normal cycle.</li><li><strong>C</strong> the last 5% and SKUs that didn’t sell. Keep lean.</li></ul>
+</section>
+<section class="vz-card" aria-label="Turnover by category">
+<div class="vz-card-h"><div><h2>Turnover by category</h2><p>Times a year the stock sells through, at the 30-day rate</p></div></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Inventory turnover by category" items="{{turns}}" format="ratio" label-width="140px" item-name="Category" value-name="Turns a year" extra-head="Days on hand"></x-import>
+</section>
+<section class="vz-card" aria-label="Stock adjustments">
+<div class="vz-card-h"><div><h2>Stock adjustments</h2><p>Applied in the last 30 days, at cost</p></div><a href="StockAdjustments.dc.html">Adjustments</a></div>
+<x-import component-from-global-scope="CommerceOS.VizRank" title="Stock adjustments by reason" items="{{adj}}" format="money" label-width="150px" item-name="Reason" value-name="Value" extra-head="Units"></x-import>
+</section>
+</div>
+
+<section class="vz-card" aria-label="What stands out">
+<div class="vz-card-h"><div><h2>What stands out</h2><p>For the selected warehouse and category</p></div></div>
+<ul class="vz-insights"><sc-for list="{{insights}}" as="i" hint-placeholder-count="4"><li><x-import component-from-global-scope="CommerceOS.Icon" name="{{i.icon}}"></x-import><span><strong>{{i.lead}}</strong> {{i.text}}</span></li></sc-for></ul>
+</section>
+
+<section class="o-card" aria-label="Replenishment">
+<div class="o-tabs"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Replenishment view" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div>
+<div class="o-tools"><div class="o-row1"><div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" placeholder="Search SKU or product" label="Search SKU or product" value="{{query}}" on-change="{{setQuery}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="ABC class" options="{{clsOpts}}" value="{{cls}}" on-value-change="{{setCls}}" width="150px"></x-import>
+<x-import component-from-global-scope="CommerceOS.Select" aria-label="Sort" options="{{sortOpts}}" value="{{sort}}" on-value-change="{{setSort}}" width="210px"></x-import></div></div>
+<div class="o-scroll" style="display: block">
+<table class="o-table ia-table" aria-label="Replenishment">
+<thead><tr><th scope="col">SKU</th><th scope="col">Class</th><th scope="col">Status</th><th class="is-right" scope="col">On hand</th><th class="is-right" scope="col">Sold a day</th><th class="is-right" scope="col">Days of cover</th><th class="is-right" scope="col">Reorder point</th><th class="is-right" scope="col">Inbound</th><th class="is-right" scope="col">Suggested order</th><th class="is-right" scope="col">Stock value</th></tr></thead>
+<tbody><sc-for list="{{rows}}" as="r" hint-placeholder-count="15"><tr>
+<td class="c-name"><div class="pr-cell"><span class="{{r.thumb}}" aria-hidden="true">{{r.initials}}</span><span class="pr-cell-main"><button class="pr-name" onClick="{{r.open}}">{{r.name}}</button><span class="o-sub">{{r.sku}}</span></span></div></td>
+<td><span class="{{r.clsCls}}">{{r.cls}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}">{{r.state}}</x-import></td>
+<td class="is-right td-strong">{{r.onHand}}</td><td class="is-right">{{r.vel}}</td><td class="is-right">{{r.cover}}</td><td class="is-right">{{r.reorder}}</td>
+<td class="is-right"><span>{{r.inbound}}</span><span class="o-sub">{{r.lead}}</span></td>
+<td class="is-right td-strong">{{r.suggest}}</td><td class="is-right">{{r.value}}</td>
+</tr></sc-for></tbody>
+</table>
+</div>
+<div class="o-pager"><x-import component-from-global-scope="CommerceOS.Pagination" page="{{page}}" page-size="{{pageSize}}" total="{{total}}" item-label="SKUs" on-page-change="{{setPage}}" on-page-size-change="{{setPageSize}}"></x-import></div>
+</section>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":2400}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, wh: '', grp: '', tab: 'action', query: '', cls: '', sort: 'cover', page: 1, pageSize: 25 };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state.drawer) this.setState({ drawer: false }); };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+
+  renderVals() {
+    const s = this.state, W = s.wh || undefined, wh = W ? I.WH[W] : null, AI = A.inventory(), GROUPS = ['Tops', 'Bottoms', 'Outerwear', 'Accessories and home'];
+    const sum = (l, f) => l.reduce((a, x) => a + f(x), 0);
+    /* one row per active SKU, at the selected warehouse or across all of them */
+    const all = AI.items.map((it) => {
+      const onHand = I.onHand(it, W), vel = I.velocity(it, W), cover = I.daysCover(it, W), inbound = I.inboundQty(it, W), reorder = I.reorderAt(it, W);
+      const st = W ? I.locState(it, W) : I.skuState(it), target = Math.ceil(vel * (it.lead + 30));
+      return { it, g: AI.group(it), onHand, vel, cover, inbound, reorder, st, value: onHand * it.p.cost, cogs30: vel * 30 * it.p.cost,
+        suggest: (st === 'out' || st === 'low' || onHand + inbound < reorder) ? Math.max(0, target - onHand - inbound) : 0 };
+    }).filter((x) => (!W || x.onHand > 0 || x.reorder > 0) && (!s.grp || x.g === s.grp));
+    /* ABC on 30-day cost of goods sold */
+    const totCogs = sum(all, (x) => x.cogs30); let run = 0;
+    all.slice().sort((a, b) => b.cogs30 - a.cogs30).forEach((x) => { run += x.cogs30; x.cls = x.cogs30 <= 0 ? 'C' : run <= totCogs * 0.8 || run - x.cogs30 === 0 ? 'A' : run <= totCogs * 0.95 ? 'B' : 'C'; });
+
+    const value = sum(all, (x) => x.value), units = sum(all, (x) => x.onHand), turnsAll = value ? totCogs * 365 / 30 / value : 0;
+    const out = all.filter((x) => x.st === 'out'), low = all.filter((x) => x.st === 'low' || x.st === 'local');
+    const ageOf = (x) => W ? I.ageOf(x.it, W) : null;
+    const AGE = [[0, 30, '0–30 days'], [31, 90, '31–90 days'], [91, 180, '91–180 days'], [181, 9999, 'Over 180 days']];
+    const ageVal = (x, b) => W ? (x.onHand && ageOf(x) >= b[0] && ageOf(x) <= b[1] ? x.value : 0) : I.WAREHOUSES.reduce((a, w) => { const g = I.ageOf(x.it, w.key); return a + (x.it.stock[w.key] && g >= b[0] && g <= b[1] ? x.it.stock[w.key] * x.it.p.cost : 0); }, 0);
+    const aged = sum(all, (x) => ageVal(x, AGE[3]));
+    const VT = I.VALUE_TREND, fullVal = sum(AI.items, (it) => I.onHand(it) * it.p.cost), k = fullVal ? value / fullVal : 0, tr = VT.map((p) => p.value * k);
+    const d4 = tr[7] ? (tr[11] - tr[7]) / tr[7] : 0;
+    const stats = [
+      { label: 'Stock value', value: F.money0(value), cmp: F.int(units) + ' units · vs 4 weeks ago', delta: (d4 >= 0 ? '↑ ' : '↓ ') + Math.abs(d4 * 100).toFixed(1) + '%', deltaCls: 'vz-delta' },
+      { label: 'Inventory turnover', value: turnsAll.toFixed(1) + '×', cmp: 'a year · ' + Math.round(365 / Math.max(0.01, turnsAll)) + ' days on hand', delta: '', deltaCls: '' },
+      { label: 'Out of stock or low', value: F.int(out.length + low.length), cmp: F.int(out.length) + ' out · ' + F.int(low.length) + ' below reorder point', delta: '', deltaCls: '' },
+      { label: 'Aged over 180 days', value: F.money0(aged), cmp: (value ? (aged / value * 100).toFixed(1) : '0') + '% of stock value', delta: '', deltaCls: '' }];
+
+    const md = (t) => F.fmtDate(t).replace(/, \d{4}$/, '');
+    const trend = { labels: VT.map((p) => md(p.ts)), full: VT.map((p) => 'Week to ' + md(p.ts)), series: [{ label: 'Stock value', values: tr }], min: Math.floor(Math.min(...tr) * 0.85 / 1000) * 1000 };
+    const peak = tr.indexOf(Math.max(...tr));
+    const trendNote = 'Peaked at ' + F.money0(tr[peak]) + ' in the week to ' + md(VT[peak].ts) + ', before the September sales drew it down' + (W || s.grp ? ' · scaled to this selection' : '');
+
+    /* by warehouse (or, for one warehouse, by category) split into category parts */
+    let byWh, byWhParts, whTitle, whNote;
+    if (!W) {
+      byWh = I.WAREHOUSES.map((w) => { const parts = GROUPS.map((g) => sum(all.filter((x) => x.g === g), (x) => x.it.stock[w.key] * x.it.p.cost)); const v = parts.reduce((a, b) => a + b, 0);
+        return { label: w.short, value: v, sub: Math.round(v / Math.max(1, value) * 100) + '% · ' + F.int(sum(all, (x) => x.it.stock[w.key])) + ' units', parts }; }).sort((a, b) => b.value - a.value);
+      byWhParts = GROUPS.map((g) => ({ label: g })); whTitle = 'Stock value by warehouse'; whNote = 'Split by category';
+    } else {
+      byWh = GROUPS.map((g) => { const l = all.filter((x) => x.g === g), v = sum(l, (x) => x.value); return { label: g, value: v, sub: F.int(sum(l, (x) => x.onHand)) + ' units · ' + F.plural(l.length, 'SKU') }; }).filter((x) => x.value > 0).sort((a, b) => b.value - a.value);
+      byWhParts = null; whTitle = 'Stock value by category'; whNote = wh.name + ' · ' + Math.round(wh.capacity ? units / wh.capacity * 100 : 0) + '% of ' + F.int(wh.capacity) + ' unit capacity';
+    }
+    const ageParts = AGE.map((b) => ({ label: b[2] }));
+    const age = (W ? GROUPS.map((g) => ({ label: g, l: all.filter((x) => x.g === g) })) : I.WAREHOUSES.map((w) => ({ label: w.short, w: w.key, l: all })))
+      .map((r) => { const parts = AGE.map((b) => r.w ? sum(r.l, (x) => { const g = I.ageOf(x.it, r.w); return x.it.stock[r.w] && g >= b[0] && g <= b[1] ? x.it.stock[r.w] * x.it.p.cost : 0; }) : sum(r.l, (x) => ageVal(x, b))); const v = parts.reduce((a, c) => a + c, 0);
+        return { label: r.label, value: v, parts, sub: (v ? Math.round(parts[3] / v * 100) : 0) + '% over 180 days' }; }).filter((x) => x.value > 0).sort((a, b) => b.value - a.value);
+    const COV = [[0, 14, '<2 wk', 'Under 2 weeks'], [14, 30, '2–4 wk', '2 to 4 weeks'], [30, 60, '1–2 mo', '1 to 2 months'], [60, 120, '2–4 mo', '2 to 4 months'], [120, 365, '4–12 mo', '4 to 12 months'], [365, Infinity, '1 yr+', 'Over a year or no recent sales']];
+    const cover = { labels: COV.map((b) => b[2]), full: COV.map((b) => b[3]), series: [{ label: 'Stock value', values: COV.map((b) => sum(all.filter((x) => x.onHand > 0 && x.cover >= b[0] && (x.cover < b[1] || b[1] === Infinity)), (x) => x.value)) }] };
+
+    const abc = ['A', 'B', 'C'].map((c) => { const l = all.filter((x) => x.cls === c), v = sum(l, (x) => x.value), cg = sum(l, (x) => x.cogs30);
+      return { label: 'Class ' + c, value: v, sub: F.plural(l.length, 'SKU') + ' · ' + Math.round(cg / Math.max(1, totCogs) * 100) + '%', extra: F.int(l.length), color: c === 'A' ? 'var(--series-1)' : c === 'B' ? 'var(--seq-3)' : 'var(--series-muted)',
+        tip: [['SKUs', F.int(l.length)], ['30-day COGS', F.money0(cg)], ['Turns a year', (v ? cg * 365 / 30 / v : 0).toFixed(1) + '×']] }; });
+    const turns = GROUPS.map((g) => { const l = all.filter((x) => x.g === g), v = sum(l, (x) => x.value), cg = sum(l, (x) => x.cogs30), t = v ? cg * 365 / 30 / v : 0;
+      return { label: g, value: t, sub: (t ? Math.round(365 / t) : '—') + ' days on hand', extra: t ? Math.round(365 / t) + ' days' : '—' }; }).filter((x) => x.value > 0).sort((a, b) => b.value - a.value);
+
+    const since = F.NOW - 30 * F.DAY, adjL = I.ADJUSTMENTS.filter((a) => a.status === 'applied' && a.ts >= since && (!W || a.wh === W) && I.BY_SKU[a.sku] && (!s.grp || AI.group(I.BY_SKU[a.sku]) === s.grp));
+    const ar = {}; adjL.forEach((a) => { const r = ar[a.reason] = ar[a.reason] || { u: 0, v: 0, n: 0 }; r.u += a.qty; r.v += a.qty * I.BY_SKU[a.sku].p.cost; r.n++; });
+    const adj = Object.keys(ar).map((k) => ({ label: I.REASON[k].label, value: Math.abs(ar[k].v), sub: (ar[k].u > 0 ? '+' : '') + F.int(ar[k].u) + ' units · ' + ar[k].n + '×', extra: (ar[k].u > 0 ? '+' : '') + F.int(ar[k].u),
+      color: ar[k].v < 0 ? 'var(--series-2)' : 'var(--series-3)', tip: [['Net units', (ar[k].u > 0 ? '+' : '') + F.int(ar[k].u)], ['Net value', (ar[k].v < 0 ? '−' : '+') + F.money0(Math.abs(ar[k].v))]] })).sort((a, b) => b.value - a.value);
+    const shrink = sum(adjL.filter((a) => a.qty < 0 && ['damaged', 'lost', 'count', 'quality'].indexOf(a.reason) >= 0), (a) => -a.qty * I.BY_SKU[a.sku].p.cost);
+
+    const aTop = all.filter((x) => x.cls === 'A'), aRisk = aTop.filter((x) => x.st === 'out' || x.st === 'low');
+    const slowC = all.filter((x) => x.cls === 'C' && x.value > 0), slowV = sum(slowC, (x) => x.value), sug = all.filter((x) => x.suggest > 0);
+    const insights = [
+      { icon: 'alert-triangle', lead: F.plural(aRisk.length, 'class A SKU') + ' are out of stock or below their reorder point.', text: aRisk.length ? 'These are the best sellers, so every day out costs the most. Most urgent: ' + aRisk.sort((a, b) => a.cover - b.cover)[0].it.p.name + ' ' + aRisk[0].it.v.label + '.' : 'Every top seller is above its reorder point.' },
+      { icon: 'package', lead: F.money0(slowV) + ' sits in class C stock', text: '(' + Math.round(slowV / Math.max(1, value) * 100) + '% of the value) across ' + F.plural(slowC.length, 'SKU') + '. Candidates for a promotion, a transfer or a supplier return.' },
+      { icon: 'clipboard-list', lead: F.plural(sug.length, 'SKU') + ' need a purchase order', text: 'worth ' + F.money0(sum(sug, (x) => x.suggest * x.it.p.cost)) + ' at cost to cover lead time plus 30 days. See the replenishment table below.' },
+      { icon: 'trending-down', lead: F.money0(shrink) + ' written off in 30 days', text: 'to damage, loss, quality holds and count differences (' + (value ? (shrink / value * 100).toFixed(2) : '0') + '% of stock value).' }];
+
+    /* replenishment table */
+    const q = s.query.trim().toLowerCase();
+    const STATE = { out: ['Out of stock', 'danger'], low: ['Below reorder', 'warning'], local: ['Short at a site', 'warning'], over: ['Overstocked', 'info'], ok: ['Healthy', 'success'], none: ['Not stocked', 'neutral'] };
+    const inTab = (x) => s.tab === 'action' ? x.suggest > 0 || x.st === 'out' || x.st === 'low' || x.st === 'local' : s.tab === 'over' ? x.st === 'over' || x.cover > 180 : true;
+    const sorters = { cover: (a, b) => a.cover - b.cover, suggest: (a, b) => b.suggest * b.it.p.cost - a.suggest * a.it.p.cost, value: (a, b) => b.value - a.value, vel: (a, b) => b.vel - a.vel };
+    const tbl = all.filter((x) => inTab(x) && (!s.cls || x.cls === s.cls) && (!q || x.it.sku.toLowerCase().indexOf(q) >= 0 || x.it.p.name.toLowerCase().indexOf(q) >= 0)).sort(sorters[s.sort]);
+    const pages = Math.max(1, Math.ceil(tbl.length / s.pageSize)), page = Math.min(s.page, pages);
+    const rows = tbl.slice((page - 1) * s.pageSize, page * s.pageSize).map((x) => ({ name: x.it.p.name + ' · ' + x.it.v.label, sku: x.it.sku + ' · ' + x.it.supplier, initials: F.initials(x.it.p.name), thumb: F.thumbCls(x.it.p),
+      cls: x.cls, clsCls: 'ia-cls is-' + x.cls.toLowerCase(), state: STATE[x.st][0], tone: STATE[x.st][1], onHand: F.int(x.onHand), vel: x.vel ? x.vel.toFixed(1) : '0', cover: I.coverLabel(x.cover), reorder: F.int(x.reorder),
+      inbound: x.inbound ? F.int(x.inbound) : '—', lead: x.it.lead + '-day lead', suggest: x.suggest ? F.int(x.suggest) : '—', value: F.money0(x.value), open: () => { window.location.href = 'StockLevels.dc.html?sku=' + encodeURIComponent(x.it.sku); } }));
+    const tabs = [{ id: 'action', label: 'Needs reordering', count: F.int(all.filter((x) => (x.suggest > 0 || x.st === 'out' || x.st === 'low' || x.st === 'local')).length) }, { id: 'over', label: 'Overstock and slow', count: F.int(all.filter((x) => x.st === 'over' || x.cover > 180).length) }, { id: 'all', label: 'All SKUs', count: F.int(all.length) }];
+
+    return {
+      yes: true, h220: 220,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, user: F.USER, setStore: (k2) => this.setState({ store: k2 }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      metaCount: F.plural(all.length, 'active SKU') + ' · ' + (wh ? wh.name : 'all 5 warehouses') + (s.grp ? ' · ' + s.grp : ''),
+      whOpts: [{ value: '', label: 'All warehouses' }].concat(I.WAREHOUSES.map((w) => ({ value: w.key, label: w.name }))), wh: s.wh, setWh: (v) => this.setState({ wh: v, page: 1 }),
+      grpOpts: [{ value: '', label: 'All categories' }].concat(GROUPS.map((g) => ({ value: g, label: g }))), grp: s.grp, setGrp: (v) => this.setState({ grp: v, page: 1 }),
+      stats, trend, trendNote, byWh, byWhParts, whTitle, whNote, age, ageParts, ageItem: W ? 'Category' : 'Warehouse', cover, abc, turns, adj, insights,
+      tabs, tab: s.tab, setTab: (v) => this.setState({ tab: v, page: 1, sort: v === 'over' ? 'value' : 'cover' }),
+      query: s.query, setQuery: (v) => this.setState({ query: v, page: 1 }), clsOpts: [{ value: '', label: 'All classes' }, { value: 'A', label: 'Class A' }, { value: 'B', label: 'Class B' }, { value: 'C', label: 'Class C' }], cls: s.cls, setCls: (v) => this.setState({ cls: v, page: 1 }),
+      sortOpts: [{ value: 'cover', label: 'Sort: fewest days of cover' }, { value: 'suggest', label: 'Sort: largest suggested order' }, { value: 'value', label: 'Sort: stock value' }, { value: 'vel', label: 'Sort: fastest selling' }], sort: s.sort, setSort: (v) => this.setState({ sort: v, page: 1 }),
+      rows, page, pageSize: s.pageSize, total: tbl.length, setPage: (p) => this.setState({ page: p }), setPageSize: (p) => this.setState({ pageSize: Number(p), page: 1 }),
+      exportView: () => this.showToast('Exporting inventory analytics', F.plural(tbl.length, 'SKU') + ' with class, cover, reorder point and suggested order, plus each chart as a sheet.'),
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- inventory analytics: stock per SKU per warehouse (inventory.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, I = window.FernhillInventory, A = window.FernhillAnalytics, CommerceOS = window.CommerceOS;
+</script>
+</body>
+</html>

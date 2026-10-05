@@ -71,15 +71,15 @@
         { key: "coupons", label: "Coupons", href: "Coupons.dc.html" },
         { key: "promotions", label: "Promotions", href: "Promotions.dc.html" }] },
       { key: "analytics", label: "Analytics", icon: "bar-chart", children: [
-        { key: "sales", label: "Sales Analytics" },
-        { key: "products", label: "Product Analytics" },
-        { key: "customers", label: "Customer Analytics" },
-        { key: "inventory", label: "Inventory Analytics" },
-        { key: "financial", label: "Financial Reports" }] }] },
+        { key: "sales", label: "Sales Analytics", href: "SalesAnalytics.dc.html" },
+        { key: "products", label: "Product Analytics", href: "ProductAnalytics.dc.html" },
+        { key: "customers", label: "Customer Analytics", href: "CustomerAnalytics.dc.html" },
+        { key: "inventory", label: "Inventory Analytics", href: "InventoryAnalytics.dc.html" },
+        { key: "financial", label: "Financial Reports", href: "FinancialReports.dc.html" }] }] },
     { key: "management", label: "Management", items: [
-      { key: "users", label: "Users & Roles", icon: "shield-check" },
-      { key: "integrations", label: "Integrations", icon: "plug" },
-      { key: "settings", label: "Settings", icon: "settings" }] }
+      { key: "users", label: "Users & Roles", icon: "shield-check", href: "Users.dc.html" },
+      { key: "integrations", label: "Integrations", icon: "plug", href: "Integrations.dc.html" },
+      { key: "settings", label: "Settings", icon: "settings", href: "Settings.dc.html" }] }
   ];
 
   /* Actionable counts only. Pages pass live values through the `badges` prop. */
@@ -155,6 +155,31 @@
     if (next) { e.preventDefault(); next.focus(); }
   }
 
+  /* ---------- Personal preferences ----------
+     Saved per browser (Preferences page). The Sidebar applies them on every page: theme, sidebar collapsed,
+     default store, density and reduced motion. Toggling the theme or the sidebar anywhere saves the choice. */
+  var PREF_KEY = "commerceos.prefs";
+  var PREF_DEFAULTS = { theme: "light", density: "comfortable", collapsed: false, store: "all", start: "Main.dc.html", motion: false, shortcuts: true, language: "en-US", digest: "daily",
+    notify: { mentions: true, approvals: true, assigned: true, lowStock: false, reports: true } };
+  function getPrefs() {
+    var out = JSON.parse(JSON.stringify(PREF_DEFAULTS));
+    try { var raw = window.localStorage.getItem(PREF_KEY); if (raw) { var p = JSON.parse(raw); Object.keys(p).forEach(function (k) { out[k] = k === "notify" ? Object.assign(out.notify, p.notify) : p[k]; }); } } catch (e) { /* storage blocked */ }
+    return out;
+  }
+  function applyBody(p) {
+    var b = document.body; if (!b) return;
+    b.classList.toggle("cx-compact", p.density === "compact");
+    b.classList.toggle("cx-reduce-motion", !!p.motion);
+  }
+  function setPrefs(patch) {
+    var p = getPrefs(); Object.keys(patch).forEach(function (k) { p[k] = patch[k]; });
+    try { window.localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch (e) { /* storage blocked */ }
+    applyBody(p); return p;
+  }
+  function resetPrefs() { try { window.localStorage.removeItem(PREF_KEY); } catch (e) { /* storage blocked */ } var p = getPrefs(); applyBody(p); return p; }
+  function prefersDark(p) { return p.theme === "dark" || (p.theme === "system" && !!window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches); }
+  var ACCOUNT_HREF = { profile: "Profile.dc.html", preferences: "Preferences.dc.html", help: "Help.dc.html", signout: "SignIn.dc.html?signed-out=1", stores: "Settings.dc.html?section=stores" };
+
   /* ---------- Sidebar ----------
      props: current ("sales/orders"), collapsed + onToggleCollapse (desktop), drawerOpen + onDrawerClose (mobile),
      stores [{key,label,sub}] + store + onStoreChange, user {name,role,email,initials}, badges, onNavigate(path)
@@ -179,6 +204,23 @@
     var rail = mode === "desktop" ? !!props.collapsed : mode === "tablet" ? !peek : false;
 
     useEffect(function () { setOpenKey(activeKey); }, [props.current]);
+
+    // Apply saved preferences once, then keep theme changes made anywhere on the page.
+    var prefsApplied = useRef(false), lastThemeLabel = useRef(props.themeLabel);
+    useEffect(function () {
+      var p = getPrefs(); applyBody(p);
+      var dark = /light/i.test(props.themeLabel || "");
+      if (props.onToggleTheme && props.themeLabel && prefersDark(p) !== dark) props.onToggleTheme();
+      if (p.collapsed && !props.collapsed && props.onToggleCollapse && viewportMode() === "desktop") props.onToggleCollapse();
+      if (p.store && p.store !== "all" && (props.store || "all") === "all" && props.onStoreChange && (props.stores || []).some(function (x) { return x.key === p.store; })) props.onStoreChange(p.store);
+      prefsApplied.current = true;
+    }, []);
+    useEffect(function () {
+      if (!prefsApplied.current || props.themeLabel === lastThemeLabel.current) { lastThemeLabel.current = props.themeLabel; return; }
+      lastThemeLabel.current = props.themeLabel;
+      var dark = /light/i.test(props.themeLabel || ""), p = getPrefs();
+      if (prefersDark(p) !== dark) setPrefs({ theme: dark ? "dark" : "light" });
+    }, [props.themeLabel]);
     useEffect(function () {
       if (!props.drawerOpen) return;
       setDrill(cur.page ? activeKey : null);
@@ -206,7 +248,7 @@
 
     function toggleRail() {
       setTip(null);
-      if (mode === "desktop" && props.onToggleCollapse) props.onToggleCollapse();
+      if (mode === "desktop" && props.onToggleCollapse) { setPrefs({ collapsed: !props.collapsed }); props.onToggleCollapse(); }
       else if (mode === "tablet") setPeek(function (p) { return !p; });
     }
     function closeAll() { setMenu(null); setFly(null); }
@@ -215,7 +257,7 @@
       function down(e) { if (!(e.target.closest && e.target.closest("[data-side-pop]"))) closeAll(); }
       function key(e) {
         var t = e.target, typing = t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
-        if (e.key === "[" && !typing && !e.metaKey && !e.ctrlKey && !e.altKey && !drawer) { e.preventDefault(); toggleRail(); }
+        if (e.key === "[" && !typing && getPrefs().shortcuts && !e.metaKey && !e.ctrlKey && !e.altKey && !drawer) { e.preventDefault(); toggleRail(); }
         if (e.key === "Escape") {
           if (menu || fly) {
             var back = fly ? "[data-mod=\"" + fly.key + "\"]" : menu === "store" ? ".cx-store-btn" : ".cx-user-btn";
@@ -360,7 +402,7 @@
     }
 
     function menuKeys(e) { moveFocus(e.currentTarget, "[role^=menuitem]", e); }
-    function act(key) { setMenu(null); if (props.onAccountAction) props.onAccountAction(key); }
+    function act(key) { setMenu(null); if (props.onAccountAction) props.onAccountAction(key); else if (ACCOUNT_HREF[key]) window.location.href = ACCOUNT_HREF[key]; }
     function item(icon, label, onClick, extra) {
       return h("button", Object.assign({ key: label, type: "button", className: "cx-menu-item", role: "menuitem", onClick: onClick }, extra),
         h(Icon, { name: icon }), h("span", null, label));
@@ -440,6 +482,7 @@
   }
 
   window.CommerceOS = Object.assign(window.CommerceOS || {}, {
-    Sidebar: Sidebar, PageTrail: PageTrail, NAV: NAV, navResolve: resolve, navTrail: trailItems
+    Sidebar: Sidebar, PageTrail: PageTrail, NAV: NAV, navResolve: resolve, navTrail: trailItems,
+    prefs: { get: getPrefs, set: setPrefs, reset: resetPrefs, defaults: PREF_DEFAULTS, prefersDark: prefersDark, apply: applyBody }, ACCOUNT_HREF: ACCOUNT_HREF
   });
 })();

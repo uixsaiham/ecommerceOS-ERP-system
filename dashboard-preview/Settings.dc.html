@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="./catalog.js?v=4"></script>
+<script src="./management.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+.st-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:24px;align-items:start}
+.st-nav{position:sticky;top:16px;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.st-nav button{width:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border:0;border-radius:var(--radius-sm);background:none;font:inherit;font-size:14px;line-height:20px;color:var(--text-secondary);text-align:left;cursor:pointer}
+.st-nav button:hover{background:var(--bg-muted);color:var(--text-primary)}
+.st-nav button[aria-current="true"]{background:var(--bg-surface);color:var(--text-primary);font-weight:500;box-shadow:inset 0 0 0 1px var(--border)}
+.st-nav button:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px}
+.st-nav .cx-icon{width:16px;height:16px;flex:none}
+.st-nav .st-dot{margin-left:auto;width:6px;height:6px;border-radius:50%;background:var(--warning)}
+.st-stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+.st-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+.st-card-h{padding:16px 20px;border-bottom:1px solid var(--border)}
+.st-card-h h2{margin:0;font-size:16px;line-height:24px;font-weight:600}
+.st-card-h p{margin:2px 0 0;font-size:13px;line-height:20px;color:var(--text-secondary)}
+.st-card-b{padding:16px 20px;display:flex;flex-direction:column;gap:16px}
+.st-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.st-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.st-row{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:12px 0;border-bottom:1px solid var(--border)}
+.st-row:first-child{padding-top:0}
+.st-row:last-child{border-bottom:0;padding-bottom:0}
+.st-row-l{display:flex;flex-direction:column;gap:2px;font-size:14px;line-height:20px;color:var(--text-primary);min-width:0}
+.st-row-l .o-sub{font-size:13px;line-height:18px}
+.st-row-c{flex:none;display:flex;align-items:center;gap:8px}
+.st-sw{flex:none;position:relative;width:36px;height:20px;border:0;border-radius:10px;background:var(--border-strong);cursor:pointer;padding:0;transition:background .15s}
+.st-sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:left .15s}
+.st-sw[aria-checked="true"]{background:var(--brand)}
+.st-sw[aria-checked="true"]::after{left:18px}
+.st-sw:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.st-sw:disabled{opacity:.45;cursor:not-allowed}
+.st-tbl{width:100%;border-collapse:collapse;font-size:13px;line-height:20px}
+.st-tbl th{font-size:12px;font-weight:500;color:var(--text-secondary);text-align:left;padding:8px 12px;background:var(--bg-subtle);border-bottom:1px solid var(--border);white-space:nowrap}
+.st-tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.st-tbl tr:last-child td{border-bottom:0}
+.st-tbl th:first-child,.st-tbl td:first-child{padding-left:20px}
+.st-tbl th:last-child,.st-tbl td:last-child{padding-right:20px}
+.st-tbl th.is-c,.st-tbl td.is-c{text-align:center}
+.st-choice{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.st-choice button{display:flex;flex-direction:column;gap:2px;padding:12px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-surface);font:inherit;text-align:left;cursor:pointer;color:var(--text-primary)}
+.st-choice button strong{font-size:14px;line-height:20px;font-weight:500}
+.st-choice button > span{font-size:12px;line-height:16px;color:var(--text-muted)}
+.st-choice button[aria-pressed="true"]{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand);background:var(--brand-subtle)}
+.st-choice button:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.st-ta{width:100%;box-sizing:border-box;min-height:84px;padding:8px 10px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-surface);font:inherit;font-size:13px;line-height:20px;color:var(--text-primary);resize:vertical;font-family:var(--font-mono,ui-monospace,Menlo,monospace)}
+.st-ta:focus{outline:2px solid var(--focus-ring);outline-offset:1px}
+.st-ta.is-invalid{border-color:var(--danger)}
+.st-err{font-size:12px;line-height:16px;color:var(--danger)}
+.st-plan{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}
+.st-plan-big{font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.01em}
+.st-plan-big small{font-size:14px;font-weight:400;color:var(--text-muted)}
+.st-feats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:20px;color:var(--text-secondary)}
+.st-feats li{display:flex;gap:8px}
+.st-feats .cx-icon{width:16px;height:16px;color:var(--success);flex:none;margin-top:2px}
+.st-meter-l{display:flex;justify-content:space-between;font-size:13px;line-height:20px;margin-bottom:6px}
+.st-danger{border-color:color-mix(in srgb,var(--danger) 40%,var(--border))}
+.st-savebar{position:sticky;bottom:16px;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;border-radius:var(--radius-md);background:var(--text-primary);color:var(--bg-surface);box-shadow:var(--shadow-lg);font-size:14px}
+.st-savebar .cx-btn-ghost{color:var(--bg-surface)}
+.st-savebar .cx-btn-ghost:hover{background:rgba(255,255,255,.12)}
+@media (max-width:1023px){ .st-layout{grid-template-columns:minmax(0,1fr)} .st-nav{position:static;flex-direction:row;overflow-x:auto;padding-bottom:4px} .st-nav button{white-space:nowrap} .st-plan{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:767px){ .st-grid2,.st-grid3,.st-choice{grid-template-columns:minmax(0,1fr)} .st-row{flex-direction:column;gap:8px} .st-tbl th:first-child,.st-tbl td:first-child{padding-left:16px} .st-tbl th:last-child,.st-tbl td:last-child{padding-right:16px} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="settings" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<h1>Settings</h1>
+<p class="ph-sub">How Fernhill’s account is set up: business details, stores, taxes, order rules, inventory, alerts, security and billing.</p>
+<p class="ph-meta"><span>{{lastSaved}}</span><span>Changes apply to every store and site</span></p>
+</div>
+</div>
+
+<div class="st-layout">
+<ul class="st-nav" aria-label="Settings sections"><sc-for list="{{nav}}" as="n" hint-placeholder-count="8"><li><button aria-current="{{n.cur}}" onClick="{{n.go}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{n.icon}}"></x-import>{{n.label}}<sc-if value="{{n.dirty}}" hint-placeholder-val="{{false}}"><span class="st-dot" aria-label="Unsaved changes"></span></sc-if></button></li></sc-for></ul>
+
+<div class="st-stack">
+
+<!-- ---------- business ---------- -->
+<sc-if value="{{is.business}}" hint-placeholder-val="{{true}}">
+<section class="st-card" aria-labelledby="st-biz"><div class="st-card-h"><h2 id="st-biz">Business details</h2><p>Shown on invoices, packing slips and emails to customers and suppliers.</p></div>
+<div class="st-card-b">
+<div class="st-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Store name" value="{{bv.name}}" on-change="{{bs.name}}" error="{{be.name}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Legal name" value="{{bv.legal}}" on-change="{{bs.legal}}" error="{{be.legal}}"></x-import></div>
+<div class="st-grid2"><x-import component-from-global-scope="CommerceOS.Input" label="Contact email" type="email" value="{{bv.email}}" on-change="{{bs.email}}" error="{{be.email}}" hint="Replies to customer emails go here"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="Phone" value="{{bv.phone}}" on-change="{{bs.phone}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Input" label="Registered address" value="{{bv.address}}" on-change="{{bs.address}}" error="{{be.address}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Input" label="Tax registration" value="{{bv.vat}}" on-change="{{bs.vat}}" hint="Printed on invoices. Per-country numbers are under Taxes."></x-import>
+</div></section>
+<section class="st-card" aria-labelledby="st-loc"><div class="st-card-h"><h2 id="st-loc">Region and units</h2><p>Reports, cutoffs and the dashboard use these. Each store keeps its own customer-facing currency.</p></div>
+<div class="st-card-b">
+<div class="st-grid3"><x-import component-from-global-scope="CommerceOS.Select" label="Time zone" options="{{opt.tz}}" value="{{bv.tz}}" on-value-change="{{bs.tz}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Reporting currency" options="{{opt.cur}}" value="{{bv.currency}}" on-value-change="{{bs.currency}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Date format" options="{{opt.date}}" value="{{bv.dateFmt}}" on-value-change="{{bs.dateFmt}}"></x-import></div>
+<div class="st-grid3"><x-import component-from-global-scope="CommerceOS.Select" label="Weight" options="{{opt.weight}}" value="{{bv.weight}}" on-value-change="{{bs.weight}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Dimensions" options="{{opt.dims}}" value="{{bv.dims}}" on-value-change="{{bs.dims}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Fiscal year starts" options="{{opt.month}}" value="{{bv.fiscal}}" on-value-change="{{bs.fiscal}}"></x-import></div>
+<p class="o-sub" style="margin: 0">{{fiscalNote}}</p>
+</div></section>
+<section class="st-card st-danger" aria-labelledby="st-dz"><div class="st-card-h"><h2 id="st-dz">Account</h2><p>Data export and ownership.</p></div>
+<div class="st-card-b">
+<div class="st-row"><span class="st-row-l"><span>Export all data</span><span class="o-sub">Orders, customers, products, stock and finance as CSV files in one ZIP, emailed to you.</span></span><span class="st-row-c"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportAll}}">Request export</x-import></span></div>
+<div class="st-row"><span class="st-row-l"><span>Transfer ownership</span><span class="o-sub">Only Tahmid Chowdhury, the owner, can hand the account to someone else.</span></span><span class="st-row-c"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" disabled="{{yes}}">Transfer</x-import></span></div>
+</div></section>
+</sc-if>
+
+<!-- ---------- stores and currencies ---------- -->
+<sc-if value="{{is.stores}}" hint-placeholder-val="{{false}}">
+<section class="st-card" aria-labelledby="st-st"><div class="st-card-h"><h2 id="st-st">Stores</h2><p>Currency and whether prices shown to customers include tax. Ships-from comes from order routing on Warehouses.</p></div>
+<div class="o-scroll" style="display: block"><table class="st-tbl" aria-label="Stores">
+<thead><tr><th scope="col">Store</th><th scope="col">Currency</th><th scope="col" class="is-c">Prices include tax</th><th scope="col">Ships from</th></tr></thead>
+<tbody><sc-for list="{{storeRows}}" as="r" hint-placeholder-count="4"><tr>
+<td><span class="td-strong">{{r.name}}</span><span class="o-sub">{{r.domain}} · {{r.lang}}</span></td>
+<td><x-import component-from-global-scope="CommerceOS.Select" aria-label="{{r.curLabel}}" options="{{opt.cur}}" value="{{r.currency}}" on-value-change="{{r.setCur}}" size="sm" width="110px"></x-import></td>
+<td class="is-c"><button type="button" class="st-sw" role="switch" aria-checked="{{r.taxIncl}}" aria-label="{{r.taxLabel}}" onClick="{{r.toggleTax}}"></button></td>
+<td><a href="Warehouses.dc.html">{{r.from}}</a></td>
+</tr></sc-for></tbody>
+</table></div></section>
+<section class="st-card" aria-labelledby="st-fx"><div class="st-card-h"><h2 id="st-fx">Exchange rates</h2><p>Used to report everything in {{bv.currency}}. Finance shows EUR and BDT balances at these rates.</p></div>
+<div class="st-card-b">
+<div class="st-row"><span class="st-row-l"><span>Update rates automatically</span><span class="o-sub">{{fxNote}}</span></span><span class="st-row-c"><button type="button" class="st-sw" role="switch" aria-checked="{{fx.auto}}" aria-label="Update rates automatically" onClick="{{fx.toggleAuto}}"></button></span></div>
+<div class="st-grid3"><x-import component-from-global-scope="CommerceOS.Input" label="1 EUR in USD" inputmode="decimal" value="{{fx.eur}}" on-change="{{fx.setEur}}" disabled="{{fx.locked}}" error="{{fx.eurError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="BDT per 1 USD" inputmode="decimal" value="{{fx.bdt}}" on-change="{{fx.setBdt}}" disabled="{{fx.locked}}" error="{{fx.bdtError}}"></x-import><x-import component-from-global-scope="CommerceOS.Input" label="AUD per 1 USD" inputmode="decimal" value="{{fx.aud}}" on-change="{{fx.setAud}}" disabled="{{fx.locked}}" error="{{fx.audError}}"></x-import></div>
+</div></section>
+</sc-if>
+
+<!-- ---------- taxes ---------- -->
+<sc-if value="{{is.taxes}}" hint-placeholder-val="{{false}}">
+<section class="st-card" aria-labelledby="st-tx"><div class="st-card-h"><h2 id="st-tx">Where Fernhill collects tax</h2><p>Turning a region off stops tax being added at checkout there. It doesn’t change past orders.</p></div>
+<div class="o-scroll" style="display: block"><table class="st-tbl" aria-label="Tax regions">
+<thead><tr><th scope="col">Region</th><th scope="col">Rate</th><th scope="col">Registration</th><th scope="col" class="is-c">Collect</th></tr></thead>
+<tbody><sc-for list="{{taxRows}}" as="t" hint-placeholder-count="5"><tr>
+<td><span class="td-strong">{{t.region}}</span><span class="o-sub">{{t.how}}</span></td><td>{{t.rate}}</td><td>{{t.reg}}</td>
+<td class="is-c"><button type="button" class="st-sw" role="switch" aria-checked="{{t.on}}" aria-label="{{t.label}}" onClick="{{t.toggle}}"></button></td>
+</tr></sc-for></tbody>
+</table></div>
+<div class="st-card-b" style="border-top: 1px solid var(--border)"><sc-if value="{{taxWarn}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning">{{taxWarn}}</x-import></sc-if><p class="o-sub" style="margin: 0">US rates come from the checkout’s tax service. Connect Avalara on Integrations to file returns automatically.</p></div>
+</section>
+</sc-if>
+
+<!-- ---------- orders ---------- -->
+<sc-if value="{{is.orders}}" hint-placeholder-val="{{false}}">
+<section class="st-card" aria-labelledby="st-or"><div class="st-card-h"><h2 id="st-or">Orders</h2><p>Numbering, targets and what happens automatically.</p></div>
+<div class="st-card-b">
+<div class="st-grid3"><x-import component-from-global-scope="CommerceOS.Input" label="Order number prefix" value="{{ov.prefix}}" on-change="{{os.prefix}}" error="{{oe.prefix}}" hint="{{prefixHint}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Processing target" options="{{opt.target}}" value="{{ov.target}}" on-value-change="{{os.target}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Cancel unpaid orders after" options="{{opt.cancel}}" value="{{ov.cancelUnpaid}}" on-value-change="{{os.cancelUnpaid}}"></x-import></div>
+<div>
+<div class="st-row"><span class="st-row-l"><span>Confirm paid orders automatically</span><span class="o-sub">Paid orders go straight to the pick queue. Off: someone confirms each one.</span></span><span class="st-row-c"><button type="button" class="st-sw" role="switch" aria-checked="{{osw.autoConfirm}}" aria-label="Confirm paid orders automatically" onClick="{{ot.autoConfirm}}"></button></span></div>
+<div class="st-row"><span class="st-row-l"><span>Hold high-value orders for review</span><span class="o-sub">Retail orders above the amount wait on Orders until someone releases them. Wholesale is never held.</span></span><span class="st-row-c"><x-import component-from-global-scope="CommerceOS.Input" aria-label="High-value amount" prefix="$" inputmode="numeric" value="{{ov.highValue}}" on-change="{{os.highValue}}" disabled="{{oHighOff}}" error="{{oe.highValue}}" width="120px"></x-import><button type="button" class="st-sw" role="switch" aria-checked="{{osw.holdHigh}}" aria-label="Hold high-value orders" onClick="{{ot.holdHigh}}"></button></span></div>
+<div class="st-row"><span class="st-row-l"><span>Split orders across warehouses</span><span class="o-sub">When one site can’t fill the whole order, ship what it has and send the rest from another site.</span></span><span class="st-row-c"><button type="button" class="st-sw" role="switch" aria-checked="{{osw.split}}" aria-label="Split orders across warehouses" onClick="{{ot.split}}"></button></span></div>
+</div>
+</div></section>
+<section class="st-card" aria-labelledby="st-rt"><div class="st-card-h"><h2 id="st-rt">Returns</h2><p>Applies to retail stores. Amazon follows Amazon’s policy.</p></div>
+<div class="st-card-b">
+<div class="st-row"><span class="st-row-l"><span>Return window</span><span class="o-sub">Days after delivery that customers can start a return.</span></span><span class="st-row-c"><x-import component-from-global-scope="CommerceOS.Input" aria-label="Return window" suffix="days" inputmode="numeric" value="{{ov.returnsDays}}" on-change="{{os.returnsDays}}" error="{{oe.returnsDays}}" width="120px"></x-import></span></div>
+<div class="st-row"><span class="st-row-l"><span>Put inspected returns back in stock</span><span class="o-sub">Items marked resellable are added back at the receiving site.</span></span><span class="st-row-c"><button type="button" class="st-sw" role="switch" aria-checked="{{osw.restock}}" aria-label="Restock returns" onClick="{{ot.restock}}"></button></span></div>
+</div></section>
+</sc-if>
+
+<!-- ---------- inventory ---------- -->
+<sc-if value="{{is.inventory}}" hint-placeholder-val="{{false}}">
+<section class="st-card" aria-labelledby="st-ic"><div class="st-card-h"><h2 id="st-ic">Costing method</h2><p>How cost of goods sold and stock value are calculated. Changing it applies from the next month.</p></div>
+<div class="st-card-b"><div class="st-choice" role="group" aria-label="Costing method"><sc-for list="{{costing}}" as="c" hint-placeholder-count="3"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}"><strong>{{c.label}}</strong><span>{{c.desc}}</span></button></sc-for></div></div></section>
+<section class="st-card" aria-labelledby="st-ir"><div class="st-card-h"><h2 id="st-ir">Reordering and stock</h2><p>Reorder points are lead time plus safety stock at the 30-day sales rate.</p></div>
+<div class="st-card-b">
+<div class="st-row"><span class="st-row-l"><span>Safety stock</span><span class="o-sub">{{safetyNote}}</span></span><span class="st-row-c"><x-import component-from-global-scope="CommerceOS.Input" aria-label="Safety stock" suffix="days" inputmode="numeric" value="{{iv.safety}}" on-change="{{is_.safety}}" error="{{ie.safety}}" width="120px"></x-import></span></div>
+<div class="st-row"><span class="st-row-l"><span>Approve adjustments above</span><span class="o-sub">Adjustments worth more than this at cost wait for a warehouse manager.</span></span><span class="st-row-c"><x-import component-from-global-scope="CommerceOS.Input" aria-label="Approval threshold" prefix="$" inputmode="numeric" value="{{iv.approveOver}}" on-change="{{is_.approveOver}}" error="{{ie.approveOver}}" width="120px"></x-import></span></div>
+<div class="st-row"><span class="st-row-l"><span>Reserve stock when an order is placed</span><span class="o-sub">Reserved units show as committed and can’t be sold twice.</span></span><span class="st-row-c"><button type="button" class="st-sw" role="switch" aria-checked="{{isw.reserve}}" aria-label="Reserve stock" onClick="{{it.reserve}}"></button></span></div>
+<div class="st-row"><span class="st-row-l"><span>Allow overselling</span><span class="o-sub">Keep selling at zero stock and fill from the next purchase order. Not recommended for Amazon.</span></span><span class="st-row-c"><button type="button" class="st-sw" role="switch" aria-checked="{{isw.overselling}}" aria-label="Allow overselling" onClick="{{it.overselling}}"></button></span></div>
+<div class="st-row"><span class="st-row-l"><span>Alert when stock falls below the reorder point</span><span class="o-sub">Feeds the Low Stock page and the sidebar badge.</span></span><span class="st-row-c"><button type="button" class="st-sw" role="switch" aria-checked="{{isw.lowNotify}}" aria-label="Low stock alerts" onClick="{{it.lowNotify}}"></button></span></div>
+</div></section>
+<section class="st-card" aria-labelledby="st-cc"><div class="st-card-h"><h2 id="st-cc">Cycle counts</h2><p>How often each ABC class is counted. Classes come from Inventory Analytics.</p></div>
+<div class="st-card-b"><div class="st-grid3"><x-import component-from-global-scope="CommerceOS.Select" label="Class A" options="{{opt.freq}}" value="{{iv.countA}}" on-value-change="{{is_.countA}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Class B" options="{{opt.freq}}" value="{{iv.countB}}" on-value-change="{{is_.countB}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Class C" options="{{opt.freq}}" value="{{iv.countC}}" on-value-change="{{is_.countC}}"></x-import></div>
+<p class="o-sub" style="margin: 0">{{countNote}} <a href="InventoryAnalytics.dc.html">See the classes</a></p></div></section>
+</sc-if>
+
+<!-- ---------- notifications ---------- -->
+<sc-if value="{{is.notify}}" hint-placeholder-val="{{false}}">
+<section class="st-card" aria-labelledby="st-nt"><div class="st-card-h"><h2 id="st-nt">Notifications</h2><p>For the whole team, by role: each person only gets alerts for modules their role can see. Slack posts to #ops-alerts.</p></div>
+<div class="o-scroll" style="display: block"><table class="st-tbl" aria-label="Notifications">
+<thead><tr><th scope="col">Event</th><th scope="col" class="is-c">Email</th><th scope="col" class="is-c">Slack</th><th scope="col" class="is-c">In app</th></tr></thead>
+<tbody><sc-for list="{{notifyRows}}" as="n" hint-placeholder-count="8"><tr><td>{{n.label}}</td>
+<td class="is-c"><button type="button" class="st-sw" role="switch" aria-checked="{{n.email}}" aria-label="{{n.emailLabel}}" onClick="{{n.tEmail}}"></button></td>
+<td class="is-c"><button type="button" class="st-sw" role="switch" aria-checked="{{n.slack}}" aria-label="{{n.slackLabel}}" onClick="{{n.tSlack}}"></button></td>
+<td class="is-c"><button type="button" class="st-sw" role="switch" aria-checked="{{n.app}}" aria-label="{{n.appLabel}}" onClick="{{n.tApp}}"></button></td></tr></sc-for></tbody>
+</table></div>
+<div class="st-card-b" style="border-top: 1px solid var(--border)"><div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="bell" on-click="{{testNotify}}">Send a test alert</x-import><a href="Integrations.dc.html?i=slack">Slack settings</a></div></div>
+</section>
+</sc-if>
+
+<!-- ---------- security ---------- -->
+<sc-if value="{{is.security}}" hint-placeholder-val="{{false}}">
+<section class="st-card" aria-labelledby="st-2f"><div class="st-card-h"><h2 id="st-2f">Two-step sign-in</h2><p>{{twofaNote}}</p></div>
+<div class="st-card-b"><div class="st-choice" role="group" aria-label="Require two-step sign-in"><sc-for list="{{twofa}}" as="c" hint-placeholder-count="3"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}"><strong>{{c.label}}</strong><span>{{c.desc}}</span></button></sc-for></div></div></section>
+<section class="st-card" aria-labelledby="st-si"><div class="st-card-h"><h2 id="st-si">Sign-in</h2><p>Google Workspace accounts on fernhill.co. External users always use email and password.</p></div>
+<div class="st-card-b">
+<div class="st-row"><span class="st-row-l"><span>Sign in with Google</span><span class="o-sub">Single sign-on through Google Workspace.</span></span><span class="st-row-c"><button type="button" class="st-sw" role="switch" aria-checked="{{ssw.sso}}" aria-label="Sign in with Google" onClick="{{stg.sso}}"></button></span></div>
+<div class="st-row"><span class="st-row-l"><span>Require Google for fernhill.co addresses</span><span class="o-sub">Turns off passwords for staff. Warehouse staff without a Google account would be locked out.</span></span><span class="st-row-c"><button type="button" class="st-sw" role="switch" aria-checked="{{ssw.ssoOnly}}" aria-label="Require Google sign-in" disabled="{{ssoOff}}" onClick="{{stg.ssoOnly}}"></button></span></div>
+<div class="st-grid2"><x-import component-from-global-scope="CommerceOS.Select" label="Sign people out after" options="{{opt.session}}" value="{{sv.session}}" on-value-change="{{ss.session}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="Minimum password length" options="{{opt.pw}}" value="{{sv.pwLen}}" on-value-change="{{ss.pwLen}}"></x-import></div>
+</div></section>
+<section class="st-card" aria-labelledby="st-ip"><div class="st-card-h"><h2 id="st-ip">IP allowlist</h2><p>Only allow sign-ins from these networks. Owners can always sign in, so nobody gets locked out entirely.</p></div>
+<div class="st-card-b">
+<div class="st-row"><span class="st-row-l"><span>Restrict sign-ins by IP address</span><span class="o-sub">One address or range per line, for example 203.0.113.0/24.</span></span><span class="st-row-c"><button type="button" class="st-sw" role="switch" aria-checked="{{ssw.ipAllow}}" aria-label="Restrict by IP" onClick="{{stg.ipAllow}}"></button></span></div>
+<sc-if value="{{ipOn}}" hint-placeholder-val="{{false}}"><label class="o-sub" for="st-ips">Allowed addresses</label><textarea id="st-ips" class="{{ipCls}}" value="{{sv.ips}}" onChange="{{ss.ips}}" aria-invalid="{{ipInvalid}}" placeholder="203.0.113.0/24"></textarea><sc-if value="{{se.ips}}" hint-placeholder-val="{{false}}"><span class="st-err">{{se.ips}}</span></sc-if></sc-if>
+</div></section>
+</sc-if>
+
+<!-- ---------- billing ---------- -->
+<sc-if value="{{is.billing}}" hint-placeholder-val="{{false}}">
+<section class="st-card" aria-labelledby="st-pl"><div class="st-card-h"><h2 id="st-pl">Plan</h2><p>Billed monthly to {{plan.card}} · renews {{plan.renews}}</p></div>
+<div class="st-card-b"><div class="st-plan">
+<div style="display: flex; flex-direction: column; gap: 12px"><span class="o-sub">CommerceOS {{plan.name}}</span><span class="st-plan-big">{{plan.price}} <small>a month</small></span><ul class="st-feats"><sc-for list="{{plan.features}}" as="f" hint-placeholder-count="5"><li><x-import component-from-global-scope="CommerceOS.Icon" name="check"></x-import>{{f}}</li></sc-for></ul></div>
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div><div class="st-meter-l"><span>Seats</span><span class="td-strong">{{plan.seatLine}}</span></div><span class="{{plan.seatMeter}}" style="height: 8px"><span style="{{plan.seatW}}"></span></span><span class="o-sub" style="display: block; margin-top: 4px">Invites waiting count as seats. <a href="Users.dc.html">Users & Roles</a></span></div>
+<div><div class="st-meter-l"><span>API calls this month</span><span class="td-strong">1.31M of 2M</span></div><span class="pr-meter" style="height: 8px"><span style="width: 65.6%"></span></span></div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openSeats}}">Add seats</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" on-click="{{comparePlans}}">Compare plans</x-import></div>
+</div>
+</div></div></section>
+<section class="st-card" aria-labelledby="st-pm"><div class="st-card-h"><h2 id="st-pm">Payment and invoices</h2><p>Invoices go to {{plan.email}}. The September invoice is in Finance as a Software expense.</p></div>
+<div class="st-card-b" style="padding-bottom: 0"><div class="st-row"><span class="st-row-l"><span>{{plan.card}}</span><span class="o-sub">Expires 08/28 · Daniel Okoye’s company card</span></span><span class="st-row-c"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" on-click="{{updateCard}}">Update</x-import></span></div></div>
+<div class="o-scroll" style="display: block"><table class="st-tbl" aria-label="Invoices"><thead><tr><th scope="col">Invoice</th><th scope="col">Date</th><th scope="col">Amount</th><th scope="col">Status</th><th scope="col"><span class="cx-sr">Download</span></th></tr></thead>
+<tbody><sc-for list="{{plan.invoices}}" as="v" hint-placeholder-count="5"><tr><td class="td-strong">{{v.id}}</td><td>{{v.date}}</td><td>{{v.amount}}</td><td><x-import component-from-global-scope="CommerceOS.Badge" tone="success">{{v.status}}</x-import></td><td style="text-align: right"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="download" on-click="{{v.dl}}">PDF</x-import></td></tr></sc-for></tbody>
+</table></div>
+</section>
+</sc-if>
+
+<sc-if value="{{dirty}}" hint-placeholder-val="{{false}}">
+<div class="st-savebar" role="region" aria-label="Unsaved changes"><span>{{dirtyLabel}}</span><span style="display: flex; gap: 8px"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{discard}}">Discard</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{save}}">Save changes</x-import></span></div>
+</sc-if>
+
+</div>
+</div>
+
+</main>
+</div>
+</div>
+
+<x-import component-from-global-scope="CommerceOS.Modal" open="{{seatOpen}}" on-close="{{closeSeats}}" size="sm" title="Add seats" description="{{seatDesc}}">
+<div class="o-modal-stack">
+<x-import component-from-global-scope="CommerceOS.Input" label="Extra seats" inputmode="numeric" suffix="seats" value="{{seatVal}}" on-change="{{setSeatVal}}" error="{{seatErr}}" hint="{{seatHint}}"></x-import>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" on-click="{{closeSeats}}">Cancel</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{buySeats}}">Add seats</x-import></div>
+</div>
+</x-import>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1400}}'>
+const SECTIONS = [['business', 'Business details', 'store'], ['stores', 'Stores and currencies', 'shopping-bag'], ['taxes', 'Taxes', 'file-text'], ['orders', 'Orders and returns', 'clipboard-list'],
+  ['inventory', 'Inventory', 'package'], ['notify', 'Notifications', 'bell'], ['security', 'Security', 'shield-check'], ['billing', 'Plan and billing', 'credit-card']];
+const KEYS = { business: 'business', stores: ['stores', 'rates'], taxes: 'taxes', orders: 'orders', inventory: 'inventory', notify: 'notify', security: 'security', billing: null };
+const clone = (o) => JSON.parse(JSON.stringify(o));
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let sec = 'business';
+    try { const q = new URLSearchParams(window.location.search).get('section'); if (SECTIONS.some((x) => x[0] === q)) sec = q; } catch (e) { /* no query string */ }
+    const base = clone(M.SETTINGS);
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, sec, saved: base, draft: clone(base), tried: false, savedAt: Date.UTC(2026, 8, 30, 15, 0), savedBy: 'Priya Natarajan', seats: M.PLAN.seats, seatModal: null };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state.drawer) this.setState({ drawer: false }); };
+    this._onUnload = (e) => { if (this.changed().length) { e.preventDefault(); e.returnValue = ''; } };
+    document.addEventListener('keydown', this._onKey); window.addEventListener('beforeunload', this._onUnload);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); window.removeEventListener('beforeunload', this._onUnload); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+  changed() { const s = this.state; return SECTIONS.filter((x) => { const k = KEYS[x[0]]; return k && [].concat(k).some((kk) => JSON.stringify(s.draft[kk]) !== JSON.stringify(s.saved[kk])); }).map((x) => x[0]); }
+  put(group, key, val) { this.setState((s) => { const d = clone(s.draft); d[group][key] = val; return { draft: d }; }); }
+  putList(group, i, key, val) { this.setState((s) => { const d = clone(s.draft); d[group][i][key] = val; return { draft: d }; }); }
+  errors(d) {
+    const e = { business: {}, orders: {}, inventory: {}, rates: {}, security: {} }, num = (v, lo, hi) => /^\d+(\.\d+)?$/.test(String(v).trim()) && Number(v) >= lo && Number(v) <= hi;
+    if (!d.business.name.trim()) e.business.name = 'Enter the store name.';
+    if (!d.business.legal.trim()) e.business.legal = 'Enter the legal name.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.business.email.trim())) e.business.email = 'Enter a valid email address.';
+    if (d.business.address.trim().length < 10) e.business.address = 'Enter the full address.';
+    if (!/^[#A-Z0-9-]{1,8}$/i.test(d.orders.prefix)) e.orders.prefix = 'Up to 8 letters, numbers, # or -.';
+    if (d.orders.holdHigh && !num(d.orders.highValue, 1, 1e6)) e.orders.highValue = 'Enter an amount.';
+    if (!num(d.orders.returnsDays, 0, 365) || /\./.test(d.orders.returnsDays)) e.orders.returnsDays = '0 to 365 days.';
+    if (!num(d.inventory.safety, 0, 120) || /\./.test(d.inventory.safety)) e.inventory.safety = '0 to 120 days.';
+    if (!num(d.inventory.approveOver, 0, 1e6)) e.inventory.approveOver = 'Enter an amount.';
+    if (!d.rates.auto) { if (!num(d.rates.eur, 0.1, 10)) e.rates.eur = 'Enter a rate like 1.084.'; if (!num(d.rates.bdt, 1, 1000)) e.rates.bdt = 'Enter a rate like 119.6.'; if (!num(d.rates.aud, 0.1, 10)) e.rates.aud = 'Enter a rate like 1.52.'; }
+    if (d.security.ipAllow) { const lines = d.security.ips.split(/\n/).map((x) => x.trim()).filter(Boolean), bad = lines.filter((x) => !/^(\d{1,3}\.){3}\d{1,3}(\/(\d|[12]\d|3[0-2]))?$/.test(x) || x.split('/')[0].split('.').some((o) => Number(o) > 255));
+      if (!lines.length) e.security.ips = 'Add at least one address, or turn the allowlist off.'; else if (bad.length) e.security.ips = 'Not a valid address or range: ' + bad.slice(0, 2).join(', ') + '.'; }
+    return e;
+  }
+
+  renderVals() {
+    const s = this.state, d = s.draft, ch = this.changed(), err = this.errors(d), show = (o) => o;
+    const nErr = Object.keys(err).reduce((a, k) => a + Object.keys(err[k]).length, 0);
+    const txt = (g) => { const o = {}; Object.keys(d[g]).forEach((k) => { o[k] = (e) => { const v = e && e.target ? e.target.value : e; this.put(g, k, v); }; }); return o; };
+    const tog = (g) => { const o = {}; Object.keys(d[g]).forEach((k) => { o[k] = () => this.put(g, k, !d[g][k]); }); return o; };
+    const sw = (g) => { const o = {}; Object.keys(d[g]).forEach((k) => { o[k] = d[g][k] ? 'true' : 'false'; }); return o; };
+    const is = {}; SECTIONS.forEach((x) => { is[x[0]] = s.sec === x[0]; });
+    const nav = SECTIONS.map((x) => ({ label: x[1], icon: x[2], cur: s.sec === x[0] ? 'true' : 'false', dirty: ch.indexOf(x[0]) >= 0, go: () => { this.setState({ sec: x[0] }); try { history.replaceState(null, '', '?section=' + x[0]); } catch (e) { /* sandboxed */ } } }));
+    const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const opt = {
+      tz: [['Asia/Dhaka', 'Dhaka (UTC+6)'], ['UTC', 'UTC'], ['Europe/Amsterdam', 'Amsterdam (UTC+2)'], ['America/New_York', 'New York (UTC−4)'], ['Australia/Sydney', 'Sydney (UTC+10)']].map((x) => ({ value: x[0], label: x[1] })),
+      cur: ['USD', 'EUR', 'BDT', 'AUD', 'GBP'].map((c) => ({ value: c, label: c })), date: ['MMM D, YYYY', 'D MMM YYYY', 'YYYY-MM-DD', 'DD/MM/YYYY'].map((x) => ({ value: x, label: x })),
+      weight: [{ value: 'kg', label: 'Kilograms' }, { value: 'lb', label: 'Pounds' }], dims: [{ value: 'cm', label: 'Centimetres' }, { value: 'in', label: 'Inches' }],
+      month: MON.map((m, i) => ({ value: String(i + 1), label: m })), target: ['12', '24', '36', '48'].map((h) => ({ value: h, label: h + ' hours' })),
+      cancel: [['24', '24 hours'], ['48', '48 hours'], ['72', '3 days'], ['168', '7 days'], ['0', 'Never']].map((x) => ({ value: x[0], label: x[1] })),
+      freq: [['weekly', 'Every week'], ['monthly', 'Every month'], ['quarterly', 'Every quarter'], ['yearly', 'Once a year']].map((x) => ({ value: x[0], label: x[1] })),
+      session: [['4', '4 hours'], ['8', '8 hours'], ['12', '12 hours'], ['24', '24 hours'], ['168', '7 days']].map((x) => ({ value: x[0], label: x[1] + ' idle' })), pw: ['8', '10', '12', '14', '16'].map((x) => ({ value: x, label: x + ' characters' }))
+    };
+    const fm = Number(d.business.fiscal), qStart = (k) => MON[(fm - 1 + k * 3) % 12];
+    const fiscalNote = 'Quarters run ' + [0, 1, 2, 3].map((k) => 'Q' + (k + 1) + ' from ' + qStart(k)).join(', ') + '. Financial Reports uses these quarters.';
+
+    /* stores and rates */
+    const storeRows = d.stores.map((x, i) => ({ name: x.name, domain: x.domain, lang: x.lang, from: x.from, currency: x.currency, curLabel: x.name + ' currency', setCur: (v) => this.putList('stores', i, 'currency', v),
+      taxIncl: x.taxIncl ? 'true' : 'false', taxLabel: x.name + ': prices include tax', toggleTax: () => this.putList('stores', i, 'taxIncl', !x.taxIncl) }));
+    const re = err.rates;
+    const fx = { auto: d.rates.auto ? 'true' : 'false', locked: d.rates.auto, eur: d.rates.eur, bdt: d.rates.bdt, aud: d.rates.aud, eurError: re.eur || '', bdtError: re.bdt || '', audError: re.aud || '',
+      toggleAuto: () => this.put('rates', 'auto', !d.rates.auto), setEur: (e) => this.put('rates', 'eur', e.target.value), setBdt: (e) => this.put('rates', 'bdt', e.target.value), setAud: (e) => this.put('rates', 'aud', e.target.value) };
+    const fxNote = d.rates.auto ? 'From the European Central Bank each morning. Last update ' + F.timeAgo(d.rates.updated) + '.' : 'Rates stay as you set them until you turn this back on.';
+
+    /* taxes */
+    const taxRows = d.taxes.map((t, i) => ({ region: t.region, how: t.how, rate: t.rate, reg: t.reg || 'Not registered', on: t.on ? 'true' : 'false', label: 'Collect tax in ' + t.region, toggle: () => this.putList('taxes', i, 'on', !t.on) }));
+    const offReg = d.taxes.filter((t) => !t.on && t.reg);
+    const taxWarn = offReg.length ? 'You’re registered in ' + offReg.map((t) => t.region).join(' and ') + ' but not collecting tax there. You may still owe it on those sales.' : '';
+
+    /* orders */
+    const ov = d.orders, os = txt('orders'), ot = tog('orders'), osw = sw('orders'), oe = show(err.orders);
+    const prefixHint = 'Next order: ' + (ov.prefix || '') + '10624';
+
+    /* inventory */
+    const iv = d.inventory, is_ = txt('inventory'), it = tog('inventory'), isw = sw('inventory'), ie = show(err.inventory);
+    const costing = [['fifo', 'FIFO', 'First in, first out. Cost follows the oldest receipt.'], ['avg', 'Weighted average', 'Average cost of everything in stock.'], ['standard', 'Standard cost', 'A fixed cost per SKU, reviewed each quarter.']]
+      .map((c) => ({ label: c[1], desc: c[2] + (c[0] === s.saved.inventory.costing ? ' Current setting.' : ''), on: iv.costing === c[0] ? 'true' : 'false', pick: () => this.put('inventory', 'costing', c[0]) }));
+    const safetyNote = 'Extra days of sales kept on top of the supplier lead time. ' + (Number(iv.safety) > 0 ? 'A SKU selling 5 a day with a 21-day lead time reorders at ' + (5 * (21 + Number(iv.safety || 0))) + ' units.' : '');
+    const FQ = { weekly: 52, monthly: 12, quarterly: 4, yearly: 1 };
+    const countNote = 'About ' + F.int(216 * FQ[iv.countA] + 247 * FQ[iv.countB] + 338 * FQ[iv.countC]) + ' SKU counts a year across 801 active SKUs.';
+
+    /* notifications */
+    const notifyRows = d.notify.map((n, i) => ({ label: n.label, email: n.email ? 'true' : 'false', slack: n.slack ? 'true' : 'false', app: n.app ? 'true' : 'false',
+      emailLabel: n.label + ' by email', slackLabel: n.label + ' in Slack', appLabel: n.label + ' in the app',
+      tEmail: () => this.putList('notify', i, 'email', !n.email), tSlack: () => this.putList('notify', i, 'slack', !n.slack), tApp: () => this.putList('notify', i, 'app', !n.app) }));
+
+    /* security */
+    const sv = d.security, ss = txt('security'), stg = tog('security'), ssw = sw('security'), se = err.security;
+    const no2fa = M.USERS.filter((u) => u.status === 'active' && !u.twofa), adminsNo = no2fa.filter((u) => ['owner', 'admin', 'finance', 'whmgr'].indexOf(u.role) >= 0);
+    const twofa = [['off', 'Optional', 'People choose for themselves.'], ['admins', 'Admins and approvers', 'Owner, administrators, finance and warehouse managers.'], ['all', 'Everyone', 'Every user, including warehouse staff and external users.']]
+      .map((c) => ({ label: c[1], desc: c[2], on: sv.twofa === c[0] ? 'true' : 'false', pick: () => this.put('security', 'twofa', c[0]) }));
+    const affected = sv.twofa === 'all' ? no2fa : sv.twofa === 'admins' ? adminsNo : [];
+    const twofaNote = affected.length ? F.plural(affected.length, 'person', 'people') + ' (' + affected.map((u) => u.name).join(', ') + ') must set it up at their next sign-in.' : sv.twofa === 'off' ? 'Not required. Anyone who can approve refunds or payouts should have it on.' : 'Everyone it applies to already has it on.';
+
+    /* billing */
+    const seatsUsed = M.USERS.filter((u) => u.status === 'active' || u.status === 'invited').length, extra = s.seats - M.PLAN.seats;
+    const plan = { name: M.PLAN.name, price: F.money0(M.PLAN.price + extra * 30), card: M.PLAN.card, email: M.PLAN.billingEmail, renews: F.fmtDate(M.PLAN.renews),
+      features: M.PLAN.features.map((f) => f.replace('40 team seats', s.seats + ' team seats')), seatLine: seatsUsed + ' of ' + s.seats + ' used', seatW: 'width: ' + Math.min(100, seatsUsed / s.seats * 100).toFixed(0) + '%', seatMeter: 'pr-meter' + (seatsUsed / s.seats > 0.85 ? ' is-warn' : ''),
+      invoices: M.PLAN.invoices.map((v) => ({ id: v[0], date: F.fmtDate(v[1]), amount: F.money2(v[2]), status: v[3], dl: () => this.showToast('Downloading ' + v[0], 'PDF, ' + F.money2(v[2]) + '.', 'info') })) };
+    const sm = s.seatModal, seatN = sm ? Number(sm.n) : 0, seatOk = sm && /^\d+$/.test(sm.n) && seatN >= 1 && seatN <= 60;
+
+    const labels = ch.map((k) => SECTIONS.find((x) => x[0] === k)[1]);
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      lastSaved: 'Last saved ' + F.fmtWhen(s.savedAt) + ' by ' + s.savedBy, nav, is, opt,
+      bv: d.business, bs: txt('business'), be: show(err.business), fiscalNote,
+      exportAll: () => this.showToast('Export requested', 'A ZIP with every module’s CSV files goes to ' + F.USER.email + ' within the hour.'),
+      storeRows, fx, fxNote, taxRows, taxWarn,
+      ov, os, ot, osw, oe, oHighOff: !ov.holdHigh, prefixHint,
+      iv, is_, it, isw, ie, costing, safetyNote, countNote,
+      notifyRows, testNotify: () => this.showToast('Test alert sent', 'To your email, #ops-alerts in Slack and the bell in the top bar.'),
+      sv, ss: Object.assign({}, ss, { ips: (e) => this.put('security', 'ips', e.target.value) }), stg, ssw, se: { ips: se.ips || '' }, ssoOff: !sv.sso, ipOn: sv.ipAllow, ipCls: 'st-ta' + (se.ips ? ' is-invalid' : ''), ipInvalid: se.ips ? 'true' : 'false', twofa, twofaNote,
+      plan, openSeats: () => this.setState({ seatModal: { n: '5', tried: false } }), closeSeats: () => this.setState({ seatModal: null }), seatOpen: !!sm,
+      seatVal: sm ? sm.n : '', setSeatVal: (e) => { const v = e.target.value; this.setState((st) => ({ seatModal: Object.assign({}, st.seatModal, { n: v }) })); }, seatErr: sm && sm.tried && !seatOk ? 'Enter 1 to 60 seats.' : '',
+      seatDesc: 'You have ' + s.seats + ' seats and use ' + seatsUsed + '. Each extra seat is $30 a month.', seatHint: seatOk ? 'Adds ' + F.money0(seatN * 30) + ' a month, prorated from today.' : '',
+      buySeats: () => { if (!seatOk) return this.setState((st) => ({ seatModal: Object.assign({}, st.seatModal, { tried: true }) })); this.setState((st) => ({ seats: st.seats + seatN, seatModal: null })); this.showToast(F.plural(seatN, 'seat') + ' added', 'You now have ' + (s.seats + seatN) + ' seats. The prorated charge is on the next invoice.'); },
+      comparePlans: () => this.showToast('Plans', 'Starter (10 seats, $490), Growth (40 seats, $1,490), Scale (unlimited seats, from $3,900). Contact sales to switch.', 'info'),
+      updateCard: () => this.showToast('Card update', 'A secure Stripe form opens in a new tab.', 'info'),
+      dirty: ch.length > 0, dirtyLabel: 'Unsaved changes in ' + labels.join(', ') + (s.tried && nErr ? ' · fix ' + F.plural(nErr, 'field') + ' first' : ''),
+      discard: () => this.setState({ draft: clone(s.saved), tried: false }),
+      save: () => {
+        if (nErr) { const first = ['business', 'orders', 'inventory', 'rates', 'security'].find((k) => Object.keys(err[k]).length), to = first === 'rates' ? 'stores' : first; this.setState({ tried: true, sec: to }); return this.showToast('Check the highlighted fields', F.plural(nErr, 'field') + ' need a fix before saving.', 'warning'); }
+        this.setState({ saved: clone(d), tried: false, savedAt: F.NOW, savedBy: F.USER.name }); this.showToast('Settings saved', labels.join(', ') + ' updated. Changes are recorded in the activity log on Users & Roles.');
+      },
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- settings: account defaults (management.js), Oct 1 2026 09:42 UTC ---------- */
+var F = window.Fernhill, M = window.FernhillManagement, CommerceOS = window.CommerceOS;
+</script>
+</body>
+</html>

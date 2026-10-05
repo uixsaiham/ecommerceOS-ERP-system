@@ -144,3 +144,11 @@
   .cx-nav-sub, .cx-nav-sub-in, .cx-nav-chev, .cx-drill-track, .cx-drill-panel, .cx-side.is-drawer { transition: none; }
   .cx-side.is-peek, .cx-flyout, .cx-side-scrim { animation: none; }
 }
+
+/* ---------- personal preferences (shell.js applies the body classes) ---------- */
+body.cx-compact .o-table td { padding-top: 4px; padding-bottom: 4px; }
+body.cx-compact .o-table th { height: 32px; }
+body.cx-compact .page { gap: 16px; }
+body.cx-compact .o-kpi, body.cx-compact .vz-stat { padding-top: 10px; padding-bottom: 10px; }
+body.cx-compact .vz-card { padding-top: 12px; padding-bottom: 12px; }
+body.cx-reduce-motion *, body.cx-reduce-motion *::before, body.cx-reduce-motion *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }

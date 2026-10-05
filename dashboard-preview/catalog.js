@@ -1,6 +1,6 @@
 /* Fernhill product catalog shared by the Products pages (All Products, Categories, Collections,
    Product Reviews, Attributes). Matches the data the dashboard, Sales Channels and Abandoned Carts
-   already show: same products and SKUs, the 8 SKUs below reorder level, the 14 Amazon listings
+   already show (30-day revenue: $820,443 as on the Orders page): same products and SKUs, the 8 SKUs below reorder level, the 14 Amazon listings
    suppressed for a missing GTIN, and channel revenue for the last 30 days. Snapshot: Oct 1 2026 09:42 UTC. */
 (function () {
   "use strict";
@@ -9,18 +9,18 @@
 
   var STORES = [
     { key: 'all', label: 'All stores', sub: '4 stores · USD', icon: 'store', factor: 1 },
-    { key: 'us', label: 'Fernhill US', sub: 'Shopify · fernhill.co', icon: 'shopping-bag', factor: 0.52 },
-    { key: 'eu', label: 'Fernhill EU', sub: 'Shopify · fernhill.eu', icon: 'shopping-bag', factor: 0.27 },
-    { key: 'wholesale', label: 'Wholesale', sub: 'B2B portal', icon: 'factory', factor: 0.13 },
-    { key: 'amazon', label: 'Amazon US', sub: 'Marketplace', icon: 'tag', factor: 0.08 }
+    { key: 'us', label: 'Fernhill US', sub: 'Shopify · fernhill.co', icon: 'shopping-bag', factor: 0.49 },
+    { key: 'eu', label: 'Fernhill EU', sub: 'Shopify · fernhill.eu', icon: 'shopping-bag', factor: 0.37 },
+    { key: 'wholesale', label: 'Wholesale', sub: 'B2B portal', icon: 'factory', factor: 0.04 },
+    { key: 'amazon', label: 'Amazon US', sub: 'Marketplace', icon: 'tag', factor: 0.10 }
   ];
   var USER = { name: 'Priya Natarajan', role: 'Operations Manager', email: 'priya@fernhill.co', initials: 'PN' };
-  /* channel key on a product → store key, label and 30-day revenue (from Sales Channels) */
+  /* channel key on a product → store key, label and 30-day revenue (the Orders page, as on Sales Channels and the dashboard) */
   var CHANNELS = [
-    { key: 'us', store: 'us', label: 'Fernhill US', short: 'US', rev: 66794 },
-    { key: 'eu', store: 'eu', label: 'Fernhill EU', short: 'EU', rev: 34682 },
-    { key: 'wh', store: 'wholesale', label: 'Wholesale', short: 'WS', rev: 16699 },
-    { key: 'amz', store: 'amazon', label: 'Amazon US', short: 'AZ', rev: 10275 }
+    { key: 'us', store: 'us', label: 'Fernhill US', short: 'US', rev: 213122.5 },
+    { key: 'eu', store: 'eu', label: 'Fernhill EU', short: 'EU', rev: 161442.5 },
+    { key: 'wh', store: 'wholesale', label: 'Wholesale', short: 'WS', rev: 401488.45 },
+    { key: 'amz', store: 'amazon', label: 'Amazon US', short: 'AZ', rev: 44389.5 }
   ];
 
   /* ---------- categories (two levels) ---------- */

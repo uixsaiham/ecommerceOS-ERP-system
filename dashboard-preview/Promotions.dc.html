@@ -6,11 +6,11 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=10"></script>
-<script src="./catalog.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="./catalog.js?v=4"></script>
 <script src="./inventory.js?v=8"></script>
 <script src="./orders.js?v=2"></script>
 <script src="./customers.js?v=2"></script>
@@ -25,7 +25,7 @@
 .pp-cal{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .pp-cal h2{margin:0;font-size:15px;line-height:22px;font-weight:600}
 .pp-months{position:relative;display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);font-size:12px;color:var(--text-muted);padding-bottom:6px}
-.pp-track{position:relative;display:flex;flex-direction:column;gap:6px;padding-top:6px}
+.pp-track{position:relative;display:flex;flex-direction:column;gap:6px;padding-top:6px;overflow:hidden}
 .pp-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);pointer-events:none}
 .pp-grid span{border-left:1px dashed var(--border)}
 .pp-row{position:relative;height:30px}
@@ -35,11 +35,11 @@
 .pp-bar.is-scheduled{background:var(--info-subtle);color:var(--info)}
 .pp-bar.is-draft{background:var(--bg-muted);color:var(--text-secondary);border-style:dashed;border-color:var(--border-strong)}
 .pp-bar.is-ended{background:var(--bg-subtle);color:var(--text-muted)}
-.pp-lab{position:absolute;top:0;height:30px;display:flex;align-items:center;font-size:12px;color:var(--text-secondary);white-space:nowrap;pointer-events:none}
+.pp-lab{position:absolute;top:0;right:0;height:30px;line-height:30px;display:block;font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .pp-today{position:absolute;top:-6px;bottom:0;width:0;border-left:2px solid var(--danger);pointer-events:none}
 .pp-today span{position:absolute;top:-16px;left:-18px;font-size:11px;color:var(--danger);font-weight:600}
 .pp-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.pp-card{display:flex;flex-direction:column;gap:8px;padding:16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;min-width:0}
+.pp-card{display:flex;flex-direction:column;gap:8px;padding:16px 20px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);font:inherit;text-align:left;color:var(--text-primary);cursor:pointer;min-width:0}
 .pp-card:hover{border-color:var(--border-strong)}
 .pp-card:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
 .pp-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}

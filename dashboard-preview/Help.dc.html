@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Help · CommerceOS</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
+<script src="ds/commerceos/components/bundle.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="./catalog.js?v=4"></script>
+<script src="./management.js?v=1"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+.hp-hero{display:flex;flex-direction:column;gap:12px;padding:24px 20px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md)}
+.hp-hero h2{margin:0;font-size:20px;line-height:28px;font-weight:600}
+.hp-hero .o-search{max-width:640px}
+.hp-cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.hp-cat{display:flex;gap:12px;align-items:flex-start;padding:16px 20px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-surface);font:inherit;text-align:left;cursor:pointer;color:var(--text-primary)}
+.hp-cat:hover{border-color:var(--border-strong);background:var(--bg-subtle)}
+.hp-cat[aria-pressed="true"]{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.hp-cat:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.hp-cat .cx-icon{flex:none;width:20px;height:20px;color:var(--brand);margin-top:2px}
+.hp-cat strong{display:block;font-size:14px;line-height:20px;font-weight:500}
+.hp-cat span.o-sub{display:block}
+.hp-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+.hp-card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.hp-card-h h2{margin:0;font-size:16px;line-height:24px;font-weight:600}
+.hp-card-h p{margin:2px 0 0;font-size:13px;line-height:18px;color:var(--text-secondary)}
+.hp-list{list-style:none;margin:0;padding:0}
+.hp-list li{border-bottom:1px solid var(--border)}
+.hp-list li:last-child{border-bottom:0}
+.hp-art{width:100%;display:flex;gap:12px;align-items:flex-start;padding:12px 20px;border:0;background:none;font:inherit;text-align:left;cursor:pointer;color:var(--text-primary)}
+.hp-art:hover{background:var(--bg-subtle)}
+.hp-art:focus-visible{outline:2px solid var(--focus-ring);outline-offset:-2px}
+.hp-art .cx-icon{flex:none;width:16px;height:16px;color:var(--text-muted);margin-top:3px}
+.hp-art strong{display:block;font-size:14px;line-height:20px;font-weight:500}
+.hp-art span.o-sub{display:block}
+.hp-read{padding:20px 20px 24px;max-width:760px;display:flex;flex-direction:column;gap:12px}
+.hp-read h1{margin:0;font-size:22px;line-height:30px;font-weight:600}
+.hp-read p{margin:0;font-size:14px;line-height:22px;color:var(--text-primary)}
+.hp-read ol{margin:0;padding-left:20px;font-size:14px;line-height:22px;display:flex;flex-direction:column;gap:4px}
+.hp-back{border:0;background:none;padding:0;font:inherit;font-size:13px;color:var(--text-link,var(--brand));cursor:pointer;display:inline-flex;align-items:center;gap:4px;align-self:flex-start}
+.hp-back .cx-icon{width:14px;height:14px}
+.hp-back:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:2px}
+.hp-fb{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:12px;margin-top:4px;border-top:1px solid var(--border);font-size:13px;color:var(--text-secondary)}
+.hp-keys{width:100%;border-collapse:collapse;font-size:14px;line-height:20px}
+.hp-keys th{font-size:12px;font-weight:500;color:var(--text-secondary);text-align:left;padding:10px 20px;background:var(--bg-subtle);border-bottom:1px solid var(--border)}
+.hp-keys td{padding:10px 20px;border-bottom:1px solid var(--border);vertical-align:middle}
+.hp-keys tr:last-child td{border-bottom:0}
+.hp-keys td:last-child{text-align:right;white-space:nowrap}
+.hp-keys .cx-kbd{margin-left:4px}
+.hp-news{list-style:none;margin:0;padding:0}
+.hp-news li{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.hp-news li:last-child{border-bottom:0}
+.hp-news time{font-size:13px;color:var(--text-muted);padding-top:2px}
+.hp-news h3{margin:0 0 4px;font-size:15px;line-height:22px;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hp-news p{margin:0;font-size:13px;line-height:20px;color:var(--text-secondary)}
+.hp-news .hp-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.hp-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:start}
+.hp-form{padding:16px 20px;display:flex;flex-direction:column;gap:16px}
+.hp-g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.hp-ta{width:100%;box-sizing:border-box;min-height:120px;padding:8px 10px;border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--bg-surface);font:inherit;font-size:14px;line-height:20px;color:var(--text-primary);resize:vertical}
+.hp-ta:focus{outline:2px solid var(--focus-ring);outline-offset:1px}
+.hp-ta.is-invalid{border-color:var(--danger)}
+.hp-lbl{display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text-primary)}
+.hp-err{display:block;font-size:12px;line-height:16px;color:var(--danger);margin-top:4px}
+.hp-side{display:flex;flex-direction:column;gap:16px}
+.hp-status{display:flex;flex-direction:column;gap:8px;padding:16px 20px;font-size:13px;line-height:20px}
+.hp-status div{display:flex;justify-content:space-between;gap:12px}
+.hp-req li{display:flex;gap:12px;align-items:flex-start;padding:12px 20px}
+.hp-req .pr-cell-main{flex:1;min-width:0}
+@media (max-width:1279px){ .hp-cats{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:1023px){ .hp-grid{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:767px){ .hp-cats,.hp-g2{grid-template-columns:minmax(0,1fr)} .hp-cat{padding:14px 16px} .hp-news li{grid-template-columns:minmax(0,1fr);gap:4px} .hp-keys th,.hp-keys td{padding-left:12px;padding-right:12px} }
+</style>
+</helmet>
+<div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
+
+<x-import component-from-global-scope="CommerceOS.Sidebar" current="help" collapsed="{{collapsed}}" on-toggle-collapse="{{toggleCollapse}}" drawer-open="{{drawer}}" on-drawer-close="{{closeDrawer}}" stores="{{stores}}" store="{{store}}" on-store-change="{{setStore}}" user="{{user}}" on-navigate="{{navigate}}" on-toggle-theme="{{toggleTheme}}" theme-label="{{themeLabel}}"></x-import>
+
+<div class="main cx-shell-main">
+<dc-import name="TopBar" store="{{store}}" stores="{{stores}}" on-store-change="{{setStore}}" on-open-drawer="{{openDrawer}}" dark="{{dark}}" on-toggle-theme="{{toggleTheme}}"></dc-import>
+
+<main class="page" id="content">
+
+<div class="page-head">
+<div class="ph-titles">
+<h1>Help</h1>
+<p class="ph-sub">Guides for every part of CommerceOS, keyboard shortcuts, what changed recently, and a way to reach support.</p>
+<p class="ph-meta"><span>Support replies within 4 business hours · Urgent issues within 1 hour</span></p>
+</div>
+</div>
+
+<div class="o-card"><div class="o-tabs" style="border-bottom: 0"><x-import component-from-global-scope="CommerceOS.Tabs" aria-label="Help" items="{{tabs}}" value="{{tab}}" on-change="{{setTab}}"></x-import></div></div>
+
+<!-- ---------- help center ---------- -->
+<sc-if value="{{isGuides}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{noArticle}}" hint-placeholder-val="{{true}}">
+<section class="hp-hero" aria-label="Search help"><h2>How can we help?</h2><div class="o-search"><x-import component-from-global-scope="CommerceOS.SearchField" size="lg" placeholder="Search guides, for example “refund” or “transfer”" label="Search help" value="{{query}}" on-change="{{setQuery}}"></x-import></div><span class="o-sub">{{searchNote}}</span></section>
+<div class="hp-cats" role="group" aria-label="Topics"><sc-for list="{{cats}}" as="c" hint-placeholder-count="8"><button type="button" class="hp-cat" aria-pressed="{{c.on}}" onClick="{{c.pick}}"><x-import component-from-global-scope="CommerceOS.Icon" name="{{c.icon}}"></x-import><span><strong>{{c.label}}</strong><span class="o-sub">{{c.count}}</span></span></button></sc-for></div>
+<section class="hp-card" aria-label="Guides"><div class="hp-card-h"><div><h2>{{listTitle}}</h2><p>{{listNote}}</p></div><sc-if value="{{filtered}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Button" variant="ghost" size="sm" icon="x" on-click="{{clearFilter}}">Clear</x-import></sc-if></div>
+<sc-if value="{{hasArts}}" hint-placeholder-val="{{true}}"><ul class="hp-list"><sc-for list="{{arts}}" as="a" hint-placeholder-count="8"><li><button class="hp-art" onClick="{{a.open}}"><x-import component-from-global-scope="CommerceOS.Icon" name="file-text"></x-import><span><strong>{{a.title}}</strong><span class="o-sub">{{a.cat}} · {{a.summary}}</span></span></button></li></sc-for></ul></sc-if>
+<sc-if value="{{noArts}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.EmptyState" icon="search" title="No guides match" description="Try fewer words, or ask support and we’ll write one."><div style="margin-top: 12px"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" on-click="{{askSupport}}">Ask support</x-import></div></x-import></sc-if>
+</section>
+</sc-if>
+<sc-if value="{{art}}" hint-placeholder-val="{{false}}">
+<article class="hp-card"><div class="hp-read">
+<button class="hp-back" onClick="{{closeArticle}}"><x-import component-from-global-scope="CommerceOS.Icon" name="chevron-left"></x-import>All guides</button>
+<span class="o-sub">{{art.cat}} · {{art.read}}</span>
+<h1>{{art.title}}</h1>
+<sc-for list="{{art.paras}}" as="pp" hint-placeholder-count="3"><p>{{pp}}</p></sc-for>
+<sc-if value="{{art.hasSteps}}" hint-placeholder-val="{{false}}"><ol><sc-for list="{{art.steps}}" as="st" hint-placeholder-count="3"><li>{{st}}</li></sc-for></ol></sc-if>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="arrow-right" on-click="{{art.go}}">{{art.cta}}</x-import></div>
+<div class="hp-fb"><span>{{art.fbText}}</span><sc-if value="{{art.askFb}}" hint-placeholder-val="{{true}}"><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="check" on-click="{{art.yes}}">Yes</x-import><x-import component-from-global-scope="CommerceOS.Button" variant="secondary" size="sm" icon="x" on-click="{{art.no}}">No</x-import></sc-if></div>
+<sc-if value="{{art.hasRelated}}" hint-placeholder-val="{{true}}"><span class="o-sub" style="margin-top: 8px">Related guides</span><ul class="hp-list" style="border: 1px solid var(--border); border-radius: var(--radius-md)"><sc-for list="{{art.related}}" as="r" hint-placeholder-count="2"><li><button class="hp-art" onClick="{{r.open}}"><x-import component-from-global-scope="CommerceOS.Icon" name="file-text"></x-import><span><strong>{{r.title}}</strong></span></button></li></sc-for></ul></sc-if>
+</div></article>
+</sc-if>
+</sc-if>
+
+<!-- ---------- shortcuts ---------- -->
+<sc-if value="{{isKeys}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{keysOff}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="warning" title="Shortcuts are off for you">Single-key shortcuts like [ and ? won’t work until you turn them on in <a href="Preferences.dc.html#workspace">Preferences</a>. ⌘K always works.</x-import></sc-if>
+<sc-for list="{{keyGroups}}" as="g" hint-placeholder-count="3">
+<section class="hp-card" aria-label="{{g.label}}"><div class="hp-card-h"><div><h2>{{g.label}}</h2><p>{{g.note}}</p></div></div>
+<table class="hp-keys" aria-label="{{g.label}}"><tbody><sc-for list="{{g.keys}}" as="k" hint-placeholder-count="4"><tr><td>{{k.what}}</td><td><sc-for list="{{k.keys}}" as="kk" hint-placeholder-count="2"><kbd class="cx-kbd">{{kk}}</kbd></sc-for></td></tr></sc-for></tbody></table>
+</section>
+</sc-for>
+</sc-if>
+
+<!-- ---------- what's new ---------- -->
+<sc-if value="{{isNew}}" hint-placeholder-val="{{false}}">
+<section class="hp-card" aria-label="What’s new"><div class="hp-card-h"><div><h2>What’s new in CommerceOS</h2><p>Recent additions for the Fernhill team, newest first.</p></div></div>
+<ul class="hp-news"><sc-for list="{{news}}" as="n" hint-placeholder-count="6"><li><time>{{n.date}}</time><div><h3>{{n.title}}<sc-if value="{{n.isNew}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Badge" tone="brand">New</x-import></sc-if></h3><p>{{n.text}}</p><div class="hp-links"><sc-for list="{{n.links}}" as="l" hint-placeholder-count="3"><a href="{{l.href}}">{{l.label}}</a></sc-for></div></div></li></sc-for></ul>
+</section>
+</sc-if>
+
+<!-- ---------- contact ---------- -->
+<sc-if value="{{isContact}}" hint-placeholder-val="{{false}}">
+<div class="hp-grid">
+<section class="hp-card" aria-labelledby="hp-cf"><div class="hp-card-h"><div><h2 id="hp-cf">Ask CommerceOS support</h2><p>We reply to {{email}}. Describe what you expected and what happened instead.</p></div></div>
+<div class="hp-form">
+<div class="hp-g2"><x-import component-from-global-scope="CommerceOS.Select" label="Topic" options="{{topicOpts}}" value="{{f.topic}}" on-value-change="{{setTopic}}"></x-import><x-import component-from-global-scope="CommerceOS.Select" label="How urgent" options="{{prioOpts}}" value="{{f.prio}}" on-value-change="{{setPrio}}"></x-import></div>
+<x-import component-from-global-scope="CommerceOS.Input" label="Subject" value="{{f.subject}}" on-change="{{setSubject}}" error="{{fe.subject}}"></x-import>
+<div><label class="hp-lbl" for="hp-msg">What happened</label><textarea id="hp-msg" class="{{msgCls}}" value="{{f.message}}" onChange="{{setMessage}}" aria-invalid="{{msgInvalid}}" placeholder="For example: Stock for SKU-TSH-NAVY-M shows 12 in Stock Levels but 0 on Shopify US since this morning."></textarea><span class="o-sub">{{msgCount}}</span><sc-if value="{{fe.message}}" hint-placeholder-val="{{false}}"><span class="hp-err">{{fe.message}}</span></sc-if></div>
+<x-import component-from-global-scope="CommerceOS.Input" label="Related order, SKU or record" optional="{{yes}}" value="{{f.ref}}" on-change="{{setRef}}" hint="Like #ORD-10482, SKU-TSH-NAVY-M or PO-20431" error="{{fe.ref}}"></x-import>
+<x-import component-from-global-scope="CommerceOS.Checkbox" label="Let support view my account read-only for 7 days" checked="{{f.access}}" on-change="{{setAccess}}"></x-import>
+<sc-if value="{{urgentNote}}" hint-placeholder-val="{{false}}"><x-import component-from-global-scope="CommerceOS.Alert" tone="info">{{urgentNote}}</x-import></sc-if>
+<div class="o-modal-actions"><x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="check" on-click="{{submit}}">Send to support</x-import></div>
+</div></section>
+<div class="hp-side">
+<section class="hp-card" aria-labelledby="hp-st"><div class="hp-card-h"><div><h2 id="hp-st">System status</h2><p>CommerceOS and your connected apps</p></div><x-import component-from-global-scope="CommerceOS.Badge" tone="success" dot="{{yes}}">Operational</x-import></div>
+<div class="hp-status"><sc-for list="{{status}}" as="x" hint-placeholder-count="5"><div><span>{{x.label}}</span><x-import component-from-global-scope="CommerceOS.Badge" tone="{{x.tone}}">{{x.value}}</x-import></div></sc-for><a href="Integrations.dc.html">Integrations that need attention</a></div></section>
+<section class="hp-card" aria-labelledby="hp-rq"><div class="hp-card-h"><div><h2 id="hp-rq">Your requests</h2><p>{{reqNote}}</p></div></div>
+<ul class="hp-list hp-req"><sc-for list="{{reqs}}" as="r" hint-placeholder-count="3"><li><span class="pr-cell-main"><span class="td-strong">{{r.subject}}</span><span class="o-sub">{{r.id}} · {{r.topic}} · {{r.when}}</span></span><x-import component-from-global-scope="CommerceOS.Badge" tone="{{r.tone}}">{{r.status}}</x-import></li></sc-for></ul></section>
+</div>
+</div>
+</sc-if>
+
+</main>
+</div>
+</div>
+
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="cx-toasts" aria-live="polite"><x-import component-from-global-scope="CommerceOS.Toast" tone="{{toast.tone}}" title="{{toast.title}}" message="{{toast.message}}" action="{{toast.action}}" on-dismiss="{{dismissToast}}"></x-import></div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"collapsed":{"editor":"boolean","default":false,"section":"Shell"},"dark":{"editor":"boolean","default":false,"section":"Theme"},"$preview":{"width":1440,"height":1500}}'>
+const CATS = [['start', 'Getting started', 'dashboard'], ['sales', 'Orders and returns', 'shopping-bag'], ['stock', 'Inventory and warehouses', 'package'], ['buy', 'Procurement', 'clipboard-list'],
+  ['ship', 'Fulfillment', 'truck'], ['money', 'Finance', 'wallet'], ['report', 'Analytics', 'bar-chart'], ['admin', 'Team and settings', 'settings']];
+/* [id, cat, title, summary, paragraphs, steps, cta label, cta href, related ids] */
+const ARTICLES = [
+  ['tour', 'start', 'A tour of CommerceOS', 'What each module does and where to start', ['CommerceOS runs Fernhill’s four stores (Fernhill US, Fernhill EU, Wholesale and Amazon US) and five warehouses from one place. The sidebar groups pages by module: Sales, Products, Inventory, Warehouses, Procurement, Customers, Fulfillment, Finance, Marketing and Analytics.', 'The Dashboard is the best start each morning: sales against last month, and a “Needs attention” list of late orders, low stock, refunds and purchase orders waiting for you.', 'The store switcher at the top of the sidebar filters most pages to one store. Your default store can be set in Preferences.'], [], 'Open the dashboard', 'Main.dc.html', ['search', 'shortcuts-a']],
+  ['search', 'start', 'Find anything with search', 'Orders, customers, SKUs and suppliers from one box', ['Press ⌘K (Ctrl K on Windows) or click the search box in the top bar. Type an order number, a SKU, a customer or a supplier.', 'Narrow the search with a prefix: sku:, order:, customer: or supplier:. Use the arrow keys to move and Enter to open.', 'On list pages, press / to jump to that page’s own search box.'], [], 'See all shortcuts', 'Help.dc.html?tab=shortcuts', ['tour']],
+  ['shortcuts-a', 'start', 'Work faster with the keyboard', 'Shortcuts for search, the sidebar and charts', ['Every chart can be read with the keyboard: focus it and use the left and right arrows to step through values, or switch to “Show as table”.', 'Press [ to collapse or expand the sidebar and ? to see every shortcut. Turn single-key shortcuts off in Preferences if they get in the way.'], [], 'See all shortcuts', 'Help.dc.html?tab=shortcuts', ['search']],
+  ['orders', 'sales', 'How an order moves from placed to delivered', 'Stages, the 24-hour target and late orders', ['Orders arrive from Shopify, Amazon and the wholesale portal. Paid orders are confirmed automatically and go to the pick queue at the warehouse chosen by order routing.', 'The processing target is 24 hours from payment to the parcel leaving. Orders past it are flagged late on Orders and on the dashboard.'], ['Confirmed: waiting to be picked.', 'Processing: on a pick list or at a pack station.', 'Ready to ship: labelled, waiting for the carrier pickup.', 'Shipped and delivered: tracked with the carrier.'], 'Open Orders', 'Orders.dc.html', ['returns', 'picking']],
+  ['returns', 'sales', 'Approve a return and refund the customer', 'From return request to money back', ['Customers start returns within 30 days of delivery. When the parcel arrives, the receiving site inspects it and marks each item resellable or damaged.', 'Refunds over $250 need someone with the Finance or Administrator role. Resellable items go back into stock automatically.'], ['Open Returns & Refunds and pick a return that’s been received.', 'Check the inspection notes and choose refund, exchange or store credit.', 'Approve. The refund goes back to the original payment method.'], 'Open Returns & Refunds', 'Returns.dc.html', ['orders', 'refund-fail']],
+  ['transfer', 'stock', 'Move stock between warehouses', 'Draft, ship and receive a transfer', ['Transfers fix a shortage at one site using spare stock at another, for example straw hats from Sydney to Newark.', 'Stock leaves the source site when the transfer ships and arrives when the destination receives it. In between it shows as in transit.'], ['Open Stock Transfers and choose New transfer.', 'Pick the source and destination and add SKUs and quantities.', 'Send it. The destination site gets it on their Receiving page.'], 'Open Stock Transfers', 'StockTransfers.dc.html', ['reorder', 'count']],
+  ['reorder', 'stock', 'How reorder points are worked out', 'Lead time, safety stock and the Low Stock page', ['Each SKU’s reorder point is its 30-day sales rate times the supplier lead time plus safety stock (7 days by default, set in Settings).', 'When stock falls below it, the SKU shows on Low Stock and the sidebar badge, and Inventory Analytics suggests an order quantity.'], [], 'Open Low Stock', 'LowStock.dc.html', ['transfer', 'po']],
+  ['count', 'stock', 'Run a cycle count', 'Count a bin and record the difference', ['Class A SKUs are counted monthly, B quarterly and C once a year. The classes come from Inventory Analytics.', 'Adjustments worth more than $500 at cost wait for a warehouse manager to approve.'], ['Open Stock Adjustments and choose Cycle count.', 'Enter what’s on the shelf. CommerceOS shows the difference.', 'Add a note and submit.'], 'Open Stock Adjustments', 'StockAdjustments.dc.html', ['reorder']],
+  ['po', 'buy', 'Raise and approve a purchase order', 'From draft to supplier confirmation', ['Purchase orders start as drafts. Anyone with Procurement access can draft one; approval needs Full access.', 'When goods arrive, the site receives them against the PO and the supplier’s invoice is matched on Goods Received.'], ['Open Purchase Orders and choose New purchase order.', 'Pick the supplier and the receiving warehouse, then add lines.', 'Submit for approval. Approved POs are emailed to the supplier.'], 'Open Purchase Orders', 'PurchaseOrders.dc.html', ['grn', 'reorder']],
+  ['grn', 'buy', 'When a supplier invoice doesn’t match', 'Three-way matching on Goods Received', ['Each invoice is checked against the PO and what was received. Price or quantity differences put it in review, and it can’t be paid until someone resolves it.'], [], 'Open Goods Received', 'GoodsReceived.dc.html', ['po']],
+  ['picking', 'ship', 'Pick lists and pack stations', 'How each site works through its queue', ['Pick lists batch orders by zone so pickers walk less. Packers scan each item, choose a box and print the label.', 'Parcels leave at each site’s carrier pickup time, so a parcel packed after the cutoff ships the next day.'], [], 'Open Picking', 'Picking.dc.html', ['orders', 'tracking']],
+  ['tracking', 'ship', 'Track a parcel and handle delivery problems', 'Carrier events in one timeline', ['Delivery Tracking shows every carrier scan. Parcels stuck for 48 hours without a scan are flagged so support can contact the carrier.'], [], 'Open Delivery Tracking', 'DeliveryTracking.dc.html', ['picking']],
+  ['payouts', 'money', 'Match payouts to the bank', 'Stripe, PayPal, bKash and wires', ['Processors pay out into three bank accounts. Bank lines are imported daily and matched to payouts automatically; the rest wait on Transactions under Unmatched.', 'BRAC Bank has no live feed. Upload its statement each month on Integrations.'], [], 'Open Transactions', 'Transactions.dc.html?tab=unmatched', ['refund-fail', 'pnl']],
+  ['refund-fail', 'money', 'Why a refund failed', 'Closed wallets, expired cards and what to do', ['Refunds to closed bKash wallets or expired cards fail and go to the Failed tab on Refunds. Ask the customer for another method and send it as a manual refund.'], [], 'Open failed refunds', 'Refunds.dc.html?tab=failed', ['returns', 'payouts']],
+  ['pnl', 'report', 'Read the profit and loss report', 'Net sales, gross margin and operating profit', ['Financial Reports builds the P&L from orders, the catalog cost of what shipped, and the month’s bills and payroll. July and August are modelled on September’s ratios while their books are closed.', 'Operating profit is small: Fernhill’s rent and payroll are fixed, so growth in sales goes almost straight to profit.'], [], 'Open Financial Reports', 'FinancialReports.dc.html', ['abc', 'payouts']],
+  ['abc', 'report', 'ABC classes and inventory turnover', 'Which SKUs matter most', ['Inventory Analytics ranks SKUs by 30-day cost of goods sold: class A is the 20% or so behind 80% of it, B the next 15%, and C the rest.', 'Turnover is how many times a year the stock sells through at the current rate. Low turnover ties up cash.'], [], 'Open Inventory Analytics', 'InventoryAnalytics.dc.html', ['reorder', 'pnl']],
+  ['invite', 'admin', 'Invite a teammate and choose their role', 'Roles, sites and seats', ['Each person gets one role. Warehouse roles are limited to the sites you pick. Invites count as seats; the Growth plan has 40.'], ['Open Users & Roles and choose Invite user.', 'Enter their name and email, pick a role and, for warehouse roles, their sites.', 'Send. The link works for 7 days.'], 'Open Users & Roles', 'Users.dc.html', ['twofa', 'connect']],
+  ['twofa', 'admin', 'Turn on two-step sign-in', 'Protect payouts and refunds', ['Administrators, finance and warehouse managers must use two-step sign-in. Set it up from your Profile with an authenticator app, and keep your backup codes safe.'], [], 'Open your profile', 'Profile.dc.html', ['invite']],
+  ['connect', 'admin', 'Connect an app or fix a sync', 'Shopify, carriers, banks and more', ['Integrations shows every connected app and when it last synced. Apps that need attention, like an expiring token, are flagged at the top.', 'Pause an app to stop it syncing without losing its settings.'], [], 'Open Integrations', 'Integrations.dc.html', ['invite']]];
+const KEYS = [
+  { label: 'Anywhere', note: 'Work on every page.', keys: [['Search orders, customers, SKUs and suppliers', ['⌘', 'K']], ['Search the current page’s list', ['/']], ['Collapse or expand the sidebar', ['[']], ['Show these shortcuts', ['?']], ['Close a menu, panel or dialog', ['Esc']]] },
+  { label: 'In search', note: 'After pressing ⌘K.', keys: [['Move through results', ['↑', '↓']], ['Open the highlighted result', ['↵']], ['Change what you’re searching', ['Tab']], ['Search only one kind', ['sku:', 'order:']]] },
+  { label: 'Charts and menus', note: 'Focus a chart or open a menu first.', keys: [['Step through a line chart', ['←', '→']], ['Move around a heatmap', ['↑', '↓', '←', '→']], ['Move through menu items', ['↑', '↓']], ['Jump to the first or last item', ['Home', 'End']]] }];
+const NEWS = [
+  ['Oct 1, 2026', 'Your profile, preferences and this Help page', 'Edit your details and photo, see where you’re signed in, and set the theme, density, start page and default store. Preferences apply on every page.', [['Profile', 'Profile.dc.html'], ['Preferences', 'Preferences.dc.html']], true],
+  ['Oct 1, 2026', 'Users & Roles, Integrations and Settings', 'Invite teammates with per-site access, edit role permissions, connect apps and API keys, and set business rules in one place.', [['Users & Roles', 'Users.dc.html'], ['Integrations', 'Integrations.dc.html'], ['Settings', 'Settings.dc.html']], true],
+  ['Sep 30, 2026', 'Analytics: five new reports', 'Sales, Product, Customer and Inventory Analytics, plus Financial Reports with the P&L, budgets, cash flow and aging. Every chart has a table view.', [['Sales Analytics', 'SalesAnalytics.dc.html'], ['Financial Reports', 'FinancialReports.dc.html']], false],
+  ['Sep 24, 2026', 'Marketing', 'Campaigns, automatic discounts, coupon codes and promotions, with redemptions tied to real orders.', [['Campaigns', 'Campaigns.dc.html']], false],
+  ['Sep 18, 2026', 'Finance', 'Payments, payouts, refunds, expenses with budgets, and bank transactions with matching.', [['Finance overview', 'FinanceOverview.dc.html']], false],
+  ['Sep 10, 2026', 'Procurement, Customers and Fulfillment', 'Purchase orders through goods received, customer segments and groups, and the pick, pack and ship queues.', [['Purchase Orders', 'PurchaseOrders.dc.html'], ['Picking', 'Picking.dc.html']], false]];
+const TOPICS = [['question', 'How do I…'], ['bug', 'Something isn’t working'], ['sync', 'An integration or sync'], ['billing', 'Billing and plan'], ['idea', 'Feature idea']];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let tab = 'guides', article = null;
+    try { const q = new URLSearchParams(window.location.search); if (['guides', 'shortcuts', 'new', 'contact'].indexOf(q.get('tab')) >= 0) tab = q.get('tab'); if (ARTICLES.some((a) => a[0] === q.get('a'))) { article = q.get('a'); tab = 'guides'; } } catch (e) { /* no query string */ }
+    this.state = { collapsed: !!props.collapsed, drawer: false, dark: !!props.dark, store: 'all', toast: null, tab, article, query: '', cat: '', fb: {},
+      form: { topic: 'question', prio: 'normal', subject: '', message: '', ref: '', access: false }, tried: false,
+      reqs: [{ id: 'CS-20914', subject: 'PostNL labels failing after API key change', topic: 'An integration or sync', at: F.NOW - 11 * 36e5, status: 'solved' }, { id: 'CS-20871', subject: 'Export the Q2 P&L by store', topic: 'How do I…', at: F.NOW - 9 * F.DAY, status: 'solved' }] };
+  }
+  componentDidMount() {
+    this._onKey = (e) => { if (e.key === 'Escape') { if (this.state.article) this.setState({ article: null }); else if (this.state.drawer) this.setState({ drawer: false }); } };
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this._onKey); clearTimeout(this._toastT); }
+  componentDidUpdate(prev) {
+    if (prev.collapsed !== this.props.collapsed) this.setState({ collapsed: !!this.props.collapsed });
+    if (prev.dark !== this.props.dark) this.setState({ dark: !!this.props.dark });
+  }
+  showToast(title, message, tone) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: { title, message, tone: tone || 'success', action: null } });
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 5000);
+  }
+  url(tab, a) { try { history.replaceState(null, '', '?tab=' + tab + (a ? '&a=' + a : '')); } catch (e) { /* sandboxed */ } }
+  openArticle(id) { this.setState({ article: id, tab: 'guides' }); this.url('guides', id); try { window.scrollTo(0, 0); } catch (e) { /* no window */ } }
+
+  renderVals() {
+    const s = this.state, CAT = {}; CATS.forEach((c) => { CAT[c[0]] = c[1]; });
+    const words = s.query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const score = (a) => { if (!words.length) return 1; const t = a[2].toLowerCase(), body = (a[3] + ' ' + a[4].join(' ') + ' ' + a[5].join(' ')).toLowerCase(); return words.every((w) => t.indexOf(w) >= 0 || body.indexOf(w) >= 0) ? words.reduce((x, w) => x + (t.indexOf(w) >= 0 ? 3 : 1), 0) : 0; };
+    const list = ARTICLES.filter((a) => (!s.cat || a[1] === s.cat) && score(a) > 0).sort((a, b) => score(b) - score(a));
+    const arts = list.map((a) => ({ title: a[2], summary: a[3], cat: CAT[a[1]], open: () => this.openArticle(a[0]) }));
+    const cats = CATS.map((c) => { const n = ARTICLES.filter((a) => a[1] === c[0]).length; return { label: c[1], icon: c[2], count: F.plural(n, 'guide'), on: s.cat === c[0] ? 'true' : 'false', pick: () => this.setState({ cat: s.cat === c[0] ? '' : c[0] }) }; });
+    let art = false; const A = s.article && ARTICLES.find((a) => a[0] === s.article);
+    if (A) { const fb = s.fb[A[0]], words2 = (A[4].join(' ') + A[5].join(' ')).split(/\s+/).length;
+      art = { title: A[2], cat: CAT[A[1]], read: Math.max(1, Math.round(words2 / 200)) + ' min read', paras: A[4], steps: A[5], hasSteps: A[5].length > 0, cta: A[6], go: () => { window.location.href = A[7]; },
+        related: A[8].map((id) => ARTICLES.find((x) => x[0] === id)).filter(Boolean).map((r) => ({ title: r[2], open: () => this.openArticle(r[0]) })), hasRelated: A[8].length > 0,
+        askFb: !fb, fbText: fb === 'yes' ? 'Thanks, glad it helped.' : fb === 'no' ? 'Thanks. Tell support what was missing and we’ll improve this guide.' : 'Was this helpful?',
+        yes: () => this.setState((st) => ({ fb: Object.assign({}, st.fb, { [A[0]]: 'yes' }) })), no: () => this.setState((st) => ({ fb: Object.assign({}, st.fb, { [A[0]]: 'no' }), form: Object.assign({}, st.form, { topic: 'question', subject: 'The guide “' + A[2] + '” didn’t answer my question' }) })) };
+    }
+    const prefs = window.CommerceOS.prefs ? window.CommerceOS.prefs.get() : { shortcuts: true };
+    const keyGroups = KEYS.map((g) => ({ label: g.label, note: g.note, keys: g.keys.map((k) => ({ what: k[0], keys: k[1] })) }));
+    const news = NEWS.map((n) => ({ date: n[0], title: n[1], text: n[2], links: n[3].map((l) => ({ label: l[0], href: l[1] })), isNew: n[4] }));
+
+    /* contact */
+    const f = s.form, setF = (k) => (e) => { const v = e && e.target ? e.target.value : e; this.setState((st) => ({ form: Object.assign({}, st.form, { [k]: v }) })); };
+    const fe = s.tried ? { subject: f.subject.trim().length < 5 ? 'Give it a short subject, at least 5 characters.' : '', message: f.message.trim().length < 20 ? 'Tell us a bit more: at least 20 characters.' : '',
+      ref: f.ref.trim() && !/^(#?ORD-\d{4,6}|SKU-[A-Z0-9-]+|PO-\d{4,6}|RF-\d+|EXP-\d+|ADJ-\d+|TR-\d+|INV-\d+)$/i.test(f.ref.trim()) ? 'That doesn’t look like an order, SKU or record number.' : '' } : { subject: '', message: '', ref: '' };
+    const ST = { open: ['Waiting for support', 'info'], solved: ['Solved', 'success'], urgent: ['Urgent, in progress', 'warning'] };
+    const reqs = s.reqs.map((r) => ({ id: r.id, subject: r.subject, topic: r.topic, when: F.timeAgo(r.at), status: ST[r.status][0], tone: ST[r.status][1] }));
+    const live = M.APPS.filter((a) => a.status !== 'available'), warn = live.filter((a) => a.status === 'warning');
+    const status = [['CommerceOS app', 'Operational', 'success'], ['Order sync (Shopify, Amazon)', 'Operational', 'success'], ['Payments and payouts', 'Operational', 'success'], ['Carrier labels and tracking', 'Operational', 'success'], ['Your connected apps', warn.length ? warn.length + ' need attention' : 'All syncing', warn.length ? 'warning' : 'success']].map((x) => ({ label: x[0], value: x[1], tone: x[2] }));
+
+    return {
+      yes: true,
+      appClass: s.collapsed ? 'is-collapsed' : '', theme: s.dark ? 'dark' : 'light', dark: s.dark, collapsed: s.collapsed, drawer: s.drawer,
+      toggleCollapse: () => this.setState((x) => ({ collapsed: !x.collapsed })), openDrawer: () => this.setState({ drawer: true }), closeDrawer: () => this.setState({ drawer: false }),
+      stores: F.STORES, store: s.store, user: F.USER, setStore: (k) => this.setState({ store: k }),
+      navigate: (path) => this.showToast(F.navLabel(path) + ' isn’t built yet', 'This page hasn’t been designed yet.', 'info'),
+      themeLabel: s.dark ? 'Switch to light theme' : 'Switch to dark theme', toggleTheme: () => this.setState((x) => ({ dark: !x.dark })),
+      tabs: [{ id: 'guides', label: 'Guides', count: F.int(ARTICLES.length) }, { id: 'shortcuts', label: 'Keyboard shortcuts' }, { id: 'new', label: 'What’s new', count: '2 new' }, { id: 'contact', label: 'Contact support' }],
+      tab: s.tab, setTab: (v) => { this.setState({ tab: v, article: null }); this.url(v); },
+      isGuides: s.tab === 'guides', isKeys: s.tab === 'shortcuts', isNew: s.tab === 'new', isContact: s.tab === 'contact',
+      noArticle: !art, art, closeArticle: () => { this.setState({ article: null }); this.url('guides'); },
+      query: s.query, setQuery: (v) => this.setState({ query: v }), searchNote: words.length ? F.plural(list.length, 'guide') + ' match “' + s.query.trim() + '”' : 'Or browse by topic below.',
+      cats, arts, hasArts: arts.length > 0, noArts: !arts.length, filtered: !!(s.cat || words.length),
+      listTitle: s.cat ? CAT[s.cat] : words.length ? 'Search results' : 'Popular guides', listNote: F.plural(arts.length, 'guide'), clearFilter: () => this.setState({ cat: '', query: '' }),
+      askSupport: (() => { this.setState((st) => ({ tab: 'contact', form: Object.assign({}, st.form, { subject: st.query.trim() ? 'How do I: ' + st.query.trim() : st.form.subject }) })); this.url('contact'); }),
+      keyGroups, keysOff: !prefs.shortcuts, news,
+      email: F.USER.email, f, fe, setTopic: setF('topic'), setPrio: setF('prio'), setSubject: setF('subject'), setMessage: setF('message'), setRef: setF('ref'), setAccess: (v) => this.setState((st) => ({ form: Object.assign({}, st.form, { access: v }) })),
+      topicOpts: TOPICS.map((t) => ({ value: t[0], label: t[1] })), prioOpts: [{ value: 'normal', label: 'Normal · within 4 business hours' }, { value: 'urgent', label: 'Urgent · orders or payments are blocked' }],
+      msgCls: 'hp-ta' + (fe.message ? ' is-invalid' : ''), msgInvalid: fe.message ? 'true' : 'false', msgCount: f.message.length + ' characters',
+      urgentNote: f.prio === 'urgent' ? 'Urgent requests page the on-call engineer. Use it when orders, payments or shipping are blocked.' : '',
+      submit: () => {
+        const ok = f.subject.trim().length >= 5 && f.message.trim().length >= 20 && !(f.ref.trim() && !/^(#?ORD-\d{4,6}|SKU-[A-Z0-9-]+|PO-\d{4,6}|RF-\d+|EXP-\d+|ADJ-\d+|TR-\d+|INV-\d+)$/i.test(f.ref.trim()));
+        if (!ok) return this.setState({ tried: true });
+        const id = 'CS-' + (20915 + s.reqs.length), topic = TOPICS.find((t) => t[0] === f.topic)[1];
+        this.setState((st) => ({ reqs: [{ id, subject: f.subject.trim(), topic, at: F.NOW, status: f.prio === 'urgent' ? 'urgent' : 'open' }].concat(st.reqs), form: { topic: 'question', prio: 'normal', subject: '', message: '', ref: '', access: false }, tried: false }));
+        this.showToast('Request ' + id + ' sent', f.prio === 'urgent' ? 'The on-call engineer has been paged. Expect a reply within the hour.' : 'We’ll reply to ' + F.USER.email + ' within 4 business hours.');
+      },
+      status, reqs, reqNote: F.plural(s.reqs.filter((r) => r.status !== 'solved').length, 'open request') + ' · ' + F.plural(s.reqs.length, 'request') + ' in total',
+      toast: s.toast, dismissToast: () => this.setState({ toast: null })
+    };
+  }
+}
+
+/* ---------- help: guides for the pages in this prototype, shortcuts that exist, Oct 1 2026 ---------- */
+var F = window.Fernhill, M = window.FernhillManagement, CommerceOS = window.CommerceOS;
+</script>
+</body>
+</html>

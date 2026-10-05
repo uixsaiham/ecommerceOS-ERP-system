@@ -6,11 +6,11 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=3">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
-<script src="ds/commerceos/shell/shell.js?v=10"></script>
-<script src="./catalog.js?v=3"></script>
+<script src="ds/commerceos/shell/shell.js?v=12"></script>
+<script src="./catalog.js?v=4"></script>
 <script src="./inventory.js?v=8"></script>
 </head>
 <body>
@@ -22,7 +22,7 @@
 .o-kpi.is-static{cursor:default}
 .o-kpi.is-static:hover{border-color:var(--border);background:var(--bg-surface)}
 .td-strong{font-weight:500}
-.io-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:start}
+.io-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:stretch}
 .io-row.is-even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 .io-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 20px;min-width:0}
 .io-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
@@ -95,11 +95,13 @@
 .io-list .pr-cell-main{flex:1}
 .io-list .pr-thumb{width:30px;height:30px;font-size:11px}
 .io-right{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}
-.io-trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+.io-trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
 @media (max-width:1599px){ .c-value{display:none} }
 @media (max-width:1279px){ .io-row,.io-row.is-even{grid-template-columns:minmax(0,1fr)} .io-trio{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
 @media (max-width:1023px){ .io-kpis{display:flex} .io-trio{grid-template-columns:minmax(0,1fr)} .c-value{display:none} }
 @media (max-width:767px){ .chart{grid-template-columns:44px minmax(0,1fr);grid-template-rows:180px 28px} .chart-x .xl-alt{display:none} .c-cap{display:none} }
+/* the three cards in this row reserve two lines for their subtitle so their lists start level */
+.io-trio .io-head > div:first-child{min-height:56px}
 </style>
 </helmet>
 <div class="app cx-shell {{appClass}}" data-theme="{{theme}}">
