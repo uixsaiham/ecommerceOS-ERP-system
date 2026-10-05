@@ -136,7 +136,7 @@
       padding: 0;
     }
 
-    /* Table of Contents: 2-Column Responsive Matrix */
+    /* Table of Contents */
     .toc-container {
       margin: 8px 0 18px 0;
       padding: 18px 20px;
@@ -407,6 +407,460 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
 
+    /* ----------------------------------------------------
+       VISUAL DESIGN SYSTEM STYLES
+       ---------------------------------------------------- */
+    /* Swatches Grid */
+    .swatches-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .swatch-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #f8fafc;
+    }
+    .swatch-color {
+      height: 32px;
+      width: 100%;
+    }
+    .swatch-body {
+      padding: 6px 8px;
+    }
+    .swatch-name {
+      font-size: 8pt;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .swatch-code {
+      font-size: 7.2pt;
+      font-family: ui-monospace, monospace;
+      color: #2446c8;
+      margin: 2px 0;
+    }
+    .swatch-desc {
+      font-size: 6.8pt;
+      color: #64748b;
+      line-height: 1.3;
+    }
+
+    /* 20px Grid Blueprint Specimen */
+    .blueprint-frame {
+      border: 2px dashed #94a3b8;
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 12px;
+      position: relative;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .blueprint-badge {
+      font-size: 6.8pt;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #2446c8;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .blueprint-card {
+      display: flex;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .bp-ruler-left, .bp-ruler-right {
+      width: 20px;
+      background: rgba(36, 70, 200, 0.08);
+      border-right: 1.5px dashed #2446c8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+    .bp-ruler-right {
+      border-right: none;
+      border-left: 1.5px dashed #2446c8;
+      transform: none;
+    }
+    .bp-ruler-tag {
+      font-size: 6pt;
+      font-weight: 800;
+      color: #2446c8;
+      letter-spacing: 0.05em;
+    }
+    .bp-core {
+      flex: 1;
+      min-width: 0;
+      background: #ffffff;
+    }
+    .bp-head-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #ffffff;
+    }
+    .bp-title {
+      font-size: 10pt;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .bp-chip {
+      font-size: 6.8pt;
+      background: #eef2fe;
+      color: #2446c8;
+      padding: 2px 6px;
+      border-radius: 12px;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+    .bp-action-btn {
+      background: #2446c8;
+      color: #ffffff;
+      font-size: 7pt;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+    .bp-toolbar-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      padding: 8px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .bp-search-box {
+      flex: 1;
+      font-size: 7.2pt;
+      color: #64748b;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .bp-filter-pill {
+      font-size: 6.8pt;
+      font-weight: 500;
+      color: #334155;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .bp-table-head {
+      display: flex;
+      padding: 6px 16px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #cbd5e1;
+      font-size: 6.8pt;
+      font-weight: 700;
+      color: #475569;
+      letter-spacing: 0.04em;
+    }
+    .bp-table-row {
+      display: flex;
+      align-items: center;
+      padding: 7px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 7.2pt;
+      color: #1e293b;
+    }
+    .bp-table-row:nth-child(even) {
+      background: #f8fafc;
+    }
+    .bp-status {
+      display: inline-block;
+      font-size: 6.5pt;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+    .bp-st-green { background: #e4f4ec; color: #12704a; }
+    .bp-st-purple { background: #f3e8ff; color: #7e22ce; }
+    .bp-foot-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px;
+      background: #f8fafc;
+      font-size: 7pt;
+      color: #64748b;
+    }
+    .bp-pager {
+      display: flex;
+      gap: 4px;
+    }
+    .bp-pager span {
+      padding: 2px 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 3px;
+      background: #ffffff;
+      font-weight: 600;
+      font-size: 6.5pt;
+    }
+    .bp-active-page {
+      background: #2446c8 !important;
+      color: #ffffff !important;
+      border-color: #2446c8 !important;
+    }
+
+    /* Specimens Grid */
+    .specimens-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .specimen-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #f8fafc;
+      padding: 10px 12px;
+    }
+    .specimen-header {
+      font-size: 7.8pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .pill-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .sp-pill {
+      font-size: 6.8pt;
+      font-weight: 700;
+      padding: 2.5px 7px;
+      border-radius: 12px;
+    }
+    .sp-green { background: #e4f4ec; color: #12704a; }
+    .sp-blue { background: #eef2fe; color: #2446c8; }
+    .sp-teal { background: #e3f2f8; color: #0a6688; }
+    .sp-amber { background: #fdf2df; color: #935400; }
+    .sp-red { background: #fcebe9; color: #bf2f28; }
+    .sp-purple { background: #f3e8ff; color: #7e22ce; }
+    .btn-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .sp-btn {
+      font-size: 7.2pt;
+      font-weight: 600;
+      padding: 5px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .sp-btn-brand {
+      background: #2446c8;
+      color: #ffffff;
+      border: 1px solid #2446c8;
+    }
+    .sp-btn-secondary {
+      background: #ffffff;
+      color: #1e293b;
+      border: 1px solid #cbd5e1;
+    }
+    .sp-btn-danger {
+      background: #fcebe9;
+      color: #bf2f28;
+      border: 1px solid #f8c9c4;
+    }
+    .sp-kpi-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+    .sp-kpi-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+    .sp-kpi-lbl {
+      font-size: 6.5pt;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 0.05em;
+    }
+    .sp-kpi-badge {
+      font-size: 6.5pt;
+      font-weight: 700;
+      background: #e4f4ec;
+      color: #12704a;
+      padding: 1.5px 5px;
+      border-radius: 4px;
+    }
+    .sp-kpi-val {
+      font-size: 15pt;
+      font-weight: 800;
+      color: #0f172a;
+      font-feature-settings: "tnum" 1;
+    }
+    .sp-kpi-sub {
+      font-size: 6.8pt;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .chip-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sp-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 3px 8px;
+      font-size: 7pt;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .chip-amber { border-color: #fce1b8; background: #fdf2df; color: #935400; }
+    .chip-red { border-color: #f8c9c4; background: #fcebe9; color: #bf2f28; }
+    .chip-brand { border-color: #d1dcfa; background: #eef2fe; color: #2446c8; }
+
+    /* Tabular Demo Card */
+    .tabular-demo-card {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      gap: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .tabular-divider {
+      background: #cbd5e1;
+    }
+    .tabular-col-head {
+      font-size: 7.5pt;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .tabular-nums {
+      font-size: 9.5pt;
+      line-height: 1.4;
+      font-family: ui-monospace, monospace;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .tnum-font {
+      font-feature-settings: "tnum" 1;
+    }
+    .tabular-desc {
+      font-size: 6.8pt;
+      color: #64748b;
+      margin-top: 6px;
+    }
+
+    /* Responsive Breakpoint Mockups */
+    .responsive-wf-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .wf-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #f8fafc;
+      padding: 8px 10px;
+    }
+    .wf-title {
+      font-size: 7pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .wf-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: #ffffff;
+      height: 72px;
+      display: flex;
+      overflow: hidden;
+      font-size: 5.5pt;
+      color: #64748b;
+    }
+    .wf-side {
+      width: 32px;
+      background: #f1f5f9;
+      border-right: 1px solid #cbd5e1;
+      padding: 3px;
+      font-weight: 600;
+    }
+    .wf-rail {
+      width: 14px;
+      background: #f1f5f9;
+      border-right: 1px solid #cbd5e1;
+      writing-mode: vertical-rl;
+      font-weight: 600;
+      text-align: center;
+    }
+    .wf-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .wf-top {
+      height: 14px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 2px 4px;
+      font-weight: 600;
+    }
+    .wf-kpi-row {
+      display: flex;
+      gap: 3px;
+      padding: 3px 4px;
+      background: #ffffff;
+    }
+    .wf-kpi-row span {
+      background: #f1f5f9;
+      padding: 2px 3px;
+      border-radius: 2px;
+      font-size: 5pt;
+    }
+    .wf-table-body {
+      flex: 1;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      padding: 3px 4px;
+      font-style: italic;
+    }
+    .wf-caption {
+      font-size: 6.5pt;
+      color: #64748b;
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+
     /* Links & Dividers */
     a {
       color: #2446c8;
@@ -585,21 +1039,59 @@
 </ol>
 <hr class="divider">
 <h3 class="section-h3">2.2 The 20px Grid Rhythm (<code>--space-20</code> Inset Standard)</h3>
-<p>The hallmark of the CommerceOS visual hierarchy is the <strong>Cardinal 20px Inset Standard (<code>--space-20</code>)</strong>. Every panel, card, table container, toolbar, and drawer panel strictly starts its visual content exactly <strong>20px in</strong>.</p>
-<div class="mermaid-card"><div class="mermaid-tag">SYSTEM DIAGRAM</div><div class="mermaid">flowchart LR
-    subgraph Grid["The 20px Alignment Rhythm"]
-        direction TB
-        Card["Panel Container (Border: var(--border))"]
-        Header["Panel Header (padding: 16px 20px)"]
-        Toolbar["Filter Toolbar (padding: 12px 20px)"]
-        Table["Data Table (th/td first-child pad-left: 20px; last-child pad-right: 20px)"]
-        Footer["Panel Footer (padding: 12px 20px)"]
 
-        Card --> Header
-        Header --> Toolbar
-        Toolbar --> Table
-        Table --> Footer
-    end</div></div>
+<div class="blueprint-frame" style="margin: 10px 0 14px 0;">
+  <div class="blueprint-badge">ARCHITECTURAL BLUEPRINT • 20PX INSET ALIGNMENT STANDARD</div>
+  <div class="blueprint-card">
+    <div class="bp-ruler-left"><span class="bp-ruler-tag">20px Inset ←</span></div>
+    <div class="bp-core">
+      <div class="bp-head-row">
+        <div class="bp-title-group">
+          <span class="bp-title">Orders &amp; Dispatch Console</span>
+          <span class="bp-chip">2,846 Orders Active</span>
+        </div>
+        <div class="bp-action-btn">+ Create Order</div>
+      </div>
+      <div class="bp-toolbar-row">
+        <div class="bp-search-box">🔍 Search by order ID, SKU, customer... <kbd>⌘K</kbd></div>
+        <div class="bp-filter-pill">Status: All (2,846) ▾</div>
+        <div class="bp-filter-pill">Store: All Stores ▾</div>
+        <div class="bp-filter-pill">Export CSV ▾</div>
+      </div>
+      <div class="bp-table-head">
+        <span style="flex: 1.2;">ORDER ID</span>
+        <span style="flex: 1.8;">CUSTOMER</span>
+        <span style="flex: 1.4;">STORE CHANNEL</span>
+        <span style="flex: 1;">ITEMS</span>
+        <span style="flex: 1.2; text-align: right;">TOTAL</span>
+        <span style="flex: 1.6; text-align: right;">STATUS</span>
+      </div>
+      <div class="bp-table-row">
+        <span style="flex: 1.2; font-weight: 700; color: #2446c8;">#ORD-10482</span>
+        <span style="flex: 1.8;">Sarah Jenkins</span>
+        <span style="flex: 1.4;">Fernhill US (DTC)</span>
+        <span style="flex: 1;">3 units</span>
+        <span style="flex: 1.2; text-align: right; font-weight: 600;" class="tnum">$148.00</span>
+        <span style="flex: 1.6; text-align: right;"><span class="bp-status bp-st-green">● Ready to Ship</span></span>
+      </div>
+      <div class="bp-table-row">
+        <span style="flex: 1.2; font-weight: 700; color: #2446c8;">#ORD-10481</span>
+        <span style="flex: 1.8;">Nordic Living Ltd</span>
+        <span style="flex: 1.4;">Wholesale Portal</span>
+        <span style="flex: 1;">45 units</span>
+        <span style="flex: 1.2; text-align: right; font-weight: 600;" class="tnum">$12,450.00</span>
+        <span style="flex: 1.6; text-align: right;"><span class="bp-status bp-st-purple">● Net 30 Terms</span></span>
+      </div>
+      <div class="bp-foot-row">
+        <span>Showing 1-25 of 2,846 records</span>
+        <div class="bp-pager"><span>← Prev</span><span class="bp-active-page">1</span><span>2</span><span>3</span><span>Next →</span></div>
+      </div>
+    </div>
+    <div class="bp-ruler-right"><span class="bp-ruler-tag">→ 20px Inset</span></div>
+  </div>
+</div>
+
+<p>The hallmark of the CommerceOS visual hierarchy is the <strong>Cardinal 20px Inset Standard (<code>--space-20</code>)</strong>. Every panel, card, table container, toolbar, and drawer panel strictly starts its visual content exactly <strong>20px in</strong>.</p>
 <p>By guaranteeing that:</p>
 <ul>
 <li>Header titles start at <code>20px</code></li>
@@ -610,6 +1102,58 @@
 <p>The user's eye scans a perfectly straight vertical line down the page, eliminating visual jitter and drastically reducing scanning fatigue.</p>
 <hr class="divider">
 <h3 class="section-h3">2.3 Semantic Design Tokens &amp; Theme Engine</h3>
+
+<div class="swatches-grid" style="margin: 10px 0 14px 0;">
+  <div class="swatch-card">
+    <div class="swatch-color" style="background: #2446c8;"></div>
+    <div class="swatch-body">
+      <div class="swatch-name">Brand Cobalt</div>
+      <div class="swatch-code">#2446c8</div>
+      <div class="swatch-desc">Primary Actions, Active Tabs, Focus Rings</div>
+    </div>
+  </div>
+  <div class="swatch-card">
+    <div class="swatch-color" style="background: #12704a;"></div>
+    <div class="swatch-body">
+      <div class="swatch-name">Forest Success</div>
+      <div class="swatch-code">#12704a • Subtle: #e4f4ec</div>
+      <div class="swatch-desc">Delivered, Paid, QC Passed, Stock Available</div>
+    </div>
+  </div>
+  <div class="swatch-card">
+    <div class="swatch-color" style="background: #935400;"></div>
+    <div class="swatch-body">
+      <div class="swatch-name">Amber Warning</div>
+      <div class="swatch-code">#935400 • Subtle: #fdf2df</div>
+      <div class="swatch-desc">Low Stock, RMA Pending, Unmatched Invoice</div>
+    </div>
+  </div>
+  <div class="swatch-card">
+    <div class="swatch-color" style="background: #bf2f28;"></div>
+    <div class="swatch-body">
+      <div class="swatch-name">Crimson Danger</div>
+      <div class="swatch-code">#bf2f28 • Subtle: #fcebe9</div>
+      <div class="swatch-desc">Cancelled, Stockout Risk, Fraud Flag</div>
+    </div>
+  </div>
+  <div class="swatch-card">
+    <div class="swatch-color" style="background: #0a6688;"></div>
+    <div class="swatch-body">
+      <div class="swatch-name">Teal Information</div>
+      <div class="swatch-code">#0a6688 • Subtle: #e3f2f8</div>
+      <div class="swatch-desc">In Transit, Shipping Manifest Generated</div>
+    </div>
+  </div>
+  <div class="swatch-card">
+    <div class="swatch-color" style="background: #f3f4f7; border: 1px solid #cbd5e1;"></div>
+    <div class="swatch-body">
+      <div class="swatch-name">Canvas &amp; Surfaces</div>
+      <div class="swatch-code">Canvas: #f3f4f7 • Surface: #ffffff</div>
+      <div class="swatch-desc">Background Canvas, Card Panels, Border: #e1e4ea</div>
+    </div>
+  </div>
+</div>
+
 <p>All styling in CommerceOS is driven by centralized, immutable CSS design tokens defined in <code>ds/commerceos/tokens.css</code>. This enables instant global re-theming, white-label branding, and flawless dark mode support.</p>
 <div class="table-container"><table class="data-table"><thead><tr><th>Token Group</th><th>Token Name</th><th>Value (Light)</th><th>Value (Dark)</th><th>Functional Purpose</th></tr></thead><tbody><tr><td><strong>Surfaces</strong></td><td><code>--bg-canvas</code></td><td><code>#f3f4f7</code></td><td><code>#0d1016</code></td><td>Background page canvas behind cards</td></tr><tr><td></td><td><code>--bg-surface</code></td><td><code>#ffffff</code></td><td><code>#151921</code></td><td>Elevated card surfaces, panels, drawers</td></tr><tr><td></td><td><code>--bg-subtle</code></td><td><code>#f7f8fa</code></td><td><code>#1a1f28</code></td><td>Secondary containers, table header backgrounds</td></tr><tr><td></td><td><code>--bg-muted</code></td><td><code>#eceef2</code></td><td><code>#232934</code></td><td>Hover states, inactive chips, pill backgrounds</td></tr><tr><td></td><td><code>--bg-selected</code></td><td><code>#eef2fe</code></td><td><code>#1b2347</code></td><td>Active navigation items, selected table rows</td></tr><tr><td><strong>Borders</strong></td><td><code>--border</code></td><td><code>#e1e4ea</code></td><td><code>#2a303b</code></td><td>Default card borders, row dividing lines</td></tr><tr><td></td><td><code>--border-strong</code></td><td><code>#ccd1da</code></td><td><code>#3a4250</code></td><td>Input controls, active tabs, modal separators</td></tr><tr><td><strong>Typography</strong></td><td><code>--text-primary</code></td><td><code>#141a26</code></td><td><code>#e9ecf2</code></td><td>Primary headings, titles, data values</td></tr><tr><td></td><td><code>--text-secondary</code></td><td><code>#4a5365</code></td><td><code>#a8b0bf</code></td><td>Field labels, metadata, supporting text</td></tr><tr><td></td><td><code>--text-muted</code></td><td><code>#646d7e</code></td><td><code>#8a93a4</code></td><td>Timestamps, placeholder text, breadcrumbs</td></tr><tr><td><strong>Brand</strong></td><td><code>--brand</code></td><td><code>#2446c8</code></td><td><code>#7d95ff</code></td><td>Primary action buttons, active navigation, focus rings</td></tr><tr><td></td><td><code>--brand-subtle</code></td><td><code>#ebeffd</code></td><td><code>#1b2450</code></td><td>Highlight badge backgrounds, brand accents</td></tr></tbody></table></div>
 <hr class="divider">
@@ -618,16 +1162,129 @@
 <div class="table-container"><table class="data-table"><thead><tr><th>Semantic State</th><th>Text / Border Token</th><th>Background Subtle Token</th><th>Operational Meaning in CommerceOS</th></tr></thead><tbody><tr><td><strong>Success</strong></td><td><code>--success</code> (<code>#12704a</code>)</td><td><code>--success-subtle</code> (<code>#e4f4ec</code>)</td><td>Order Delivered, Payment Cleared, Stock Available, QC Passed</td></tr><tr><td><strong>Warning</strong></td><td><code>--warning</code> (<code>#935400</code>)</td><td><code>--warning-subtle</code> (<code>#fdf2df</code>)</td><td>Low Stock Alert, RMA Return Pending, Unmatched Invoice</td></tr><tr><td><strong>Danger</strong></td><td><code>--danger</code> (<code>#bf2f28</code>)</td><td><code>--danger-subtle</code> (<code>#fcebe9</code>)</td><td>Order Cancelled, Stockout Risk, Fraud Flag, Payment Failed</td></tr><tr><td><strong>Info / Tech</strong></td><td><code>--info</code> (<code>#0a6688</code>)</td><td><code>--info-subtle</code> (<code>#e3f2f8</code>)</td><td>Order In Processing, In Transit Transfer, Tracking Generated</td></tr></tbody></table></div>
 <hr class="divider">
 <h3 class="section-h3">2.5 Typography Hierarchy &amp; Tabular Numeric Figures</h3>
+
+<div class="tabular-demo-card" style="margin: 10px 0 14px 0;">
+  <div class="tabular-side">
+    <div class="tabular-col-head" style="color: #bf2f28;">❌ Standard Proportional (Glyph Jitter)</div>
+    <div class="tabular-nums prop-font">
+      <div>$  1,111.11</div>
+      <div>$  8,888.88</div>
+      <div>$ 14,250.00</div>
+      <div>$  9,999.99</div>
+    </div>
+    <div class="tabular-desc">Different digit widths cause decimal points to wobble; leads to operator scanning fatigue.</div>
+  </div>
+  <div class="tabular-divider"></div>
+  <div class="tabular-side">
+    <div class="tabular-col-head" style="color: #12704a;">✅ CommerceOS Tabular Numerals (font-feature-settings: "tnum" 1)</div>
+    <div class="tabular-nums tnum-font">
+      <div>$  1,111.11</div>
+      <div>$  8,888.88</div>
+      <div>$ 14,250.00</div>
+      <div>$  9,999.99</div>
+    </div>
+    <div class="tabular-desc">Strict mono-width numeric glyphs. Decimal points and commas align in laser-straight vertical columns.</div>
+  </div>
+</div>
+
 <ul>
 <li><strong>Font Stack:</strong> Clean system-native typography (<code>-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif</code>) ensures zero external network latency and native font rendering across macOS, Windows, iOS, and Android.</li>
 <li><strong>Tabular Figures (<code>tnum</code>):</strong> All numerical figures, currency amounts, dates, order IDs, and stock counts enforce <code>font-feature-settings: "tnum" 1</code>. In standard proportional fonts, the digit "1" is narrower than "8", causing columns of numbers to wobble visually. Tabular numerals enforce identical glyph widths, ensuring that decimal points, dollar signs, and numbers align in crisp vertical columns.</li>
 </ul>
 <hr class="divider">
 <h3 class="section-h3">2.6 Responsive Breakpoints &amp; Multi-Device Layout Matrix</h3>
+
+<div class="responsive-wf-grid" style="margin: 10px 0 14px 0;">
+  <div class="wf-card">
+    <div class="wf-title">🖥️ Desktop Ultra (≥1280px / 1600px Max)</div>
+    <div class="wf-box wf-desktop">
+      <div class="wf-side">240px Sidebar</div>
+      <div class="wf-main">
+        <div class="wf-top">Top Bar (32px padding)</div>
+        <div class="wf-kpi-row"><span>KPI 1</span><span>KPI 2</span><span>KPI 3</span><span>KPI 4</span></div>
+        <div class="wf-table-body">Full Data Table (20px Inset Rhythm)</div>
+      </div>
+    </div>
+    <div class="wf-caption">Persistent sidebar, multi-column KPI grids, and side-by-side drawer panels.</div>
+  </div>
+  <div class="wf-card">
+    <div class="wf-title">📱 Tablet Workstation (768px – 1279px)</div>
+    <div class="wf-box wf-tablet">
+      <div class="wf-rail">64px Rail</div>
+      <div class="wf-main">
+        <div class="wf-top">Top Bar (24px padding)</div>
+        <div class="wf-kpi-row"><span>KPI 1</span><span>KPI 2</span></div>
+        <div class="wf-table-body">Stacked Responsive Grid Cards</div>
+      </div>
+    </div>
+    <div class="wf-caption">Collapsible 64px icon rail with overlay flyout and touch-target padding.</div>
+  </div>
+  <div class="wf-card">
+    <div class="wf-title">📲 Mobile Handheld (&lt;768px)</div>
+    <div class="wf-box wf-mobile">
+      <div class="wf-main" style="width: 100%;">
+        <div class="wf-top">Drawer Menu Button + 16px padding</div>
+        <div class="wf-kpi-row"><span style="flex: 1;">Horizontal Swipeable KPI Carousel ↔</span></div>
+        <div class="wf-table-body">Single Column Card Feed</div>
+      </div>
+    </div>
+    <div class="wf-caption">Off-canvas drill-down navigation and scroll-snapped swipeable KPI cards.</div>
+  </div>
+</div>
+
 <p>CommerceOS is engineered to operate seamlessly across warehouse handhelds, tablets, laptops, and ultra-wide operations monitors:</p>
 <div class="table-container"><table class="data-table"><thead><tr><th>Viewport Tier</th><th>Breakpoint Width</th><th>Sidebar Navigation Model</th><th>Layout Architecture &amp; Page Padding</th></tr></thead><tbody><tr><td><strong>Desktop Ultra</strong></td><td>≥1280px (Up to 1600px)</td><td>Persistent 240px Sidebar (User collapsible to 64px rail)</td><td>32px top bar, 32px page padding, multi-column grid layouts</td></tr><tr><td><strong>Tablet Workstation</strong></td><td>768px – 1279px</td><td>64px Icon Rail (Expands to overlay on click)</td><td>24px top bar, 24px page padding, dual-card grid stacks</td></tr><tr><td><strong>Mobile &amp; Handheld</strong></td><td>&lt;768px</td><td>Off-canvas drawer (Drills into 1 module at a time)</td><td>16px top bar, 16px page padding, scroll-snapped swipeable KPI ribbon</td></tr></tbody></table></div>
 <hr class="divider">
 <h3 class="section-h3">2.7 Standard Component Library &amp; Interaction Models</h3>
+
+<div class="specimens-grid" style="margin: 10px 0 14px 0;">
+  <!-- Status Badges -->
+  <div class="specimen-card">
+    <div class="specimen-header">Status Badges &amp; Pills</div>
+    <div class="specimen-content pill-box">
+      <span class="sp-pill sp-green">● Delivered</span>
+      <span class="sp-pill sp-blue">● Processing</span>
+      <span class="sp-pill sp-teal">● In Transit</span>
+      <span class="sp-pill sp-amber">● Low Stock</span>
+      <span class="sp-pill sp-red">● Cancelled</span>
+      <span class="sp-pill sp-purple">● Net 30 Terms</span>
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="specimen-card">
+    <div class="specimen-header">Button &amp; Control States</div>
+    <div class="specimen-content btn-box">
+      <button class="sp-btn sp-btn-brand">+ New Purchase Order</button>
+      <button class="sp-btn sp-btn-secondary">Export PDF Manifest</button>
+      <button class="sp-btn sp-btn-danger">Cancel Order</button>
+    </div>
+  </div>
+
+  <!-- KPI Card -->
+  <div class="specimen-card">
+    <div class="specimen-header">KPI Metric Tile (.o-kpi)</div>
+    <div class="sp-kpi-card">
+      <div class="sp-kpi-meta">
+        <span class="sp-kpi-lbl">CONSOLIDATED REVENUE</span>
+        <span class="sp-kpi-badge">▲ +14.8% vs last month</span>
+      </div>
+      <div class="sp-kpi-val">$820,443.00</div>
+      <div class="sp-kpi-sub">2,846 Live Orders across 4 Channels</div>
+    </div>
+  </div>
+
+  <!-- Attention Action Chips -->
+  <div class="specimen-card">
+    <div class="specimen-header">Attention Action Chips (.o-chip)</div>
+    <div class="specimen-content chip-box">
+      <span class="sp-chip chip-amber"><span class="chip-dot">⚠</span> 14 Low Stock SKUs</span>
+      <span class="sp-chip chip-red"><span class="chip-dot">●</span> 6 Pending RMA Inspections</span>
+      <span class="sp-chip chip-brand"><span class="chip-dot">!</span> 2 Overdue Vendor Deliveries</span>
+    </div>
+  </div>
+</div>
+
 <p>The system provides a standardized library of tested, accessible atomic components:</p>
 <ul>
 <li><strong>Panels &amp; Cards (<code>.o-panel</code>, <code>.cx-card</code>):</strong> Standard container with discrete head, body, and foot sections.</li>
