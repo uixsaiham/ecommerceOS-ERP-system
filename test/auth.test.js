@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { fileURLToPath } from 'node:url';
+import { Store } from '../server/store.js';
+import { makeApp } from '../server/app.js';
+test('retained sign-in protects restored dashboard, creates sessions and signs out', async t => {
+ const store=new Store(':memory:'), server=makeApp({store,root:fileURLToPath(new URL('../',import.meta.url))});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ t.after(async()=>{await new Promise(resolve=>server.close(resolve));store.close();});
+ const origin='http://127.0.0.1:'+server.address().port; let cookie='',csrf='';
+ const call=(path,method='GET',data)=>fetch(origin+path,{method,redirect:'manual',headers:{Origin:origin,Cookie:cookie,'Content-Type':'application/json','X-CSRF-Token':csrf},body:data===undefined?undefined:JSON.stringify(data)});
+ assert.equal((await call('/dashboard-preview/Main.dc.html')).status,302);
+ const setup=await call('/api/setup','POST',{name:'Owner',email:'owner@example.test',password:'long-test-password'}); assert.equal(setup.status,201);
+ cookie=setup.headers.get('set-cookie').split(';')[0];csrf=(await setup.json()).csrf;
+ const dashboard=await call('/dashboard-preview/Main.dc.html');assert.equal(dashboard.status,200);assert.ok(!(await dashboard.text()).includes('/assets/app-client.js'));
+ assert.equal((await call('/api/records/orders')).status,404);
+ assert.equal((await call('/api/logout','POST',{})).status,200);
+ assert.equal((await call('/api/session')).status,401);
+ assert.equal((await call('/api/login','POST',{email:'owner@example.test',password:'wrong'})).status,401);
+ assert.equal((await call('/api/login','POST',{email:'owner@example.test',password:'long-test-password'})).status,200);
+});

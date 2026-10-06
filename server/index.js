@@ -1,0 +1,10 @@
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
+import { Store } from './store.js';
+import { makeApp } from './app.js';
+const root = fileURLToPath(new URL('../', import.meta.url));
+const store = new Store(process.env.COMMERCEOS_DB || resolve(root, 'data/commerceos.sqlite'));
+const server = makeApp({ store, root, secure: process.env.COMMERCEOS_SECURE_COOKIE === '1' });
+const port = Number(process.env.PORT || 3000), host = process.env.HOST || '127.0.0.1';
+server.listen(port, host, () => console.log(`CommerceOS is running at http://${host}:${port}.`));
+for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => server.close(() => { store.close(); process.exit(0); }));

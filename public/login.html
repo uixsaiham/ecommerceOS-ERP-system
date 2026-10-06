@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · CommerceOS</title>
+  <link rel="stylesheet" href="/assets/login.css">
+  <script>window.AUTH_CONFIG = __AUTH_CONFIG__;</script>
+  <script src="/assets/login.js" defer></script>
+</head>
+<body>
+  <main class="auth">
+    <a class="brand" href="/"><span class="logo">C</span>CommerceOS</a>
+    <section class="card">
+      <p class="eyebrow">YOUR COMMERCE WORKSPACE</p>
+      <h1 id="title">Welcome back</h1>
+      <p class="description" id="description">Sign in to manage your stores, orders, and operations.</p>
+      <form id="auth-form">
+        <label id="name-row" hidden>Your name<input id="name" name="name" autocomplete="name" maxlength="120"></label>
+        <label>Email address<input id="email" name="email" type="email" autocomplete="username" placeholder="you@company.com" required maxlength="254"></label>
+        <label>Password<span class="password-row"><input id="password" name="password" type="password" autocomplete="current-password" required minlength="12" maxlength="256"><button type="button" id="show-password" aria-label="Show password">Show</button></span></label>
+        <p id="password-hint" class="hint" hidden>Use at least 12 characters.</p>
+        <p id="error" class="error" role="alert" hidden></p>
+        <button id="submit" class="primary" type="submit">Sign in <span aria-hidden="true">→</span></button>
+      </form>
+    </section>
+    <p class="foot">CommerceOS · One place for every operation</p>
+  </main>
+</body>
+</html>

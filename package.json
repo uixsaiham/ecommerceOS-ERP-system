@@ -1,0 +1,16 @@
+{
+  "name": "commerceos",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test test/auth.test.js",
+    "user:create": "node scripts/create-user.js",
+    "db:backup": "node scripts/backup.js"
+  }
+}
