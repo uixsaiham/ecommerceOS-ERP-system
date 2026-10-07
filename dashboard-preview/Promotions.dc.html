@@ -6,7 +6,7 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=5">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
 <script src="ds/commerceos/shell/shell.js?v=12"></script>
@@ -15,6 +15,7 @@
 <script src="./orders.js?v=2"></script>
 <script src="./customers.js?v=2"></script>
 <script src="./marketing.js?v=1"></script>
+<link rel="stylesheet" href="ds/commerceos/shell/modern.css?v=2">
 </head>
 <body>
 <x-dc>
@@ -79,7 +80,6 @@
 <x-import component-from-global-scope="CommerceOS.PageTrail" current="marketing/promotions"></x-import>
 <h1>Promotions</h1>
 <p class="ph-sub">Sales events from planning to results, with the discounts, codes and campaigns behind each one.</p>
-<p class="ph-meta"><span>{{metaCount}}</span><span>September to December 2026</span></p>
 </div>
 <div class="o-head-actions">
 <x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openNew}}">New promotion</x-import>

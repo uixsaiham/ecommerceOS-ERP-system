@@ -6,7 +6,7 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=5">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
 <script src="ds/commerceos/shell/shell.js?v=12"></script>
@@ -17,6 +17,7 @@
 <script src="./fulfillment.js?v=1"></script>
 <script src="./returns.js?v=1"></script>
 <script src="./finance.js?v=2"></script>
+<link rel="stylesheet" href="ds/commerceos/shell/modern.css?v=2">
 </head>
 <body>
 <x-dc>
@@ -90,7 +91,6 @@
 <x-import component-from-global-scope="CommerceOS.PageTrail" current="finance/overview"></x-import>
 <h1>Finance overview</h1>
 <p class="ph-sub">Sales, costs and cash across the four stores and three bank accounts. All amounts in USD.</p>
-<p class="ph-meta"><span>Last 30 days · September books still open</span><span>Today, Oct 1 · 09:42 UTC</span></p>
 </div>
 <div class="o-head-actions">
 <x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportPnl}}"><span class="o-export-label">Export P&amp;L</span></x-import>

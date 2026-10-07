@@ -14,6 +14,21 @@
 }
 
 /* ---------- sidebar frame ---------- */
+/* Main-title subtitles stay below their heading on a single line. */
+.page-head > .ph-titles { flex: 1 1 280px; min-width: 0; max-width: 100%; }
+.app .ph-titles > .ph-sub,
+.app .ph > h1 + p,
+.app .pf-hero-t > h1 + p,
+.si-card h1 + p {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.app .pf-hero-t { min-width: 0; }
+
 .cx-side { position: sticky; top: 0; height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; min-width: 0; background: var(--bg-surface); border-right: 1px solid var(--border); z-index: 30; color: var(--text-primary); font-family: var(--font-sans); font-size: 14px; line-height: 20px; }
 .cx-side ul { list-style: none; margin: 0; padding: 0; }
 

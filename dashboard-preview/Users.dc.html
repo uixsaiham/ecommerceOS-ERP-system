@@ -6,12 +6,13 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=5">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
 <script src="ds/commerceos/shell/shell.js?v=12"></script>
 <script src="./catalog.js?v=4"></script>
 <script src="./management.js?v=1"></script>
+<link rel="stylesheet" href="ds/commerceos/shell/modern.css?v=2">
 </head>
 <body>
 <x-dc>
@@ -81,7 +82,6 @@
 <div class="ph-titles">
 <h1>Users & Roles</h1>
 <p class="ph-sub">Who can sign in to CommerceOS, what each role can do, and what people changed.</p>
-<p class="ph-meta"><span>{{seatLabel}}</span><span>Signed in as {{me}} · Administrator</span></p>
 </div>
 <div class="o-head-actions">
 <x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openInvite}}">Invite user</x-import>

@@ -6,11 +6,12 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=5">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
 <script src="ds/commerceos/shell/shell.js?v=12"></script>
 <script src="./catalog.js?v=4"></script>
+<link rel="stylesheet" href="ds/commerceos/shell/modern.css?v=2">
 </head>
 <body>
 <x-dc>
@@ -96,7 +97,6 @@
 <x-import component-from-global-scope="CommerceOS.PageTrail" current="products/collections"></x-import>
 <h1>Collections</h1>
 <p class="ph-sub">Curated and rule-based groups of products for storefront pages, campaigns and wholesale catalogs.</p>
-<p class="ph-meta"><span>{{metaCount}}</span><span>Sales: last 30 days · {{storeName}}</span></p>
 </div>
 <div class="o-head-actions">
 <x-import component-from-global-scope="CommerceOS.Button" variant="primary" icon="plus" on-click="{{openNew}}">Create collection</x-import>

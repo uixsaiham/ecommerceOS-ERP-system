@@ -6,7 +6,7 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=5">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <link rel="stylesheet" href="ds/commerceos/shell/viz.css?v=1">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
@@ -16,6 +16,7 @@
 <script src="./orders.js?v=2"></script>
 <script src="./customers.js?v=2"></script>
 <script src="./analytics.js?v=2"></script>
+<link rel="stylesheet" href="ds/commerceos/shell/modern.css?v=2">
 </head>
 <body>
 <x-dc>
@@ -42,7 +43,6 @@
 <x-import component-from-global-scope="CommerceOS.PageTrail" current="analytics/customers"></x-import>
 <h1>Customer Analytics</h1>
 <p class="ph-sub">Who buys, how they found you, whether they come back, and who is slipping away.</p>
-<p class="ph-meta"><span>{{metaCount}}</span><span>Updated 09:42 UTC</span></p>
 </div>
 <div class="o-head-actions">
 <x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>

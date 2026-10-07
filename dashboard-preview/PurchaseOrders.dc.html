@@ -6,13 +6,14 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=5">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
 <script src="ds/commerceos/shell/shell.js?v=12"></script>
 <script src="./catalog.js?v=4"></script>
 <script src="./inventory.js?v=8"></script>
 <script src="./procurement.js?v=1"></script>
+<link rel="stylesheet" href="ds/commerceos/shell/modern.css?v=2">
 </head>
 <body>
 <x-dc>
@@ -63,7 +64,6 @@
 <x-import component-from-global-scope="CommerceOS.PageTrail" current="procurement/purchase-orders"></x-import>
 <h1>Purchase Orders</h1>
 <p class="ph-sub">Orders to suppliers, from draft to delivered. Warehouses check them in on the Receiving page.</p>
-<p class="ph-meta"><span>{{metaCount}}</span><span>Today, Oct 1 · 09:42 UTC</span></p>
 </div>
 <div class="o-head-actions">
 <x-import component-from-global-scope="CommerceOS.Select" aria-label="Supplier" options="{{supOpts}}" value="{{sup}}" on-value-change="{{setSup}}" width="230px"></x-import>

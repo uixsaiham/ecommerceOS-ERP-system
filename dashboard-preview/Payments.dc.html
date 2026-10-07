@@ -6,7 +6,7 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=5">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
 <script src="ds/commerceos/shell/shell.js?v=12"></script>
@@ -17,6 +17,7 @@
 <script src="./fulfillment.js?v=1"></script>
 <script src="./returns.js?v=1"></script>
 <script src="./finance.js?v=2"></script>
+<link rel="stylesheet" href="ds/commerceos/shell/modern.css?v=2">
 </head>
 <body>
 <x-dc>
@@ -52,7 +53,6 @@
 <x-import component-from-global-scope="CommerceOS.PageTrail" current="finance/payments"></x-import>
 <h1>Payments</h1>
 <p class="ph-sub">Every payment taken across the stores, what the processor kept, and when it reached the bank.</p>
-<p class="ph-meta"><span>{{metaCount}}</span><span>Last 30 days</span></p>
 </div>
 <div class="o-head-actions">
 <x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export</span></x-import>

@@ -74,6 +74,9 @@ body{
   margin:0 0 22px;
   color:#667085;
   font-size:13.5px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 form{display:flex;flex-direction:column;gap:12px}
 label{

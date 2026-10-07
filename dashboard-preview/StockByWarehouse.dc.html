@@ -6,12 +6,13 @@
 <script src="./support.js"></script>
 <link rel="stylesheet" href="ds/commerceos/tokens.css?v=3">
 <link rel="stylesheet" href="ds/commerceos/components/bundle.css?v=3">
-<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=4">
+<link rel="stylesheet" href="ds/commerceos/shell/shell.css?v=5">
 <link rel="stylesheet" href="ds/commerceos/shell/list.css?v=5">
 <script src="ds/commerceos/components/bundle.js?v=3"></script>
 <script src="ds/commerceos/shell/shell.js?v=12"></script>
 <script src="./catalog.js?v=4"></script>
 <script src="./inventory.js?v=8"></script>
+<link rel="stylesheet" href="ds/commerceos/shell/modern.css?v=2">
 </head>
 <body>
 <x-dc>
@@ -77,7 +78,6 @@
 <x-import component-from-global-scope="CommerceOS.PageTrail" current="warehouses/stock"></x-import>
 <h1>Stock by Warehouse</h1>
 <p class="ph-sub">Inside one warehouse: zones, bin locations, how old the stock is, and which areas are due a count.</p>
-<p class="ph-meta"><span>{{metaWh}}</span><span>{{metaManager}}</span></p>
 </div>
 <div class="o-head-actions">
 <x-import component-from-global-scope="CommerceOS.Button" variant="secondary" icon="download" on-click="{{exportView}}"><span class="o-export-label">Export bin list</span></x-import>
